@@ -251,8 +251,9 @@ function updateUI() {
     document.getElementById('val-break-time').innerText = '0h 00m';
     document.getElementById('val-exit-time').innerText = '--:--';
     
-    document.getElementById('progress-fill').style.width = '0%';
-    document.getElementById('progress-percentage').innerText = '0% Completed';
+    const circleBar = document.getElementById('progress-circle-bar');
+    if (circleBar) circleBar.style.strokeDashoffset = '351.85';
+    document.getElementById('progress-percentage').innerText = '0%';
     document.getElementById('progress-remaining').innerText = `${state.targetHours}h remaining`;
     
     document.getElementById('swipe-timeline-list').innerHTML = `<div class="empty-state">No swiping events logged today.</div>`;
@@ -282,8 +283,13 @@ function updateUI() {
   const targetMin = state.targetHours * 60;
   const progressPercent = Math.min(100, Math.floor((metrics.workMinutes / targetMin) * 100));
   
-  document.getElementById('progress-fill').style.width = `${progressPercent}%`;
-  document.getElementById('progress-percentage').innerText = `${progressPercent}% Completed`;
+  const circleBar = document.getElementById('progress-circle-bar');
+  if (circleBar) {
+    const circumference = 351.85;
+    const offset = circumference - (progressPercent / 100) * circumference;
+    circleBar.style.strokeDashoffset = offset;
+  }
+  document.getElementById('progress-percentage').innerText = `${progressPercent}%`;
   document.getElementById('progress-remaining').innerText = metrics.completed
     ? '0m remaining'
     : `${formatMinutes(metrics.remainingMinutes)} remaining`;
