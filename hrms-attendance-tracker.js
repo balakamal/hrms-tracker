@@ -233,6 +233,7 @@
       z-index: 10;
       transition: all 0.3s ease;
       transform: translateY(100%);
+      overflow-y: auto;
     }
     .at-settings.active {
       transform: translateY(0);
@@ -350,6 +351,7 @@
       z-index: 12;
       transition: all 0.3s ease;
       transform: translateY(100%);
+      overflow-y: auto;
     }
     .at-sync.active {
       transform: translateY(0);
@@ -405,6 +407,12 @@
     minimize: `<svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg>`,
     phone: `<svg viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg>`
   };
+
+  // Migration for old PWA URL cache
+  const cachedPwaUrl = localStorage.getItem('at_pwa_url');
+  if (!cachedPwaUrl || cachedPwaUrl.includes('kamal-thiruveedhula')) {
+    localStorage.setItem('at_pwa_url', 'https://balakamal.github.io/hrms-tracker/hrms-pwa/');
+  }
 
   // --- STATE MANAGEMENT ---
   let state = {
