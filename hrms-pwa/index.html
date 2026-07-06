@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>HRMS Attendance PWA</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+  <meta name="theme-color" content="#00f2fe">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Attendance">
+  <link rel="apple-touch-icon" href="icon192.png">
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-logo-group">
+        <div class="logo-circle">⏱️</div>
+        <div>
+          <h1>Attendance Insights</h1>
+          <p class="subtitle" id="user-display-name">Loading Profile...</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="header-btn" id="btn-settings" title="Settings">⚙️</button>
+        <button class="header-btn" id="btn-refresh-api" title="Sync Live Logs">🔄</button>
+      </div>
+    </header>
+
+    <!-- Main Dashboard Card -->
+    <main class="dashboard-card" id="main-dashboard" style="display: none;">
+      <!-- Status Banner -->
+      <div class="status-banner">
+        <span class="status-indicator status-out" id="status-indicator"></span>
+        <span id="status-text">Determining status...</span>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-label">
+            <span class="icon">➡️</span> First In
+          </div>
+          <div class="stat-value" id="val-first-in">--:--</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">
+            <span class="icon">💼</span> Biometric Time
+          </div>
+          <div class="stat-value highlight-work" id="val-work-time">0h 00m</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">
+            <span class="icon">☕</span> Total Break
+          </div>
+          <div class="stat-value" id="val-break-time">0h 00m</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">
+            <span class="icon">🚪</span> Est. Exit
+          </div>
+          <div class="stat-value highlight-exit" id="val-exit-time">--:--</div>
+        </div>
+      </div>
+
+      <!-- Progress Section -->
+      <div class="progress-section">
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="progress-labels">
+          <span id="progress-percentage">0% Completed</span>
+          <span id="progress-remaining">--h --m left</span>
+        </div>
+      </div>
+    </main>
+
+    <!-- Swipes Timeline Section -->
+    <section class="panel-card" id="timeline-card" style="display: none;">
+      <div class="panel-header">
+        <h2>Live Swipes Timeline</h2>
+        <span class="badge-sync" id="sync-status-badge">Synced</span>
+      </div>
+      <div class="swipe-list" id="swipe-timeline-list">
+        <div class="empty-state">No swipes logged yet today.</div>
+      </div>
+    </section>
+
+    <!-- Token Required / Authentication Panel (Shows if no token is saved) -->
+    <section class="panel-card auth-card" id="auth-panel">
+      <div class="auth-header">
+        <h2>Authentication Required</h2>
+        <p class="help-text">To load your attendance logs in real-time, please configure your HRMS Access Token.</p>
+      </div>
+      <div class="form-group">
+        <label for="input-auth-token">HRMS Access Token</label>
+        <textarea class="textarea-field" id="input-auth-token" rows="3" placeholder="Paste AccessToken here (e.g., 1bEqErFQiHxx...)"></textarea>
+      </div>
+      <div class="auth-actions">
+        <a href="https://apps.pal.tech/hrms/" target="_blank" class="btn-secondary-link">1. Go to HRMS to Log In</a>
+        <button class="btn-primary" id="btn-save-token">2. Save Token & Load Logs</button>
+      </div>
+      <div class="help-box">
+        <span class="help-icon">💡</span>
+        <p class="help-text">You can find your Access Token in your desktop browser's DevTools: <code>Application -> Local Storage -> AccessToken</code>.</p>
+      </div>
+    </section>
+
+    <!-- Settings Subpanel (Modal overlay style on mobile) -->
+    <div class="settings-modal-overlay" id="settings-modal" style="display: none;">
+      <div class="settings-modal">
+        <div class="modal-header">
+          <h2>Application Settings</h2>
+          <button class="close-btn" id="btn-close-settings">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="setting-hours">Daily Work Goal (Hours)</label>
+            <input type="number" class="input-field" id="setting-hours" step="0.5" min="1" max="24" value="8.5">
+          </div>
+          <div class="form-group checkbox-row">
+            <label for="setting-notify">Enable Shift-End Notifications</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="setting-notify" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="form-group">
+            <label for="setting-proxy">CORS Proxy URL (For GitHub Pages deployment)</label>
+            <input type="text" class="input-field" id="setting-proxy" value="https://corsproxy.io/?url=" placeholder="Leave blank for Direct Fetch">
+          </div>
+          <div class="form-group">
+            <label for="setting-token">Update Access Token</label>
+            <textarea class="textarea-field" id="setting-token" rows="2" placeholder="Paste new token here"></textarea>
+          </div>
+          <button class="btn-primary" id="btn-save-settings">Save & Apply</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
