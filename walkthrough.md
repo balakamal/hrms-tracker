@@ -1,0 +1,132 @@
+# Walkthrough & User Guide - HRMS Attendance Tracker
+
+This guide details how to set up, customize, and share the new real-time floating attendance dashboard.
+
+## Features Implemented
+1. **First Clock-In Tracking:** Displays the exact time of your first swipe-in of the day.
+2. **Biometric Hours (Work Time):** Shows the exact sum of time spent in the office (excluding breaks), calculated in real-time if currently clocked in.
+3. **Total Break Time:** Dynamically computes total time spent out of the office between work sessions.
+4. **Estimated Exit Time:** Displays when you can clock out based on your customized target work hours and remaining biometric minutes.
+5. **Real-time Notifications:** Alerts you every 5 minutes when your target is reached, until you either clock out, log out, or toggle off notifications.
+6. **Fully Customizable Settings:** Settings panel directly built-in to toggle notifications, change target hours, or manually override the user ID.
+
+---
+
+## Installation Instructions
+
+You can inject this code using any user-script manager extension (like **Tampermonkey** or **Violentmonkey**), or using the **User JavaScript and CSS** Chrome extension.
+
+### Method 1: Via Tampermonkey / Violentmonkey (Recommended)
+1. Install [Tampermonkey](https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo) from the Chrome Web Store.
+2. Click the Tampermonkey extension icon and choose **Create a new script**.
+3. Clear the template and copy-paste the entire contents of [hrms-attendance-tracker.js](file:///c:/Users/kamal.thiruveedhula/Training/InnovateX/Vectors%20in%20Postgress/hrms-attendance-tracker.js) into the editor.
+4. Click **File -> Save** (or `Ctrl + S`).
+5. Open/Reload your HRMS dashboard: `https://apps.pal.tech/hrms/me/time-sheet` or `https://apps.pal.tech/hrms/dashboard`.
+6. You will see the floating dashboard widget in the bottom-right corner!
+
+### Method 2: Via "User JavaScript and CSS" Extension
+1. Install [User JavaScript and CSS](https://chromewebstore.google.com/detail/user-javascript-and-css/nbhcbdgdggolhdglhlbgglhannlbocle) from the Chrome Web Store.
+2. Navigate to `https://apps.pal.tech/hrms/me/time-sheet`.
+3. Click the extension icon and select **Add New**.
+4. Paste the entire JavaScript code (excluding the `// ==UserScript==` header lines if desired) into the JS pane.
+5. Leave the CSS pane blank (since CSS is injected automatically by the script).
+6. Click **Save** in the extension editor.
+
+---
+
+## How to Customize
+
+1. Click the **Settings Gear** icon in the header of the floating card.
+2. **Target Work:** Adjust your daily office hours requirement (default is `8.5` hours).
+3. **Enable Notifications:** Toggle whether desktop notifications are sent every 5 minutes once target hours are completed.
+4. **User ID:** This is auto-detected. If you wish to track another colleague's status (or override the auto-detection), you can enter their numeric User ID and click **Save & Apply**.
+5. Save settings. Configurations are stored locally in the browser's `localStorage`.
+
+---
+
+## Packaging as a Chrome Extension (Manifest V3)
+
+I have fully packaged this tool as a standalone Chrome Extension and saved it to your workspace:
+* **Extension ZIP Package:** [hrms-attendance-tracker-extension.zip](file:///C:/Users/kamal.thiruveedhula/Training/InnovateX/hrms-tracker/hrms-attendance-tracker-extension.zip)
+* **Unpacked Folder:** [hrms-extension](file:///C:/Users/kamal.thiruveedhula/Training/InnovateX/hrms-tracker/hrms-extension)
+
+### How to Install and Test Locally (Developer Mode)
+1. Open Google Chrome and navigate to `chrome://extensions/`.
+2. Enable **Developer mode** (toggle in the top-right corner).
+3. Click **Load unpacked** (top-left button).
+4. Select the `hrms-extension` directory: `C:\Users\kamal.thiruveedhula\Training\InnovateX\hrms-tracker\hrms-extension`.
+5. The extension is now loaded and will automatically run on the HRMS pages without needing Tampermonkey!
+
+### How to Publish to the Chrome Web Store
+To share the extension publicly or within your organization via the Chrome Web Store:
+1. Go to the [Chrome Web Store Developer Console](https://chrome.google.com/webstore/devconsole).
+2. Sign in with a developer account (requires a one-time $5 registration fee from Google).
+3. Click **Add new item**.
+4. Upload the packaged ZIP file: `C:\Users\kamal.thiruveedhula\Training\InnovateX\hrms-tracker\hrms-attendance-tracker-extension.zip`.
+5. Complete the store listing details (icons, description, screenshots).
+6. Submit for review!
+
+---
+
+## HRMS Attendance PWA Mobile Web App
+
+I have developed a mobile-optimized Progressive Web App (PWA) in the workspace directory:
+* **PWA Directory:** [hrms-pwa](file:///C:/Users/kamal.thiruveedhula/Training/InnovateX/hrms-tracker/hrms-pwa)
+
+### Key PWA Features for Mobile
+1. **PWA Standalone Mode:** Can be installed directly on your mobile home screen with a custom icon.
+2. **Direct API Fetching:** Queries the HRMS backend APIs directly to get your user identity and real-time swipes.
+3. **Live Swipes Timeline:** Displays the exact list of swipes logged in the HRMS database for today.
+4. **CORS Proxy Support:** Integrates a built-in customizable CORS proxy (e.g., `allorigins.win`) to successfully fetch data from different domains.
+5. **Secure Local Credentials:** Keeps your Access Token and preferences stored locally on your device (`localStorage`), with easy settings configuration.
+6. **Offline Shell:** Uses a registered service worker (`service_worker.js`) to cache PWA assets so the interface loads instantly.
+
+### How to Deploy on GitHub Pages
+To share the PWA with your colleagues and access it on your phone:
+1. Pushed the files in the `hrms-tracker` folder to your GitHub repository `https://github.com/balakamal/hrms-tracker.git` (Completed).
+2. Go to the repository **Settings -> Pages** on GitHub.
+3. Under **Build and deployment -> Source**, select **Deploy from a branch**.
+4. Under **Branch**, select `main` and `/` (root), then click **Save**.
+5. GitHub will deploy the site to: `https://balakamal.github.io/hrms-tracker/hrms-pwa/`.
+6. Open this URL on your mobile phone!
+
+### How to Sync Desktop Tokens to Mobile PWA
+To completely eliminate the need to manually copy-paste the long access token on your phone:
+1. Open the floating **Attendance Insights** card on your desktop.
+2. Click the new **Mobile Sync (phone icon)** button in the header.
+3. A panel will slide up showing a **QR Code** and a **Copy Link** input.
+4. **Via QR Code:** Scan the QR code using your phone's camera. It will open the PWA on your phone and automatically transfer your tokens!
+5. **Via Link:** Click **Copy** next to the sync link, send it to your phone (via Slack, WhatsApp, Teams, etc.), and open it.
+6. The PWA will automatically extract the `AccessToken` and `RefreshToken`, store them securely, clean up the address bar, and load your live attendance metrics!
+
+> [!NOTE]
+> If your PWA is deployed to a custom URL (e.g. your own GitHub Pages address), go to the **Settings (gear icon)** on your desktop card and update the **Mobile PWA URL** field so the generated QR codes point to your own deployment.
+
+### How to Install and Enable Notifications on Mobile
+
+#### For Android (Chrome/Firefox):
+1. Open the deployed URL in Chrome on your phone.
+2. Click the three dots menu and select **Add to Home screen** (or click the bottom banner prompt).
+3. Open the app from your home screen. When prompted, click **Allow Notifications**.
+
+#### For iOS (Safari):
+1. Open the deployed URL in Safari on your iPhone.
+2. Tap the **Share** button (box with an up arrow) and select **Add to Home Screen**.
+3. Open the app from your Home Screen.
+4. The first time it opens, tap the **Settings Gear** or perform a swipe. You will be prompted to allow notification permissions. Tap **Allow**.
+
+---
+
+## Live Injection Verification (Desktop Widget)
+
+I have successfully injected the script into your active browser tab `Me | Timesheet` (`53839B6E2AF82BE43507DA8A00236A19`) and captured a screenshot. You will see the floating glassmorphic **Attendance Insights** widget at the bottom right of your screen:
+
+![Attendance Insights Injected Widget UI](C:/Users/kamal.thiruveedhula/.gemini/antigravity-ide/brain/29258d3e-1a79-437d-ac08-96d9a71b1440/injected_screenshot.png)
+
+---
+
+## PWA Verification (Mobile Web App)
+
+I have verified the PWA calculations and layouts locally using a mock biometric logs import. The UI renders beautifully and calculates exact metrics (Work Time, Break Time, Exit Time) matching the punches:
+
+![PWA Mobile UI Verification Screenshot](C:/Users/kamal.thiruveedhula/.gemini/antigravity-ide/brain/29258d3e-1a79-437d-ac08-96d9a71b1440/updated_pwa_ui_1783339990085.png)
