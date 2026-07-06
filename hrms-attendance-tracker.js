@@ -412,7 +412,7 @@
     userName: 'User',
     targetHours: parseFloat(localStorage.getItem('at_target_hours') || '8.5'),
     notifyEnabled: localStorage.getItem('at_notify_enabled') !== 'false',
-    pwaUrl: localStorage.getItem('at_pwa_url') || 'https://kamal-thiruveedhula.github.io/hrms-tracker/',
+    pwaUrl: localStorage.getItem('at_pwa_url') || 'https://balakamal.github.io/hrms-tracker/hrms-pwa/',
     isMinimized: localStorage.getItem('at_is_minimized') === 'true',
     attendanceData: null,
     lastNotificationTime: 0,
