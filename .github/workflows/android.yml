@@ -30,6 +30,10 @@ jobs:
         cd android
         gradle assembleDebug > build_log.txt 2>&1
 
+    - name: Print Build Log on Failure
+      if: failure()
+      run: cat android/build_log.txt || true
+
     - name: Upload Build Log on Failure
       if: failure()
       uses: actions/upload-artifact@v4
