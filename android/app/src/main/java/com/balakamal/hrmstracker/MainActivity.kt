@@ -60,9 +60,14 @@ class MainActivity : AppCompatActivity() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 
-                // If user lands on timesheet or dashboard after login, extract tokens
-                if (url != null && (url.contains("dashboard") || url.contains("time-sheet") || url.contains("me/timesheet"))) {
-                    extractTokensFromStorage()
+                if (url != null && url.contains("apps.pal.tech/hrms")) {
+                    // Extract tokens silently for background notifications if they log in
+                    if (url.contains("dashboard") || url.contains("time-sheet") || url.contains("me/timesheet")) {
+                        extractTokensForBackgroundWorker()
+                    }
+                    
+                    // Inject the floating widget script
+                    injectScriptFromAssets()
                 }
             }
         }
@@ -72,21 +77,27 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startAppFlow() {
+        // Always load the original HRMS portal homepage.
+        // WebView manages cookies natively, so it will redirect to the dashboard if already logged in.
+        webView.loadUrl("https://apps.pal.tech/hrms/")
+        
         val token = sharedPrefs.getString(KEY_ACCESS_TOKEN, null)
-        val refresh = sharedPrefs.getString(KEY_REFRESH_TOKEN, null)
-
         if (token != null) {
-            // Load PWA with stored tokens
-            val syncUrl = "$PWA_URL?token=${android.net.Uri.encode(token)}&refresh=${android.net.Uri.encode(refresh ?: "")}"
-            webView.loadUrl(syncUrl)
             scheduleBackgroundWorker()
-        } else {
-            // Load original HRMS Login
-            webView.loadUrl(LOGIN_URL)
         }
     }
 
-    private fun extractTokensFromStorage() {
+    private fun injectScriptFromAssets() {
+        try {
+            val inputStream = assets.open("hrms-attendance-tracker.js")
+            val script = inputStream.bufferedReader().use { it.readText() }
+            webView.evaluateJavascript(script, null)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun extractTokensForBackgroundWorker() {
         webView.evaluateJavascript(
             "(function() { return localStorage.getItem('AccessToken'); })();"
         ) { accessTokenJson ->
@@ -97,14 +108,17 @@ class MainActivity : AppCompatActivity() {
                 ) { refreshTokenJson ->
                     val refreshToken = refreshTokenJson.replace("\"", "").trim()
                     
-                    sharedPrefs.edit()
-                        .putString(KEY_ACCESS_TOKEN, accessToken)
-                        .putString(KEY_REFRESH_TOKEN, refreshToken)
-                        .apply()
-                        
-                    runOnUiThread {
-                        Toast.makeText(this@MainActivity, "Tokens extracted successfully!", Toast.LENGTH_SHORT).show()
-                        startAppFlow()
+                    val currentToken = sharedPrefs.getString(KEY_ACCESS_TOKEN, null)
+                    if (currentToken != accessToken) {
+                        sharedPrefs.edit()
+                            .putString(KEY_ACCESS_TOKEN, accessToken)
+                            .putString(KEY_REFRESH_TOKEN, refreshToken)
+                            .apply()
+                            
+                        runOnUiThread {
+                            Toast.makeText(this@MainActivity, "Background notifications synced!", Toast.LENGTH_SHORT).show()
+                            scheduleBackgroundWorker()
+                        }
                     }
                 }
             }
