@@ -117,6 +117,15 @@ To completely eliminate the need to manually copy-paste the long access token on
 
 ---
 
+### 📱 Native Android App (In-App Login & Push Notifications)
+
+We upgraded the Android Kotlin app wrapper to fully support mobile-only operations:
+1. **Self-Contained Login:** If no token is cached, the app automatically loads `https://apps.pal.tech/hrms/login`.
+2. **Automatic Token Extraction:** Once you log in, the app extracts the `AccessToken` and `RefreshToken` from local storage using JavaScript injection, stores them locally, and launches the PWA dashboard automatically.
+3. **Background Push Notifications:** The app schedules an Android `WorkManager` task to periodically fetch logs and push system alerts when your shift target is completed.
+
+---
+
 ## Live Injection Verification (Desktop Widget)
 
 I have successfully injected the script into your active browser tab `Me | Timesheet` (`53839B6E2AF82BE43507DA8A00236A19`) and captured a screenshot. You will see the floating glassmorphic **Attendance Insights** widget at the bottom right of your screen:
