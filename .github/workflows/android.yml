@@ -26,7 +26,14 @@ jobs:
     - name: Build with Gradle
       run: |
         cd android
-        gradle assembleDebug
+        gradle assembleDebug > build_log.txt 2>&1
+
+    - name: Upload Build Log on Failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: gradle-build-log
+        path: android/build_log.txt
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
