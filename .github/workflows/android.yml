@@ -28,7 +28,7 @@ jobs:
     - name: Build with Gradle
       run: |
         cd android
-        gradle assembleDebug > build_log.txt 2>&1
+        gradle assembleDebug --stacktrace 2>&1 | tee build_log.txt
 
     - name: Print Build Log on Failure
       if: failure()
