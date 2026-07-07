@@ -1344,16 +1344,18 @@
     const now = Date.now();
     // Throttle notifications to run every 5 minutes (or whatever is in state.notificationInterval)
     if (now - state.lastNotificationTime > state.notificationInterval) {
-      if (Notification.permission === "default") {
-        Notification.requestPermission();
-      } else if (Notification.permission === "granted") {
-        const bodyText = `You have completed ${formatMinutes(workMinutes)} of biometric office time. Time to wrap up and head home!`;
-        const options = { body: bodyText };
-        if (state.userAvatar) {
-          options.icon = state.userAvatar;
+      if (typeof Notification !== "undefined") {
+        if (Notification.permission === "default") {
+          Notification.requestPermission();
+        } else if (Notification.permission === "granted") {
+          const bodyText = `You have completed ${formatMinutes(workMinutes)} of biometric office time. Time to wrap up and head home!`;
+          const options = { body: bodyText };
+          if (state.userAvatar) {
+            options.icon = state.userAvatar;
+          }
+          new Notification("Shift Completed!", options);
+          state.lastNotificationTime = now;
         }
-        new Notification("Shift Completed!", options);
-        state.lastNotificationTime = now;
       }
     }
   }
@@ -1361,7 +1363,7 @@
   // --- INITIALIZATION ---
   function init() {
     // Request notification permissions early
-    if (Notification.permission === "default") {
+    if (typeof Notification !== "undefined" && Notification.permission === "default") {
       Notification.requestPermission();
     }
 
