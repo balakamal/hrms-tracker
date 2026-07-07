@@ -761,10 +761,15 @@
   let wasDragging = false;
 
   function buildUI() {
+    if (document.getElementById("at-widget-container")) return;
+
     // Inject style sheet
-    const styleEl = document.createElement("style");
-    styleEl.innerHTML = styles;
-    document.head.appendChild(styleEl);
+    if (!document.getElementById("at-widget-styles")) {
+      const styleEl = document.createElement("style");
+      styleEl.id = "at-widget-styles";
+      styleEl.innerHTML = styles;
+      document.head.appendChild(styleEl);
+    }
 
     // Create Main Container
     const container = document.createElement("div");
@@ -1365,6 +1370,14 @@
 
     // Listen for window resize to adjust layout
     window.addEventListener("resize", constrainToViewport);
+
+    // Periodic safety check to re-append widget if dynamic SPA routing clears it
+    setInterval(() => {
+      if (!document.getElementById("at-widget-container")) {
+        buildUI();
+        constrainToViewport();
+      }
+    }, 2000);
 
     // Initial load
     fetchAttendanceLogs();

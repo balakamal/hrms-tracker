@@ -41,20 +41,36 @@ class MainActivity : AppCompatActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         
+        setContentView(R.layout.activity_main)
+        
         sharedPrefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         
-        webView = WebView(this)
-        setContentView(webView)
+        webView = findViewById(R.id.webView)
 
         val webSettings = webView.settings
         webSettings.javaScriptEnabled = true
         webSettings.domStorageEnabled = true
+        webSettings.databaseEnabled = true
         webSettings.loadWithOverviewMode = true
         webSettings.useWideViewPort = true
         webSettings.cacheMode = WebSettings.LOAD_DEFAULT
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            webSettings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+        }
 
         // Register bidirectional bridge JavaScript Interface
         webView.addJavascriptInterface(WebAppInterface(), "AndroidApp")
+
+        // Add WebChromeClient for console logging and debugging
+        webView.webChromeClient = object : android.webkit.WebChromeClient() {
+            override fun onConsoleMessage(consoleMessage: android.webkit.ConsoleMessage?): Boolean {
+                if (consoleMessage != null) {
+                    android.util.Log.d("WebViewConsole", "${consoleMessage.message()} -- From line ${consoleMessage.lineNumber()} of ${consoleMessage.sourceId()}")
+                }
+                return true
+            }
+        }
 
         webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
@@ -70,6 +86,12 @@ class MainActivity : AppCompatActivity() {
                     injectScriptFromAssets()
                 }
             }
+        }
+
+        // Bind Refresh Button
+        findViewById<android.widget.ImageButton>(R.id.btn_refresh).setOnClickListener {
+            Toast.makeText(this, "Refreshing page...", Toast.LENGTH_SHORT).show()
+            webView.reload()
         }
 
         requestNotificationPermissions()
