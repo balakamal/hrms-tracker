@@ -24,8 +24,12 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
     }
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
-        for (appWidgetId in appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId)
+        try {
+            for (appWidgetId in appWidgetIds) {
+                updateAppWidget(context, appWidgetManager, appWidgetId)
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("HRMSWidget", "onUpdate crash: ${e.message}", e)
         }
     }
 
@@ -51,6 +55,7 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
     }
 
     private fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
+        try {
         val views = RemoteViews(context.packageName, R.layout.attendance_widget)
         
         // Bind Refresh Button
@@ -83,6 +88,9 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
         views.setTextViewText(R.id.widget_last_updated, lastUpdated)
         
         appWidgetManager.updateAppWidget(appWidgetId, views)
+        } catch (e: Exception) {
+            android.util.Log.e("HRMSWidget", "updateAppWidget crash: ${e.message}", e)
+        }
     }
 
     private fun fetchAndRefreshWidget(context: Context) {

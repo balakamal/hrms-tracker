@@ -2,9 +2,12 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/widget_bg"
+    android:background="#E60F0F14"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:paddingLeft="12dp"
+    android:paddingRight="12dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
 
     <!-- Header Row -->
     <RelativeLayout
@@ -19,7 +22,7 @@
             android:layout_centerVertical="true"
             android:text="HRMS Insights"
             android:textColor="#FFFFFF"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:textStyle="bold" />
 
         <ImageButton
@@ -39,156 +42,136 @@
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginTop="6dp"
-        android:layout_marginBottom="6dp"
-        android:background="#15FFFFFF" />
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
+        android:background="#30FFFFFF" />
 
-    <!-- Status Row -->
+    <!-- Status Text -->
+    <TextView
+        android:id="@+id/widget_status_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="6dp"
+        android:text="Not Synced"
+        android:textColor="#9CA3AF"
+        android:textSize="10sp"
+        android:textStyle="bold" />
+
+    <!-- Stats Row 1 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
 
-        <TextView
-            android:id="@+id/widget_status_text"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Not Synced"
-            android:textColor="#9CA3AF"
-            android:textSize="11sp"
-            android:textStyle="bold" />
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="FIRST IN"
+                android:textColor="#9CA3AF"
+                android:textSize="9sp" />
+
+            <TextView
+                android:id="@+id/widget_first_in_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="--:--"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="WORK TIME"
+                android:textColor="#9CA3AF"
+                android:textSize="9sp" />
+
+            <TextView
+                android:id="@+id/widget_work_time_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0h 00m"
+                android:textColor="#00F2FE"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
     </LinearLayout>
 
-    <!-- Stats Grid -->
+    <!-- Stats Row 2 -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
 
-        <!-- Row 1 -->
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center_vertical"
-                android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BREAK"
+                android:textColor="#9CA3AF"
+                android:textSize="9sp" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="FIRST IN"
-                    android:textColor="#9CA3AF"
-                    android:textSize="9sp" />
-
-                <TextView
-                    android:id="@+id/widget_first_in_value"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="--:--"
-                    android:textColor="#FFFFFF"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center_vertical"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="WORK TIME"
-                    android:textColor="#9CA3AF"
-                    android:textSize="9sp" />
-
-                <TextView
-                    android:id="@+id/widget_work_time_value"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0h 00m"
-                    android:textColor="#00F2FE"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
+            <TextView
+                android:id="@+id/widget_break_time_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0h 00m"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Row 2 -->
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center_vertical"
-                android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="EST. EXIT"
+                android:textColor="#9CA3AF"
+                android:textSize="9sp" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="BREAK"
-                    android:textColor="#9CA3AF"
-                    android:textSize="9sp" />
-
-                <TextView
-                    android:id="@+id/widget_break_time_value"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0h 00m"
-                    android:textColor="#FFFFFF"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center_vertical"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="EST. EXIT"
-                    android:textColor="#9CA3AF"
-                    android:textSize="9sp" />
-
-                <TextView
-                    android:id="@+id/widget_exit_time_value"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="--:--"
-                    android:textColor="#A78BFA"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
+            <TextView
+                android:id="@+id/widget_exit_time_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="--:--"
+                android:textColor="#A78BFA"
+                android:textSize="14sp"
+                android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Footer Last Updated -->
+    <!-- Footer -->
     <TextView
         android:id="@+id/widget_last_updated"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:gravity="end"
+        android:layout_marginTop="6dp"
         android:text="Last updated: --:--"
-        android:textColor="#9CA3AF"
+        android:textColor="#6B7280"
         android:textSize="8sp" />
+
 </LinearLayout>
