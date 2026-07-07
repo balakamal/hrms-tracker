@@ -4,7 +4,9 @@ A premium, glassmorphic attendance dashboard and insights utility designed for `
 
 ## 🚀 Key Features
 
-*   **Desktop Attendance Widget:** Displays First In, Work Time, Break Time, and Est. Exit Time. Offers shift-completion alerts, custom work goals, and username overrides.
+*   **Draggable Desktop Widget:** Displays First In, Work Time, Break Time, and Est. Exit Time. The widget can be clicked and dragged anywhere on the screen (both collapsed badge and expanded card) and persists its position using `localStorage`.
+*   **Flexible Target Settings:** Synced Hours/Minutes dropdown selectors and a Minutes/Formula text field. The text field parses raw values, standard mathematical expressions (e.g. `8*60+30`), and user-friendly patterns like `5 * 10 * 60` (for 5 hours and 10 minutes).
+*   **Dark & Light Themes:** Premium Dark and Light modes switchable via a toggle in the settings panel and persisted in `localStorage`.
 *   **Chrome Extension:** Packaged Manifest V3 extension runs out-of-the-box in Chrome without Tampermonkey.
 *   **Mobile PWA:** Fully responsive, dark-mode dashboard featuring a circular progress chart, daily swipes timeline, and direct API synchronization.
 *   **Seamless Token Sync:** Instantly sync credentials from the desktop widget to the PWA using a secure QR code or link—no manual token copying required.
