@@ -15,6 +15,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.work.*
 import java.util.concurrent.TimeUnit
 
@@ -37,6 +38,7 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         
         sharedPrefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -162,9 +164,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         @JavascriptInterface
-        fun saveSettings(hours: Float) {
+        fun saveSettings(hours: Double) {
             sharedPrefs.edit()
-                .putFloat(KEY_TARGET_HOURS, hours)
+                .putFloat(KEY_TARGET_HOURS, hours.toFloat())
                 .apply()
         }
     }
