@@ -117,12 +117,15 @@ To completely eliminate the need to manually copy-paste the long access token on
 
 ---
 
-### 📱 Native Android App (In-App Login & Push Notifications)
+### 📱 Native Android App (In-App Login, Splash Screen, Custom Icons & Push Notifications)
 
-We upgraded the Android Kotlin app wrapper to fully support mobile-only operations:
-1. **Self-Contained Login:** If no token is cached, the app automatically loads `https://apps.pal.tech/hrms/login`.
-2. **Automatic Token Extraction:** Once you log in, the app extracts the `AccessToken` and `RefreshToken` from local storage using JavaScript injection, stores them locally, and launches the PWA dashboard automatically.
-3. **Background Push Notifications:** The app schedules an Android `WorkManager` task to periodically fetch logs and push system alerts when your shift target is completed.
+We upgraded the Android Kotlin app wrapper to fully support mobile-only operations and comply with modern Android standards:
+1. **Target SDK 34 Upgrade:** Upgraded compile and target SDKs to **34** (Android 14) to satisfy OS installation/privacy guidelines and prevent device blocks.
+2. **Custom Branding:** Created standard and round app launcher icons (`ic_launcher.png` and `ic_launcher_round.png`) across all density buckets using the PWA logo.
+3. **Premium Splash Screen:** Integrated the AndroidX Splash Screen library to render a dark-mode splash screen (`#0f0f14`) displaying the app logo on launch.
+4. **Self-Contained Login:** Automatically opens `https://apps.pal.tech/hrms/login` if no credentials exist.
+5. **Automatic Token Extraction:** Extracts the authentication tokens from `localStorage` using JS injection once logged in.
+6. **Background Push Notifications:** Employs Android `WorkManager` to run periodic background checks and alert you when your shift targets are completed.
 
 ---
 
