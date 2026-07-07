@@ -76,13 +76,15 @@ class MainActivity : AppCompatActivity() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 
-                // Extract tokens silently for background notifications if they log in
-                if (url != null && (url.contains("dashboard") || url.contains("time-sheet") || url.contains("me/timesheet"))) {
-                    extractTokensForBackgroundWorker()
+                if (url != null && url.contains("apps.pal.tech")) {
+                    // Extract tokens silently for background notifications if they log in
+                    if (url.contains("dashboard") || url.contains("time-sheet") || url.contains("me/timesheet")) {
+                        extractTokensForBackgroundWorker()
+                    }
+                    
+                    // Inject the floating widget script
+                    injectScriptFromAssets()
                 }
-                
-                // Inject the floating widget script unconditionally on page finished
-                injectScriptFromAssets()
             }
         }
 
