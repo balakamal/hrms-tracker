@@ -92,6 +92,11 @@ function handleUnauthorized() {
   state.refreshIntervalId = null;
   state.tickerIntervalId = null;
 
+  // Notify Android App if running in WebView wrapper
+  if (window.AndroidApp && typeof window.AndroidApp.onLogout === 'function') {
+    window.AndroidApp.onLogout();
+  }
+
   showPanelStates();
   alert("Session expired or Access Token is invalid. Please log in and provide a new token.");
 }
@@ -114,6 +119,11 @@ async function fetchUserIdentity() {
       
       localStorage.setItem('at_pwa_userid', state.userId);
       localStorage.setItem('at_pwa_username', state.userName);
+      
+      // Notify Android App of user details if running in WebView wrapper
+      if (window.AndroidApp && typeof window.AndroidApp.saveUserData === 'function') {
+        window.AndroidApp.saveUserData(state.userId.toString(), state.userName);
+      }
       
       document.getElementById('user-display-name').innerText = state.userName;
       return true;
@@ -442,6 +452,11 @@ document.getElementById('btn-save-settings').addEventListener('click', async () 
   localStorage.setItem('at_pwa_target_hours', state.targetHours);
   localStorage.setItem('at_pwa_notify_enabled', state.notifyEnabled);
   localStorage.setItem('at_pwa_proxy', state.proxyUrl);
+
+  // Notify Android App of target hours change if running in WebView wrapper
+  if (window.AndroidApp && typeof window.AndroidApp.saveSettings === 'function') {
+    window.AndroidApp.saveSettings(state.targetHours);
+  }
 
   if (tokenVal && tokenVal !== state.token) {
     state.token = tokenVal;
