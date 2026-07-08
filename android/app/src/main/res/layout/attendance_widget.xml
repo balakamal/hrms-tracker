@@ -164,6 +164,50 @@
         </LinearLayout>
     </LinearLayout>
 
+    <!-- Progress Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="4dp">
+
+        <ProgressBar
+            android:id="@+id/widget_progress_bar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="6dp"
+            android:max="100"
+            android:progress="0"
+            android:progressDrawable="@drawable/widget_progress_drawable" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp">
+
+            <TextView
+                android:id="@+id/widget_progress_percent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:text="0% Completed"
+                android:textColor="#9CA3AF"
+                android:textSize="9sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_progress_remaining"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:text="--h --m left"
+                android:textColor="#9CA3AF"
+                android:textSize="9sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
+    </LinearLayout>
+
     <!-- Footer -->
     <TextView
         android:id="@+id/widget_last_updated"
@@ -175,3 +219,4 @@
         android:textSize="8sp" />
 
 </LinearLayout>
+

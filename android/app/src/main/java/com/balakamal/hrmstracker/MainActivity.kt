@@ -107,6 +107,7 @@ class MainActivity : AppCompatActivity() {
         val token = sharedPrefs.getString(KEY_ACCESS_TOKEN, null)
         if (token != null) {
             scheduleBackgroundWorker()
+            triggerWidgetRefresh()
         }
     }
 

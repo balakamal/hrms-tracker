@@ -28,6 +28,10 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
             for (appWidgetId in appWidgetIds) {
                 updateAppWidget(context, appWidgetManager, appWidgetId)
             }
+            // Trigger fresh fetch automatically on update
+            Thread {
+                fetchAndRefreshWidget(context)
+            }.start()
         } catch (e: Exception) {
             android.util.Log.e("HRMSWidget", "onUpdate crash: ${e.message}", e)
         }
@@ -77,6 +81,8 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
         val breakTime = sharedPrefs.getString("WidgetBreakTime", "0h 00m")
         val exitTime = sharedPrefs.getString("WidgetExitTime", "--:--")
         val statusText = sharedPrefs.getString("WidgetStatusText", "Not Synced")
+        val progressPercent = sharedPrefs.getInt("WidgetProgressPercent", 0)
+        val progressRemaining = sharedPrefs.getString("WidgetProgressRemaining", "--h --m left")
         val lastUpdated = sharedPrefs.getString("WidgetLastUpdated", "Last updated: --:--")
         
         // Update views
@@ -85,6 +91,9 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
         views.setTextViewText(R.id.widget_break_time_value, breakTime)
         views.setTextViewText(R.id.widget_exit_time_value, exitTime)
         views.setTextViewText(R.id.widget_status_text, statusText)
+        views.setProgressBar(R.id.widget_progress_bar, 100, progressPercent, false)
+        views.setTextViewText(R.id.widget_progress_percent, "$progressPercent% Completed")
+        views.setTextViewText(R.id.widget_progress_remaining, progressRemaining)
         views.setTextViewText(R.id.widget_last_updated, lastUpdated)
         
         appWidgetManager.updateAppWidget(appWidgetId, views)
@@ -100,14 +109,13 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
         val targetHours = sharedPrefs.getFloat("TargetHours", 8.5f)
         
         if (accessToken == null || userId == null) {
-            saveWidgetCache(context, "0h 00m", "--:--", "0h 00m", "--:--", "Please Login in App", "Last updated: " + getCurrentTime())
+            saveWidgetCache(context, "0h 00m", "--:--", "0h 00m", "--:--", "Please Login in App", 0, "--h --m left", "Last updated: " + getCurrentTime())
             triggerWidgetUpdate(context)
             return
         }
 
-        // Fetch logs from API
+        // Fetch logs from API (Uses local device timezone for local date query)
         val sdfDate = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-        sdfDate.timeZone = TimeZone.getTimeZone("UTC")
         val todayStr = sdfDate.format(Date())
         val todayISO = "${todayStr}T00:00:00.000Z"
         val apiUrl = "https://apps.pal.tech/hrms-backend/api/Attendance/GetDailyLog?date=$todayISO&userId=$userId"
@@ -140,19 +148,21 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
                         metrics.breakTime,
                         metrics.exitTime,
                         metrics.statusText,
+                        metrics.progressPercent,
+                        metrics.progressRemaining,
                         "Last updated: " + getCurrentTime()
                     )
                 } else {
-                    saveWidgetCache(context, "0h 00m", "--:--", "0h 00m", "--:--", "No logs today", "Last updated: " + getCurrentTime())
+                    saveWidgetCache(context, "0h 00m", "--:--", "0h 00m", "--:--", "No logs today", 0, "--h --m left", "Last updated: " + getCurrentTime())
                 }
             } else if (connection.responseCode == 401) {
-                saveWidgetCache(context, "0h 00m", "--:--", "0h 00m", "--:--", "Session Expired", "Last updated: " + getCurrentTime())
+                saveWidgetCache(context, "0h 00m", "--:--", "0h 00m", "--:--", "Session Expired", 0, "--h --m left", "Last updated: " + getCurrentTime())
             } else {
-                saveWidgetCache(context, "0h 00m", "--:--", "0h 00m", "--:--", "Sync Error (${connection.responseCode})", "Last updated: " + getCurrentTime())
+                saveWidgetCache(context, "0h 00m", "--:--", "0h 00m", "--:--", "Sync Error (${connection.responseCode})", 0, "--h --m left", "Last updated: " + getCurrentTime())
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            saveWidgetCache(context, "0h 00m", "--:--", "0h 00m", "--:--", "Offline", "Last updated: " + getCurrentTime())
+            saveWidgetCache(context, "0h 00m", "--:--", "0h 00m", "--:--", "Offline", 0, "--h --m left", "Last updated: " + getCurrentTime())
         }
         
         triggerWidgetUpdate(context)
@@ -225,7 +235,10 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 else -> "Clocked Out / Break"
             }
 
-            return WidgetMetrics(workTimeStr, firstInStr, breakTimeStr, exitTimeStr, statusText)
+            val progressPercent = Math.min(100, ((totalWorkMinutes / targetMinutes) * 100).toInt())
+            val progressRemaining = if (completed) "0m remaining" else "${formatMinutes(remainingMinutes)} remaining"
+
+            return WidgetMetrics(workTimeStr, firstInStr, breakTimeStr, exitTimeStr, statusText, progressPercent, progressRemaining)
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -242,7 +255,17 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
         return SimpleDateFormat("hh:mm a", Locale.US).format(Date())
     }
 
-    private fun saveWidgetCache(context: Context, workTime: String, firstIn: String, breakTime: String, exitTime: String, statusText: String, lastUpdated: String) {
+    private fun saveWidgetCache(
+        context: Context,
+        workTime: String,
+        firstIn: String,
+        breakTime: String,
+        exitTime: String,
+        statusText: String,
+        progressPercent: Int,
+        progressRemaining: String,
+        lastUpdated: String
+    ) {
         val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         sharedPrefs.edit()
             .putString("WidgetWorkTime", workTime)
@@ -250,6 +273,8 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
             .putString("WidgetBreakTime", breakTime)
             .putString("WidgetExitTime", exitTime)
             .putString("WidgetStatusText", statusText)
+            .putInt("WidgetProgressPercent", progressPercent)
+            .putString("WidgetProgressRemaining", progressRemaining)
             .putString("WidgetLastUpdated", lastUpdated)
             .apply()
     }
@@ -264,5 +289,13 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
     }
 
     data class LogEntry(val time: Date, val isIn: Int)
-    data class WidgetMetrics(val workTime: String, val firstIn: String, val breakTime: String, val exitTime: String, val statusText: String)
+    data class WidgetMetrics(
+        val workTime: String,
+        val firstIn: String,
+        val breakTime: String,
+        val exitTime: String,
+        val statusText: String,
+        val progressPercent: Int,
+        val progressRemaining: String
+    )
 }

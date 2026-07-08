@@ -29,7 +29,6 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
 
         // 1. Get formatted local ISO date
         val sdfDate = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-        sdfDate.timeZone = TimeZone.getTimeZone("UTC")
         val todayStr = sdfDate.format(Date())
         val todayISO = "${todayStr}T00:00:00.000Z"
 
