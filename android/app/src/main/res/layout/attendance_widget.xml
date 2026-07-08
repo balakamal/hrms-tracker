@@ -22,7 +22,7 @@
             android:layout_centerVertical="true"
             android:text="HRMS Insights"
             android:textColor="#FFFFFF"
-            android:textSize="13sp"
+            android:textSize="15sp"
             android:textStyle="bold" />
 
         <ImageButton
@@ -51,13 +51,67 @@
         android:id="@+id/widget_status_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="6dp"
+        android:layout_marginBottom="8dp"
         android:text="Not Synced"
         android:textColor="#9CA3AF"
-        android:textSize="10sp"
+        android:textSize="12sp"
         android:textStyle="bold" />
 
     <!-- Stats Row 1 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="12dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="FIRST IN"
+                android:textColor="#9CA3AF"
+                android:textSize="10sp" />
+
+            <TextView
+                android:id="@+id/widget_first_in_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="--:--"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="WORK TIME"
+                android:textColor="#9CA3AF"
+                android:textSize="10sp" />
+
+            <TextView
+                android:id="@+id/widget_work_time_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0h 00m"
+                android:textColor="#00F2FE"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Stats Row 2 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -73,62 +127,9 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="FIRST IN"
-                android:textColor="#9CA3AF"
-                android:textSize="9sp" />
-
-            <TextView
-                android:id="@+id/widget_first_in_value"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="--:--"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="WORK TIME"
-                android:textColor="#9CA3AF"
-                android:textSize="9sp" />
-
-            <TextView
-                android:id="@+id/widget_work_time_value"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0h 00m"
-                android:textColor="#00F2FE"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <!-- Stats Row 2 -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
                 android:text="BREAK"
                 android:textColor="#9CA3AF"
-                android:textSize="9sp" />
+                android:textSize="10sp" />
 
             <TextView
                 android:id="@+id/widget_break_time_value"
@@ -136,7 +137,7 @@
                 android:layout_height="wrap_content"
                 android:text="0h 00m"
                 android:textColor="#FFFFFF"
-                android:textSize="14sp"
+                android:textSize="18sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -151,7 +152,7 @@
                 android:layout_height="wrap_content"
                 android:text="EST. EXIT"
                 android:textColor="#9CA3AF"
-                android:textSize="9sp" />
+                android:textSize="10sp" />
 
             <TextView
                 android:id="@+id/widget_exit_time_value"
@@ -159,7 +160,7 @@
                 android:layout_height="wrap_content"
                 android:text="--:--"
                 android:textColor="#A78BFA"
-                android:textSize="14sp"
+                android:textSize="18sp"
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
@@ -169,8 +170,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="4dp">
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="6dp">
 
         <ProgressBar
             android:id="@+id/widget_progress_bar"
@@ -193,7 +194,7 @@
                 android:layout_alignParentStart="true"
                 android:text="0% Completed"
                 android:textColor="#9CA3AF"
-                android:textSize="9sp"
+                android:textSize="11sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -203,7 +204,7 @@
                 android:layout_alignParentEnd="true"
                 android:text="--h --m left"
                 android:textColor="#9CA3AF"
-                android:textSize="9sp"
+                android:textSize="11sp"
                 android:textStyle="bold" />
         </RelativeLayout>
     </LinearLayout>
@@ -213,10 +214,10 @@
         android:id="@+id/widget_last_updated"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="8dp"
         android:text="Last updated: --:--"
         android:textColor="#6B7280"
-        android:textSize="8sp" />
+        android:textSize="10sp" />
 
 </LinearLayout>
 

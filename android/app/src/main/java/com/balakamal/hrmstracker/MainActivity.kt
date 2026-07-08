@@ -137,54 +137,60 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun extractTokensForBackgroundWorker() {
-        webView.evaluateJavascript(
-            "(function() { return localStorage.getItem('AccessToken'); })();"
-        ) { accessTokenJson ->
-            val accessToken = accessTokenJson.replace("\"", "").trim()
-            if (accessToken.isNotEmpty() && accessToken != "null") {
-                webView.evaluateJavascript(
-                    "(function() { return localStorage.getItem('RefreshToken'); })();"
-                ) { refreshTokenJson ->
-                    val refreshToken = refreshTokenJson.replace("\"", "").trim()
-                    
-                    // Also extract user details and settings from localStorage as fallback
-                    webView.evaluateJavascript("(function() { return localStorage.getItem('at_user_id'); })();") { uIdJson ->
-                        val uId = uIdJson.replace("\"", "").trim()
-                        if (uId.isNotEmpty() && uId != "null") {
-                            sharedPrefs.edit().putString(KEY_USER_ID, uId).apply()
-                        }
-                    }
-                    webView.evaluateJavascript("(function() { return localStorage.getItem('at_user_name'); })();") { uNameJson ->
-                        val uName = uNameJson.replace("\"", "").trim()
-                        if (uName.isNotEmpty() && uName != "null") {
-                            sharedPrefs.edit().putString(KEY_USER_NAME, uName).apply()
-                        }
-                    }
-                    webView.evaluateJavascript("(function() { return localStorage.getItem('at_target_hours'); })();") { hoursJson ->
-                        val hoursStr = hoursJson.replace("\"", "").trim()
-                        if (hoursStr.isNotEmpty() && hoursStr != "null") {
-                            val hours = hoursStr.toFloatOrNull() ?: 8.5f
-                            sharedPrefs.edit().putFloat(KEY_TARGET_HOURS, hours).apply()
-                        }
-                    }
+        val jsQuery = """
+            (function() {
+                try {
+                    return JSON.stringify({
+                        accessToken: localStorage.getItem('AccessToken') || '',
+                        refreshToken: localStorage.getItem('RefreshToken') || '',
+                        userId: localStorage.getItem('at_user_id') || '',
+                        userName: localStorage.getItem('at_user_name') || '',
+                        targetHours: localStorage.getItem('at_target_hours') || ''
+                    });
+                } catch(e) {
+                    return '{}';
+                }
+            })();
+        """.trimIndent()
 
-                    val currentToken = sharedPrefs.getString(KEY_ACCESS_TOKEN, null)
-                    if (currentToken != accessToken) {
-                        sharedPrefs.edit()
-                            .putString(KEY_ACCESS_TOKEN, accessToken)
-                            .putString(KEY_REFRESH_TOKEN, refreshToken)
-                            .apply()
-                            
-                        runOnUiThread {
-                            Toast.makeText(this@MainActivity, "Background notifications synced!", Toast.LENGTH_SHORT).show()
-                            scheduleBackgroundWorker()
-                            triggerWidgetRefresh()
+        webView.evaluateJavascript(jsQuery) { resultJson ->
+            try {
+                if (resultJson != null && resultJson != "null") {
+                    val unescaped = org.json.JSONTokener(resultJson).nextValue() as String
+                    val jsonObject = org.json.JSONObject(unescaped)
+                    
+                    val accessToken = jsonObject.optString("accessToken").trim()
+                    val refreshToken = jsonObject.optString("refreshToken").trim()
+                    val userId = jsonObject.optString("userId").trim()
+                    val userName = jsonObject.optString("userName").trim()
+                    val targetHoursStr = jsonObject.optString("targetHours").trim()
+
+                    if (accessToken.isNotEmpty() && accessToken != "null") {
+                        val editor = sharedPrefs.edit()
+                        editor.putString(KEY_ACCESS_TOKEN, accessToken)
+                        
+                        if (refreshToken.isNotEmpty() && refreshToken != "null") {
+                            editor.putString(KEY_REFRESH_TOKEN, refreshToken)
                         }
-                    } else {
-                        // Even if token didn't change, trigger refresh to sync any newly loaded user details/settings
+                        if (userId.isNotEmpty() && userId != "null") {
+                            editor.putString(KEY_USER_ID, userId)
+                        }
+                        if (userName.isNotEmpty() && userName != "null") {
+                            editor.putString(KEY_USER_NAME, userName)
+                        }
+                        if (targetHoursStr.isNotEmpty() && targetHoursStr != "null") {
+                            val targetHours = targetHoursStr.toFloatOrNull() ?: 8.5f
+                            editor.putFloat(KEY_TARGET_HOURS, targetHours)
+                        }
+                        
+                        editor.apply()
+                        
+                        scheduleBackgroundWorker()
                         triggerWidgetRefresh()
                     }
                 }
+            } catch (e: Exception) {
+                android.util.Log.e("HRMSWidget", "Error parsing extracted JSON: ${e.message}", e)
             }
         }
     }
@@ -287,6 +293,19 @@ class MainActivity : AppCompatActivity() {
                 .putFloat(KEY_TARGET_HOURS, hours.toFloat())
                 .apply()
             triggerWidgetRefresh()
+        }
+
+        @JavascriptInterface
+        fun saveTokens(accessToken: String, refreshToken: String) {
+            sharedPrefs.edit()
+                .putString(KEY_ACCESS_TOKEN, accessToken)
+                .putString(KEY_REFRESH_TOKEN, refreshToken)
+                .apply()
+            
+            runOnUiThread {
+                scheduleBackgroundWorker()
+                triggerWidgetRefresh()
+            }
         }
     }
 }

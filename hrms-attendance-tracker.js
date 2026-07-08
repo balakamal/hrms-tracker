@@ -588,6 +588,16 @@
     return `${getTodayLocalDateStr()}T00:00:00.000Z`;
   };
 
+  const syncTokensToAndroid = () => {
+    if (window.AndroidApp) {
+      const token = localStorage.getItem("AccessToken");
+      const refreshToken = localStorage.getItem("RefreshToken");
+      if (token && token !== "null") {
+        window.AndroidApp.saveTokens(token, refreshToken || "");
+      }
+    }
+  };
+
   // --- SERVICE METHODS ---
   async function fetchUserIdentity() {
     if (state.userId) return; // Custom ID override already set
@@ -646,6 +656,9 @@
   async function fetchAttendanceLogs() {
     if (!state.userId) await fetchUserIdentity();
     if (!state.userId) return;
+
+    // Sync tokens with Android side in case they have changed or are freshly available
+    syncTokensToAndroid();
 
     const todayDate = getTodayISO();
     const url = `https://apps.pal.tech/hrms-backend/api/Attendance/GetDailyLog?date=${todayDate}&userId=${state.userId}`;
@@ -1053,6 +1066,9 @@
     [badge, dragHandle].forEach((el) => {
       if (el) {
         el.addEventListener("pointerdown", dragStart);
+        el.addEventListener("touchstart", (e) => {
+          if (e.cancelable) e.preventDefault();
+        }, { passive: false });
       }
     });
 
@@ -1388,6 +1404,7 @@
         window.AndroidApp.saveUserData(state.userId, state.userName);
       }
       window.AndroidApp.saveSettings(state.targetHours);
+      syncTokensToAndroid();
     }
 
     buildUI();
