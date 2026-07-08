@@ -68,55 +68,6 @@ To share the extension publicly or within your organization via the Chrome Web S
 
 ---
 
-## HRMS Attendance PWA Mobile Web App
-
-I have developed a mobile-optimized Progressive Web App (PWA) in the workspace directory:
-* **PWA Directory:** [hrms-pwa](file:///C:/Users/kamal.thiruveedhula/Training/InnovateX/hrms-tracker/hrms-pwa)
-
-### Key PWA Features for Mobile
-1. **PWA Standalone Mode:** Can be installed directly on your mobile home screen with a custom icon.
-2. **Direct API Fetching:** Queries the HRMS backend APIs directly to get your user identity and real-time swipes.
-3. **Live Swipes Timeline:** Displays the exact list of swipes logged in the HRMS database for today.
-4. **CORS Proxy Support:** Integrates a built-in customizable CORS proxy (e.g., `allorigins.win`) to successfully fetch data from different domains.
-5. **Secure Local Credentials:** Keeps your Access Token and preferences stored locally on your device (`localStorage`), with easy settings configuration.
-6. **Offline Shell:** Uses a registered service worker (`service_worker.js`) to cache PWA assets so the interface loads instantly.
-
-### How to Deploy on GitHub Pages
-To share the PWA with your colleagues and access it on your phone:
-1. Pushed the files in the `hrms-tracker` folder to your GitHub repository `https://github.com/balakamal/hrms-tracker.git` (Completed).
-2. Go to the repository **Settings -> Pages** on GitHub.
-3. Under **Build and deployment -> Source**, select **Deploy from a branch**.
-4. Under **Branch**, select `main` and `/` (root), then click **Save**.
-5. GitHub will deploy the site to: `https://balakamal.github.io/hrms-tracker/hrms-pwa/`.
-6. Open this URL on your mobile phone!
-
-### How to Sync Desktop Tokens to Mobile PWA
-To completely eliminate the need to manually copy-paste the long access token on your phone:
-1. Open the floating **Attendance Insights** card on your desktop.
-2. Click the new **Mobile Sync (phone icon)** button in the header.
-3. A panel will slide up showing a **QR Code** and a **Copy Link** input.
-4. **Via QR Code:** Scan the QR code using your phone's camera. It will open the PWA on your phone and automatically transfer your tokens!
-5. **Via Link:** Click **Copy** next to the sync link, send it to your phone (via Slack, WhatsApp, Teams, etc.), and open it.
-6. The PWA will automatically extract the `AccessToken` and `RefreshToken`, store them securely, clean up the address bar, and load your live attendance metrics!
-
-> [!NOTE]
-> If your PWA is deployed to a custom URL (e.g. your own GitHub Pages address), go to the **Settings (gear icon)** on your desktop card and update the **Mobile PWA URL** field so the generated QR codes point to your own deployment.
-
-### How to Install and Enable Notifications on Mobile
-
-#### For Android (Chrome/Firefox):
-1. Open the deployed URL in Chrome on your phone.
-2. Click the three dots menu and select **Add to Home screen** (or click the bottom banner prompt).
-3. Open the app from your home screen. When prompted, click **Allow Notifications**.
-
-#### For iOS (Safari):
-1. Open the deployed URL in Safari on your iPhone.
-2. Tap the **Share** button (box with an up arrow) and select **Add to Home Screen**.
-3. Open the app from your Home Screen.
-4. The first time it opens, tap the **Settings Gear** or perform a swipe. You will be prompted to allow notification permissions. Tap **Allow**.
-
----
-
 ### 📱 Native Android App (In-App Login, Splash Screen, Custom Icons & Push Notifications)
 
 We upgraded the Android Kotlin app wrapper to fully support mobile-only operations and comply with modern Android standards:
@@ -135,10 +86,4 @@ I have successfully injected the script into your active browser tab `Me | Times
 
 ![Attendance Insights Injected Widget UI](C:/Users/kamal.thiruveedhula/.gemini/antigravity-ide/brain/29258d3e-1a79-437d-ac08-96d9a71b1440/injected_screenshot.png)
 
----
 
-## PWA Verification (Mobile Web App)
-
-I have verified the PWA calculations and layouts locally using a mock biometric logs import. The UI renders beautifully and calculates exact metrics (Work Time, Break Time, Exit Time) matching the punches:
-
-![PWA Mobile UI Verification Screenshot](C:/Users/kamal.thiruveedhula/.gemini/antigravity-ide/brain/29258d3e-1a79-437d-ac08-96d9a71b1440/updated_pwa_ui_1783339990085.png)

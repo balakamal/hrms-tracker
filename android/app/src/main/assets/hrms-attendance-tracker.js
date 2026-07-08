@@ -883,10 +883,6 @@
           </label>
         </div>
 
-        <div class="at-form-group">
-          <label>Mobile PWA URL</label>
-          <input type="text" class="at-input" id="at-setting-pwaurl" value="${state.pwaUrl}" placeholder="PWA URL for mobile sync">
-        </div>
         <button class="at-btn-save" id="at-btn-save-settings">Save & Apply</button>
       </div>
     `;
@@ -1220,9 +1216,6 @@
     ).value;
     const parsedMinutes = parseWorkTimeInput(minutesValStr);
     const notifyVal = elements.card.querySelector("#at-setting-notify").checked;
-    const pwaurlVal = elements.card
-      .querySelector("#at-setting-pwaurl")
-      .value.trim();
 
     state.targetHours =
       parsedMinutes === null || parsedMinutes <= 0 ? 8.5 : parsedMinutes / 60;
@@ -1244,10 +1237,7 @@
       elements.container.classList.remove("at-theme-light");
     }
 
-    if (pwaurlVal) {
-      state.pwaUrl = pwaurlVal;
-      localStorage.setItem("at_pwa_url", pwaurlVal);
-    }
+
 
     closeSettings();
     fetchAttendanceLogs();
