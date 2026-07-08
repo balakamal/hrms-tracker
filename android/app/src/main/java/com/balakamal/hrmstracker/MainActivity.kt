@@ -6,6 +6,13 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.os.Handler
+import android.os.Looper
+import android.widget.Button
+import androidx.core.app.NotificationCompat
 import android.os.Build
 import android.os.Bundle
 import android.webkit.JavascriptInterface
@@ -95,6 +102,14 @@ class MainActivity : AppCompatActivity() {
             webView.reload()
         }
 
+        // Bind Test Notification Button
+        findViewById<Button>(R.id.btn_test_notification).setOnClickListener {
+            Toast.makeText(this, "Notification scheduled: triggering in 10 seconds!", Toast.LENGTH_SHORT).show()
+            Handler(Looper.getMainLooper()).postDelayed({
+                sendTestNotification()
+            }, 10000)
+        }
+
         requestNotificationPermissions()
         startAppFlow()
     }
@@ -132,6 +147,27 @@ class MainActivity : AppCompatActivity() {
                 ) { refreshTokenJson ->
                     val refreshToken = refreshTokenJson.replace("\"", "").trim()
                     
+                    // Also extract user details and settings from localStorage as fallback
+                    webView.evaluateJavascript("(function() { return localStorage.getItem('at_user_id'); })();") { uIdJson ->
+                        val uId = uIdJson.replace("\"", "").trim()
+                        if (uId.isNotEmpty() && uId != "null") {
+                            sharedPrefs.edit().putString(KEY_USER_ID, uId).apply()
+                        }
+                    }
+                    webView.evaluateJavascript("(function() { return localStorage.getItem('at_user_name'); })();") { uNameJson ->
+                        val uName = uNameJson.replace("\"", "").trim()
+                        if (uName.isNotEmpty() && uName != "null") {
+                            sharedPrefs.edit().putString(KEY_USER_NAME, uName).apply()
+                        }
+                    }
+                    webView.evaluateJavascript("(function() { return localStorage.getItem('at_target_hours'); })();") { hoursJson ->
+                        val hoursStr = hoursJson.replace("\"", "").trim()
+                        if (hoursStr.isNotEmpty() && hoursStr != "null") {
+                            val hours = hoursStr.toFloatOrNull() ?: 8.5f
+                            sharedPrefs.edit().putFloat(KEY_TARGET_HOURS, hours).apply()
+                        }
+                    }
+
                     val currentToken = sharedPrefs.getString(KEY_ACCESS_TOKEN, null)
                     if (currentToken != accessToken) {
                         sharedPrefs.edit()
@@ -144,6 +180,9 @@ class MainActivity : AppCompatActivity() {
                             scheduleBackgroundWorker()
                             triggerWidgetRefresh()
                         }
+                    } else {
+                        // Even if token didn't change, trigger refresh to sync any newly loaded user details/settings
+                        triggerWidgetRefresh()
                     }
                 }
             }
@@ -183,6 +222,37 @@ class MainActivity : AppCompatActivity() {
             action = AttendanceAppWidgetProvider.ACTION_REFRESH
         }
         sendBroadcast(intent)
+    }
+
+    private fun sendTestNotification() {
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val channelId = "hrms_tracker_channel"
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(channelId, "Shift Alerts", NotificationManager.IMPORTANCE_HIGH)
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            this, 
+            0, 
+            intent, 
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(android.R.drawable.sym_def_app_icon)
+            .setContentTitle("HRMS Shift Complete!")
+            .setContentText("This is a test notification from HRMS Insights.")
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .build()
+
+        notificationManager.notify(99, notification)
     }
 
     private fun requestNotificationPermissions() {

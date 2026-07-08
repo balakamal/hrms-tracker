@@ -791,7 +791,7 @@
     const badge = document.createElement("div");
     badge.className = "at-badge";
     badge.innerHTML = `${ICONS.clock}<span class="at-badge-text" id="at-badge-work-time">--h --m</span>`;
-    badge.addEventListener("click", toggleCollapse);
+    // Click is handled manually in dragEnd to prevent WebView touch scrolling bugs
     container.appendChild(badge);
     elements.badge = badge;
 
@@ -968,6 +968,7 @@
     let xOffset = 0;
     let yOffset = 0;
     let dragThresholdPassed = false;
+    let initialTarget = null;
 
     function dragStart(e) {
       // Don't drag if clicking buttons inside the header/handle
@@ -975,9 +976,14 @@
         return;
       }
 
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+
       const rect = container.getBoundingClientRect();
       initialX = e.clientX;
       initialY = e.clientY;
+      initialTarget = e.target;
 
       const styleLeft = container.style.left;
       const styleBottom = container.style.bottom;
@@ -1004,7 +1010,13 @@
 
       if (dragThresholdPassed) {
         constrainToViewport();
+      } else {
+        // Tap/click fallback since we preventDefault in dragStart
+        if (initialTarget && initialTarget.closest(".at-badge")) {
+          toggleCollapse();
+        }
       }
+      initialTarget = null;
     }
 
     function drag(e) {
@@ -1368,6 +1380,14 @@
     // Request notification permissions early
     if (typeof Notification !== "undefined" && Notification.permission === "default") {
       Notification.requestPermission();
+    }
+
+    // Startup sync with Android SharedPreferences
+    if (window.AndroidApp) {
+      if (state.userId) {
+        window.AndroidApp.saveUserData(state.userId, state.userName);
+      }
+      window.AndroidApp.saveSettings(state.targetHours);
     }
 
     buildUI();

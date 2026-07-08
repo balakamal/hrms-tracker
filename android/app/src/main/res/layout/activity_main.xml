@@ -25,17 +25,37 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
-        <ImageButton
-            android:id="@+id/btn_refresh"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Refresh Page"
-            android:padding="12dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/ic_refresh" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <Button
+                android:id="@+id/btn_test_notification"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Test Alert"
+                android:textSize="11sp"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#2563EB"
+                android:layout_marginEnd="8dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                style="?android:attr/borderlessButtonStyle" />
+
+            <ImageButton
+                android:id="@+id/btn_refresh"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Refresh Page"
+                android:padding="12dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_refresh" />
+        </LinearLayout>
     </RelativeLayout>
 
     <!-- WebView Container -->
