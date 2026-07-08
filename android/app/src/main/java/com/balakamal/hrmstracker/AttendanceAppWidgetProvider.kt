@@ -9,6 +9,8 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.widget.RemoteViews
 import org.json.JSONObject
+import android.net.ConnectivityManager
+import android.os.Build
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
@@ -76,6 +78,18 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
         )
         views.setOnClickPendingIntent(R.id.widget_refresh_button, pendingIntent)
         
+        // Bind Click on Widget to Launch App
+        val appIntent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val appPendingIntent = PendingIntent.getActivity(
+            context, 
+            0, 
+            appIntent, 
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        views.setOnClickPendingIntent(R.id.widget_root, appPendingIntent)
+        
         // Restore cached values from SharedPreferences
         val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val workTime = sharedPrefs.getString("WidgetWorkTime", "0h 00m")
@@ -104,6 +118,18 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
         }
     }
 
+    private fun openConnection(context: Context, apiUrl: String): HttpURLConnection {
+        val url = URL(apiUrl)
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val activeNetwork = connectivityManager.activeNetwork
+            if (activeNetwork != null) {
+                return activeNetwork.openConnection(url) as HttpURLConnection
+            }
+        }
+        return url.openConnection() as HttpURLConnection
+    }
+
     private fun fetchAndRefreshWidget(context: Context) {
         val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val accessToken = sharedPrefs.getString("AccessToken", null)
@@ -123,8 +149,7 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
         val apiUrl = "https://apps.pal.tech/hrms-backend/api/Attendance/GetDailyLog?date=$todayISO&userId=$userId"
 
         try {
-            val url = URL(apiUrl)
-            val connection = url.openConnection() as HttpURLConnection
+            val connection = openConnection(context, apiUrl)
             connection.requestMethod = "GET"
             connection.setRequestProperty("Authorization", "Bearer $accessToken")
             connection.setRequestProperty("Accept", "application/json")

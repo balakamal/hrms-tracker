@@ -9,6 +9,7 @@ import android.content.SharedPreferences
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.work.Worker
+import android.net.ConnectivityManager
 import androidx.work.WorkerParameters
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -21,6 +22,18 @@ import java.util.*
 class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
 
     private val sharedPrefs: SharedPreferences = context.getSharedPreferences("HRMS_PREFS", Context.MODE_PRIVATE)
+
+    private fun openConnection(context: Context, apiUrl: String): HttpURLConnection {
+        val url = URL(apiUrl)
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val activeNetwork = connectivityManager.activeNetwork
+            if (activeNetwork != null) {
+                return activeNetwork.openConnection(url) as HttpURLConnection
+            }
+        }
+        return url.openConnection() as HttpURLConnection
+    }
 
     override fun doWork(): Result {
         val accessToken = sharedPrefs.getString("AccessToken", null) ?: return Result.failure()
@@ -36,8 +49,7 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
         val apiUrl = "https://apps.pal.tech/hrms-backend/api/Attendance/GetDailyLog?date=$todayISO&userId=$userId"
         
         try {
-            val url = URL(apiUrl)
-            val connection = url.openConnection() as HttpURLConnection
+            val connection = openConnection(applicationContext, apiUrl)
             connection.requestMethod = "GET"
             connection.setRequestProperty("Authorization", "Bearer $accessToken")
             connection.setRequestProperty("Accept", "application/json")
