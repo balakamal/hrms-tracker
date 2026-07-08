@@ -140,6 +140,7 @@ class MainActivity : AppCompatActivity() {
                         runOnUiThread {
                             Toast.makeText(this@MainActivity, "Background notifications synced!", Toast.LENGTH_SHORT).show()
                             scheduleBackgroundWorker()
+                            triggerWidgetRefresh()
                         }
                     }
                 }
@@ -156,6 +157,7 @@ class MainActivity : AppCompatActivity() {
         android.webkit.CookieManager.getInstance().removeAllCookies(null)
         
         webView.loadUrl(LOGIN_URL)
+        triggerWidgetRefresh()
     }
 
     private fun scheduleBackgroundWorker() {
@@ -172,6 +174,13 @@ class MainActivity : AppCompatActivity() {
             ExistingPeriodicWorkPolicy.UPDATE,
             workRequest
         )
+    }
+
+    private fun triggerWidgetRefresh() {
+        val intent = Intent(this, AttendanceAppWidgetProvider::class.java).apply {
+            action = AttendanceAppWidgetProvider.ACTION_REFRESH
+        }
+        sendBroadcast(intent)
     }
 
     private fun requestNotificationPermissions() {
@@ -197,6 +206,7 @@ class MainActivity : AppCompatActivity() {
                 .putString(KEY_USER_ID, userId)
                 .putString(KEY_USER_NAME, userName)
                 .apply()
+            triggerWidgetRefresh()
         }
 
         @JavascriptInterface
@@ -204,6 +214,7 @@ class MainActivity : AppCompatActivity() {
             sharedPrefs.edit()
                 .putFloat(KEY_TARGET_HOURS, hours.toFloat())
                 .apply()
+            triggerWidgetRefresh()
         }
     }
 }

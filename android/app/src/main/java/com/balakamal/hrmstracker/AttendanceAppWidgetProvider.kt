@@ -19,7 +19,7 @@ import java.util.*
 class AttendanceAppWidgetProvider : AppWidgetProvider() {
 
     companion object {
-        private const val ACTION_REFRESH = "com.balakamal.hrmstracker.ACTION_REFRESH"
+        const val ACTION_REFRESH = "com.balakamal.hrmstracker.ACTION_REFRESH"
         private const val PREFS_NAME = "HRMS_PREFS"
     }
 

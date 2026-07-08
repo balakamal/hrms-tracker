@@ -78,6 +78,7 @@
       user-select: none;
       transition: all 0.2s ease;
       color: var(--at-text-primary);
+      touch-action: none;
     }
     .at-badge:hover {
       transform: translateY(-2px);
@@ -178,6 +179,7 @@
       padding: 4px;
       border-radius: 6px;
       transition: all 0.2s ease;
+      touch-action: none;
     }
     .at-drag-handle:hover {
       background: var(--at-bg-input);
@@ -972,14 +974,9 @@
         return;
       }
 
-      const clientX =
-        e.type === "touchstart" ? e.touches[0].clientX : e.clientX;
-      const clientY =
-        e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
-
       const rect = container.getBoundingClientRect();
-      initialX = clientX;
-      initialY = clientY;
+      initialX = e.clientX;
+      initialY = e.clientY;
 
       const styleLeft = container.style.left;
       const styleBottom = container.style.bottom;
@@ -1012,11 +1009,8 @@
     function drag(e) {
       if (!active) return;
 
-      const clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
-      const clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
-
-      const dx = clientX - initialX;
-      const dy = clientY - initialY;
+      const dx = e.clientX - initialX;
+      const dy = e.clientY - initialY;
 
       if (!dragThresholdPassed && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
         dragThresholdPassed = true;
@@ -1045,16 +1039,13 @@
 
     [badge, dragHandle].forEach((el) => {
       if (el) {
-        el.addEventListener("mousedown", dragStart);
-        el.addEventListener("touchstart", dragStart, { passive: true });
+        el.addEventListener("pointerdown", dragStart);
       }
     });
 
-    window.addEventListener("mousemove", drag);
-    window.addEventListener("touchmove", drag, { passive: false });
-
-    window.addEventListener("mouseup", dragEnd);
-    window.addEventListener("touchend", dragEnd);
+    window.addEventListener("pointermove", drag);
+    window.addEventListener("pointerup", dragEnd);
+    window.addEventListener("pointercancel", dragEnd);
   }
 
   function constrainToViewport() {
