@@ -28,9 +28,10 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
             for (appWidgetId in appWidgetIds) {
                 updateAppWidget(context, appWidgetManager, appWidgetId)
             }
-            // Trigger fresh fetch automatically on update
+            // Trigger fresh fetch automatically on update using applicationContext
+            val appContext = context.applicationContext
             Thread {
-                fetchAndRefreshWidget(context)
+                fetchAndRefreshWidget(appContext)
             }.start()
         } catch (e: Exception) {
             android.util.Log.e("HRMSWidget", "onUpdate crash: ${e.message}", e)
@@ -51,9 +52,10 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 appWidgetManager.updateAppWidget(appWidgetId, views)
             }
             
-            // Run network fetch in background thread
+            // Run network fetch in background thread using applicationContext
+            val appContext = context.applicationContext
             Thread {
-                fetchAndRefreshWidget(context)
+                fetchAndRefreshWidget(appContext)
             }.start()
         }
     }
@@ -162,7 +164,10 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            saveWidgetCache(context, "0h 00m", "--:--", "0h 00m", "--:--", "Offline", 0, "--h --m left", "Last updated: " + getCurrentTime())
+            android.util.Log.e("HRMSWidget", "Fetch failed: ${e.message}", e)
+            val errorDetails = e.javaClass.simpleName + if (e.message != null) ": ${e.message}" else ""
+            val statusMessage = if (errorDetails.length > 35) errorDetails.substring(0, 32) + "..." else errorDetails
+            saveWidgetCache(context, "0h 00m", "--:--", "0h 00m", "--:--", "Offline ($statusMessage)", 0, "--h --m left", "Last updated: " + getCurrentTime())
         }
         
         triggerWidgetUpdate(context)

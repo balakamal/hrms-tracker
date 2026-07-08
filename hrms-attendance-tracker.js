@@ -517,13 +517,13 @@
     }
     
     @media (max-width: 600px) {
-      #at-widget-container {
+      #at-widget-container.at-expanded {
         right: 12px !important;
         bottom: 12px !important;
         left: 12px !important;
         width: calc(100% - 24px) !important;
       }
-      .at-card {
+      #at-widget-container.at-expanded .at-card {
         width: 100% !important;
       }
     }
@@ -778,6 +778,11 @@
     container.id = "at-widget-container";
     if (state.theme === "light") {
       container.classList.add("at-theme-light");
+    }
+    if (state.isMinimized) {
+      container.classList.add("at-minimized");
+    } else {
+      container.classList.add("at-expanded");
     }
     document.body.appendChild(container);
     elements.container = container;
@@ -1042,6 +1047,13 @@
     window.addEventListener("pointermove", drag);
     window.addEventListener("pointerup", dragEnd);
     window.addEventListener("pointercancel", dragEnd);
+
+    // Prevent default scroll on touch screens while active dragging is occurring
+    window.addEventListener("touchmove", (e) => {
+      if (active) {
+        if (e.cancelable) e.preventDefault();
+      }
+    }, { passive: false });
   }
 
   function constrainToViewport() {
@@ -1086,7 +1098,13 @@
     state.isMinimized = !state.isMinimized;
     localStorage.setItem("at_is_minimized", state.isMinimized);
 
+    const container = elements.container;
+
     if (state.isMinimized) {
+      if (container) {
+        container.classList.add("at-minimized");
+        container.classList.remove("at-expanded");
+      }
       elements.card.style.opacity = "0";
       setTimeout(() => {
         elements.card.style.display = "none";
@@ -1095,6 +1113,10 @@
         constrainToViewport();
       }, 150);
     } else {
+      if (container) {
+        container.classList.add("at-expanded");
+        container.classList.remove("at-minimized");
+      }
       elements.badge.style.opacity = "0";
       setTimeout(() => {
         elements.badge.style.display = "none";
