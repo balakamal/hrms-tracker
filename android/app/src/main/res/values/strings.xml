@@ -2,4 +2,7 @@
 <resources>
     <string name="app_name">HRMS Insights</string>
     <string name="widget_description">Shows your daily attendance - First In, Work Time, Break, and Estimated Exit time.</string>
+    <string name="widget_description_small">Compact badge showing your biometric office hours spent today.</string>
+    <string name="widget_description_medium">Info card showing office hours spent and estimated exit time side-by-side.</string>
+    <string name="widget_description_large">Full metrics dashboard showing shift progress, First In, Work Time, Break, and Est. Exit.</string>
 </resources>

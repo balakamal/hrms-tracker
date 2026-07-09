@@ -1,62 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/widget_bg"
-    android:paddingLeft="10dp"
-    android:paddingRight="10dp"
-    android:paddingTop="6dp"
-    android:paddingBottom="6dp">
+    android:orientation="vertical"
+    android:paddingLeft="12dp"
+    android:paddingRight="12dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
 
-    <!-- Left side content: Label, Value, Status -->
+    <!-- Header Row -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/widget_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:text="HRMS"
+            android:textColor="#9CA3AF"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.05" />
+
+        <ImageButton
+            android:id="@+id/widget_refresh_button"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="@android:color/transparent"
+            android:contentDescription="Refresh"
+            android:padding="2dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_refresh" />
+    </RelativeLayout>
+
+    <!-- Divider -->
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="6dp"
+        android:background="#1EFFFFFF" />
+
+    <!-- Content Row -->
     <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_centerVertical="true"
-        android:layout_toStartOf="@+id/widget_refresh_button"
-        android:orientation="vertical">
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="WORK TIME"
-            android:textColor="#9CA3AF"
-            android:textSize="9sp"
-            android:textStyle="bold" />
+        <!-- Cyan Clock Icon -->
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@drawable/ic_clock"
+            android:layout_marginRight="8dp" />
 
-        <TextView
-            android:id="@+id/widget_work_time_value"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="0h 00m"
-            android:textColor="#00F2FE"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/widget_status_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Not Synced"
-            android:textColor="#9CA3AF"
-            android:textSize="9sp"
-            android:singleLine="true"
-            android:ellipsize="end" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="WORK TIME"
+                android:textColor="#9CA3AF"
+                android:textSize="9sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_work_time_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0h 00m"
+                android:textColor="#00F2FE"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_status_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Not Synced"
+                android:textColor="#9CA3AF"
+                android:textSize="9sp"
+                android:singleLine="true"
+                android:ellipsize="end" />
+        </LinearLayout>
     </LinearLayout>
 
-    <!-- Right side content: Refresh Button -->
-    <ImageButton
-        android:id="@+id/widget_refresh_button"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:layout_alignParentEnd="true"
-        android:layout_centerVertical="true"
-        android:background="@android:color/transparent"
-        android:contentDescription="Refresh"
-        android:padding="4dp"
-        android:scaleType="fitCenter"
-        android:src="@drawable/ic_refresh" />
-
-</RelativeLayout>
+</LinearLayout>

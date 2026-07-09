@@ -11,7 +11,6 @@ import androidx.core.app.NotificationCompat
 import androidx.work.Worker
 import android.net.ConnectivityManager
 import androidx.work.WorkerParameters
-import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
@@ -71,20 +70,29 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                 }
                 reader.close()
 
-                // 3. Process logs and calculate work hours
-                val parsedData = parseAndCalculateAttendance(response.toString(), targetHours)
-                if (parsedData != null) {
-                    val completed = parsedData.first
-                    val workMin = parsedData.second
-                    val isClockedIn = parsedData.third
+                // 3. Calculate and sync widget in the background
+                val metrics = AttendanceAppWidgetProvider.calculateMetrics(response.toString(), targetHours)
+                if (metrics != null) {
+                    AttendanceAppWidgetProvider.saveWidgetCache(
+                        applicationContext,
+                        metrics.workTime,
+                        metrics.firstIn,
+                        metrics.breakTime,
+                        metrics.exitTime,
+                        metrics.statusText,
+                        metrics.progressPercent,
+                        metrics.progressRemaining,
+                        "Last updated: " + AttendanceAppWidgetProvider.getCurrentTime()
+                    )
+                    AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
 
-                    if (completed && isClockedIn) {
-                        // Check if we already notified the user today
+                    // 4. Trigger Completed Shift Notification (no clocked-in restriction)
+                    if (metrics.statusText == "Completed shift!") {
                         val lastNotifiedDate = sharedPrefs.getString("LastNotificationDate", "")
                         if (lastNotifiedDate != todayStr) {
                             sendNotification(
                                 "Shift Completed!", 
-                                "You have completed ${formatMinutes(workMin)} of biometric office time. Time to head home!"
+                                "You have completed ${metrics.workTime} of biometric office time. Time to head home!"
                             )
                             sharedPrefs.edit().putString("LastNotificationDate", todayStr).apply()
                         }
@@ -97,59 +105,6 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
         }
 
         return Result.success()
-    }
-
-    private fun parseAndCalculateAttendance(jsonStr: String, targetHours: Float): Triple<Boolean, Double, Boolean>? {
-        try {
-            val jsonObject = JSONObject(jsonStr)
-            val data = jsonObject.optJSONObject("data") ?: return null
-            val logsArray = data.optJSONArray("attendanceDailyLogs") ?: return null
-            if (logsArray.length() == 0) return null
-
-            val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-            val sdfTime = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
-
-            val logs = mutableListOf<LogEntry>()
-            for (i in 0 until logsArray.length()) {
-                val logObj = logsArray.getJSONObject(i)
-                val timeStr = logObj.getString("time") // "HH:mm:ss"
-                val isIn = logObj.getInt("isIn")       // 0=In, 1=Out
-                val parsedTime = sdfTime.parse("${todayStr}T${timeStr}") ?: continue
-                logs.add(LogEntry(parsedTime, isIn))
-            }
-            logs.sortBy { it.time }
-
-            var workDurationMs = 0L
-            var lastInTime: Date? = null
-
-            for (log in logs) {
-                if (log.isIn == 0) {
-                    lastInTime = log.time
-                } else if (log.isIn == 1 && lastInTime != null) {
-                    workDurationMs += (log.time.time - lastInTime.time)
-                    lastInTime = null
-                }
-            }
-
-            val isClockedIn = lastInTime != null
-            if (isClockedIn) {
-                workDurationMs += (Date().time - lastInTime!!.time)
-            }
-
-            val totalWorkMinutes = workDurationMs / 60000.0
-            val targetMinutes = targetHours * 60.0
-
-            return Triple(totalWorkMinutes >= targetMinutes, totalWorkMinutes, isClockedIn)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        return null
-    }
-
-    private fun formatMinutes(totalMin: Double): String {
-        val h = (totalMin / 60).toInt()
-        val m = (totalMin % 60).toInt()
-        return "${h}h ${String.format("%02d", m)}m"
     }
 
     private fun sendNotification(title: String, message: String) {
@@ -182,6 +137,4 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
 
         notificationManager.notify(1, notification)
     }
-
-    data class LogEntry(val time: Date, val isIn: Int)
 }

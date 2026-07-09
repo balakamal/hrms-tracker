@@ -1,106 +1,163 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/widget_bg"
+    android:orientation="vertical"
     android:paddingLeft="12dp"
     android:paddingRight="12dp"
-    android:paddingTop="6dp"
-    android:paddingBottom="6dp">
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
 
-    <!-- Main 2-column contents (Work Time and Est Exit) -->
+    <!-- Header Row -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/widget_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:text="HRMS Insights"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <ImageButton
+            android:id="@+id/widget_refresh_button"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="@android:color/transparent"
+            android:contentDescription="Refresh"
+            android:padding="3dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_refresh" />
+    </RelativeLayout>
+
+    <!-- Divider -->
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="8dp"
+        android:background="#1EFFFFFF" />
+
+    <!-- 2-Column Content Row -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
-        android:layout_toStartOf="@+id/widget_refresh_button"
-        android:layout_alignParentStart="true"
-        android:orientation="horizontal">
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
         <!-- Column 1: Work Time -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1.1"
-            android:orientation="vertical">
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginRight="8dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="WORK TIME"
-                android:textColor="#9CA3AF"
-                android:textSize="9sp"
-                android:textStyle="bold" />
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_clock"
+                android:layout_marginRight="6dp" />
 
-            <TextView
-                android:id="@+id/widget_work_time_value"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="0h 00m"
-                android:textColor="#00F2FE"
-                android:textSize="17sp"
-                android:textStyle="bold" />
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/widget_status_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Not Synced"
-                android:textColor="#9CA3AF"
-                android:textSize="9sp"
-                android:singleLine="true"
-                android:ellipsize="end" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="WORK TIME"
+                    android:textColor="#9CA3AF"
+                    android:textSize="8sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/widget_work_time_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0h 00m"
+                    android:textColor="#00F2FE"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/widget_status_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Not Synced"
+                    android:textColor="#9CA3AF"
+                    android:textSize="8sp"
+                    android:singleLine="true"
+                    android:ellipsize="end" />
+            </LinearLayout>
         </LinearLayout>
+
+        <!-- Vertical Separator Divider -->
+        <ImageView
+            android:layout_width="1dp"
+            android:layout_height="24dp"
+            android:background="#1EFFFFFF"
+            android:layout_marginRight="8dp" />
 
         <!-- Column 2: Est. Exit -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical">
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="EST. EXIT"
-                android:textColor="#9CA3AF"
-                android:textSize="9sp"
-                android:textStyle="bold" />
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_exit"
+                android:layout_marginRight="6dp" />
 
-            <TextView
-                android:id="@+id/widget_exit_time_value"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="--:--"
-                android:textColor="#A78BFA"
-                android:textSize="17sp"
-                android:textStyle="bold" />
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/widget_last_updated"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Last updated: --:--"
-                android:textColor="#6B7280"
-                android:textSize="9sp"
-                android:singleLine="true"
-                android:ellipsize="end" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="EST. EXIT"
+                    android:textColor="#9CA3AF"
+                    android:textSize="8sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/widget_exit_time_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="--:--"
+                    android:textColor="#A78BFA"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/widget_last_updated"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Updated: --:--"
+                    android:textColor="#6B7280"
+                    android:textSize="8sp"
+                    android:singleLine="true"
+                    android:ellipsize="end" />
+            </LinearLayout>
         </LinearLayout>
 
     </LinearLayout>
 
-    <!-- Refresh Button on Right -->
-    <ImageButton
-        android:id="@+id/widget_refresh_button"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:layout_alignParentEnd="true"
-        android:layout_centerVertical="true"
-        android:background="@android:color/transparent"
-        android:contentDescription="Refresh"
-        android:padding="4dp"
-        android:scaleType="fitCenter"
-        android:src="@drawable/ic_refresh" />
-
-</RelativeLayout>
+</LinearLayout>

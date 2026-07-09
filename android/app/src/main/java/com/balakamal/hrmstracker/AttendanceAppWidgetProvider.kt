@@ -1,5 +1,7 @@
 package com.balakamal.hrmstracker
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
@@ -8,11 +10,12 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.os.Build
 import android.os.Bundle
 import android.widget.RemoteViews
+import androidx.core.app.NotificationCompat
 import org.json.JSONObject
 import android.net.ConnectivityManager
-import android.os.Build
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
@@ -20,17 +23,275 @@ import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
 
-class AttendanceAppWidgetProvider : AppWidgetProvider() {
+open class AttendanceAppWidgetProvider : AppWidgetProvider() {
+
+    open val defaultLayoutId: Int = R.layout.attendance_widget
 
     companion object {
         const val ACTION_REFRESH = "com.balakamal.hrmstracker.ACTION_REFRESH"
         private const val PREFS_NAME = "HRMS_PREFS"
+
+        // Companion-level helper to update any widget instance with dynamic size checks
+        fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int, defaultLayoutId: Int) {
+            try {
+                val layoutId = getLayoutForWidgetSize(appWidgetManager, appWidgetId, defaultLayoutId)
+                val views = RemoteViews(context.packageName, layoutId)
+                
+                // Bind Refresh Button
+                val intent = Intent(context, AttendanceAppWidgetProvider::class.java).apply {
+                    action = ACTION_REFRESH
+                }
+                val pendingIntent = PendingIntent.getBroadcast(
+                    context, 
+                    appWidgetId, 
+                    intent, 
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                views.setOnClickPendingIntent(R.id.widget_refresh_button, pendingIntent)
+                
+                // Bind Click on Widget to Launch App
+                val appIntent = Intent(context, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+                val appPendingIntent = PendingIntent.getActivity(
+                    context, 
+                    0, 
+                    appIntent, 
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                views.setOnClickPendingIntent(R.id.widget_root, appPendingIntent)
+                
+                // Restore cached values from SharedPreferences
+                val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                val workTime = sharedPrefs.getString("WidgetWorkTime", "0h 00m")
+                val firstIn = sharedPrefs.getString("WidgetFirstIn", "--:--")
+                val breakTime = sharedPrefs.getString("WidgetBreakTime", "0h 00m")
+                val exitTime = sharedPrefs.getString("WidgetExitTime", "--:--")
+                val statusText = sharedPrefs.getString("WidgetStatusText", "Not Synced")
+                val progressPercent = sharedPrefs.getInt("WidgetProgressPercent", 0)
+                val progressRemaining = sharedPrefs.getString("WidgetProgressRemaining", "--h --m left")
+                val lastUpdated = sharedPrefs.getString("WidgetLastUpdated", "Last updated: --:--")
+                
+                // Update views
+                views.setTextViewText(R.id.widget_status_text, statusText)
+                views.setTextViewText(R.id.widget_work_time_value, workTime)
+                
+                // Layout-specific bindings
+                if (layoutId == R.layout.attendance_widget_medium || layoutId == R.layout.attendance_widget) {
+                    views.setTextViewText(R.id.widget_exit_time_value, exitTime)
+                    views.setTextViewText(R.id.widget_last_updated, lastUpdated)
+                }
+                if (layoutId == R.layout.attendance_widget) {
+                    views.setTextViewText(R.id.widget_first_in_value, firstIn)
+                    views.setTextViewText(R.id.widget_break_time_value, breakTime)
+                    views.setProgressBar(R.id.widget_progress_bar, 100, progressPercent, false)
+                    views.setTextViewText(R.id.widget_progress_percent, "$progressPercent% Completed")
+                    views.setTextViewText(R.id.widget_progress_remaining, progressRemaining)
+                }
+                
+                appWidgetManager.updateAppWidget(appWidgetId, views)
+            } catch (e: Exception) {
+                android.util.Log.e("HRMSWidget", "updateAppWidget crash: ${e.message}", e)
+            }
+        }
+
+        private fun getLayoutForWidgetSize(appWidgetManager: AppWidgetManager, appWidgetId: Int, defaultLayoutId: Int): Int {
+            val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
+            val category = options.getInt(AppWidgetManager.OPTION_APPWIDGET_HOST_CATEGORY, -1)
+            
+            // If it is on Lockscreen/Keyguard, use the Medium layout by default (or Small if it has limited size)
+            if (category == AppWidgetProviderInfo.WIDGET_CATEGORY_KEYGUARD) {
+                return R.layout.attendance_widget_medium
+            }
+            
+            val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0)
+            val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0)
+            
+            if (minWidth == 0 || minHeight == 0) {
+                return defaultLayoutId
+            }
+            
+            return when {
+                minHeight < 80 -> {
+                    if (minWidth < 180) R.layout.attendance_widget_small else R.layout.attendance_widget_medium
+                }
+                minWidth < 150 -> R.layout.attendance_widget_small
+                minWidth < 250 -> R.layout.attendance_widget_medium
+                else -> R.layout.attendance_widget
+            }
+        }
+
+        fun saveWidgetCache(
+            context: Context,
+            workTime: String,
+            firstIn: String,
+            breakTime: String,
+            exitTime: String,
+            statusText: String,
+            progressPercent: Int,
+            progressRemaining: String,
+            lastUpdated: String
+        ) {
+            val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            sharedPrefs.edit()
+                .putString("WidgetWorkTime", workTime)
+                .putString("WidgetFirstIn", firstIn)
+                .putString("WidgetBreakTime", breakTime)
+                .putString("WidgetExitTime", exitTime)
+                .putString("WidgetStatusText", statusText)
+                .putInt("WidgetProgressPercent", progressPercent)
+                .putString("WidgetProgressRemaining", progressRemaining)
+                .putString("WidgetLastUpdated", lastUpdated)
+                .apply()
+        }
+
+        fun triggerWidgetUpdate(context: Context) {
+            val appWidgetManager = AppWidgetManager.getInstance(context)
+            
+            // Large Widgets
+            val largeComponent = ComponentName(context, AttendanceAppWidgetProvider::class.java)
+            val largeIds = appWidgetManager.getAppWidgetIds(largeComponent)
+            for (id in largeIds) {
+                updateAppWidget(context, appWidgetManager, id, R.layout.attendance_widget)
+            }
+
+            // Medium Widgets
+            val mediumComponent = ComponentName(context, AttendanceAppWidgetProviderMedium::class.java)
+            val mediumIds = appWidgetManager.getAppWidgetIds(mediumComponent)
+            for (id in mediumIds) {
+                updateAppWidget(context, appWidgetManager, id, R.layout.attendance_widget_medium)
+            }
+
+            // Small Widgets
+            val smallComponent = ComponentName(context, AttendanceAppWidgetProviderSmall::class.java)
+            val smallIds = appWidgetManager.getAppWidgetIds(smallComponent)
+            for (id in smallIds) {
+                updateAppWidget(context, appWidgetManager, id, R.layout.attendance_widget_small)
+            }
+        }
+
+        fun getCurrentTime(): String {
+            return SimpleDateFormat("hh:mm a", Locale.US).format(Date())
+        }
+
+        fun formatMinutes(totalMin: Double): String {
+            val h = (totalMin / 60).toInt()
+            val m = (totalMin % 60).toInt()
+            return "${h}h ${String.format("%02d", m)}m"
+        }
+
+        fun calculateMetrics(jsonStr: String, targetHours: Float): WidgetMetrics? {
+            try {
+                val jsonObject = JSONObject(jsonStr)
+                val data = jsonObject.optJSONObject("data") ?: return null
+                val logsArray = data.optJSONArray("attendanceDailyLogs") ?: return null
+                if (logsArray.length() == 0) return null
+
+                val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+                val sdfTime = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
+
+                val logs = mutableListOf<LogEntry>()
+                for (i in 0 until logsArray.length()) {
+                    val logObj = logsArray.getJSONObject(i)
+                    val timeStr = logObj.getString("time")
+                    val isIn = logObj.getInt("isIn")
+                    val parsedTime = sdfTime.parse("${todayStr}T${timeStr}") ?: continue
+                    logs.add(LogEntry(parsedTime, isIn))
+                }
+                logs.sortBy { it.time }
+
+                var workDurationMs = 0L
+                var lastInTime: Date? = null
+                val firstClockIn = logs.firstOrNull { it.isIn == 0 }?.time ?: logs.first().time
+
+                var lastOutTime: Date? = null
+                for (log in logs) {
+                    if (log.isIn == 0) {
+                        lastInTime = log.time
+                    } else if (log.isIn == 1 && lastInTime != null) {
+                        workDurationMs += (log.time.time - lastInTime.time)
+                        lastOutTime = log.time
+                        lastInTime = null
+                    }
+                }
+
+                val isClockedIn = lastInTime != null
+                if (isClockedIn) {
+                    workDurationMs += (Date().time - lastInTime!!.time)
+                }
+
+                val totalWorkMinutes = workDurationMs / 60000.0
+                val targetMinutes = targetHours * 60.0
+                val remainingMinutes = Math.max(0.0, targetMinutes - totalWorkMinutes)
+                val completed = totalWorkMinutes >= targetMinutes
+
+                // Break time
+                val endTimestamp = if (isClockedIn) Date() else lastOutTime ?: firstClockIn
+                val totalElapsedMs = endTimestamp.time - firstClockIn.time
+                val totalBreakMinutes = Math.max(0.0, (totalElapsedMs - workDurationMs) / 60000.0)
+
+                // Formats
+                val firstInStr = SimpleDateFormat("hh:mm a", Locale.US).format(firstClockIn)
+                val workTimeStr = formatMinutes(totalWorkMinutes)
+                val breakTimeStr = formatMinutes(totalBreakMinutes)
+                
+                var exitTimeStr = "Completed"
+                if (!completed) {
+                    val exitDate = Date(Date().time + (remainingMinutes * 60000).toLong())
+                    exitTimeStr = SimpleDateFormat("hh:mm a", Locale.US).format(exitDate)
+                }
+
+                val statusText = when {
+                    completed -> "Completed shift!"
+                    isClockedIn -> "Clocked In"
+                    else -> "Clocked Out / Break"
+                }
+
+                val progressPercent = Math.min(100, ((totalWorkMinutes / targetMinutes) * 100).toInt())
+                val progressRemaining = if (completed) "0m remaining" else "${formatMinutes(remainingMinutes)} remaining"
+
+                return WidgetMetrics(workTimeStr, firstInStr, breakTimeStr, exitTimeStr, statusText, progressPercent, progressRemaining)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            return null
+        }
+
+        private fun saveWidgetCacheError(context: Context, errorText: String) {
+            val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val workTime = sharedPrefs.getString("WidgetWorkTime", "0h 00m") ?: "0h 00m"
+            val firstIn = sharedPrefs.getString("WidgetFirstIn", "--:--") ?: "--:--"
+            val breakTime = sharedPrefs.getString("WidgetBreakTime", "0h 00m") ?: "0h 00m"
+            val exitTime = sharedPrefs.getString("WidgetExitTime", "--:--") ?: "--:--"
+            val progressPercent = sharedPrefs.getInt("WidgetProgressPercent", 0)
+            val progressRemaining = sharedPrefs.getString("WidgetProgressRemaining", "--h --m left") ?: "--h --m left"
+            val lastUpdated = sharedPrefs.getString("WidgetLastUpdated", "Last updated: --:--") ?: "Last updated: --:--"
+            
+            val currentStatus = sharedPrefs.getString("WidgetStatusText", "Not Synced") ?: "Not Synced"
+            val finalStatus = if (errorText.contains("Offline")) {
+                if (currentStatus.contains("Offline")) currentStatus else "$currentStatus (Offline)"
+            } else {
+                errorText
+            }
+
+            saveWidgetCache(
+                context,
+                workTime,
+                firstIn,
+                breakTime,
+                exitTime,
+                finalStatus,
+                progressPercent,
+                progressRemaining,
+                lastUpdated
+            )
+        }
     }
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         try {
             for (appWidgetId in appWidgetIds) {
-                updateAppWidget(context, appWidgetManager, appWidgetId)
+                updateAppWidget(context, appWidgetManager, appWidgetId, defaultLayoutId)
             }
             // Trigger fresh fetch automatically on update using applicationContext
             val appContext = context.applicationContext
@@ -49,22 +310,30 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
         newOptions: Bundle
     ) {
         super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
-        updateAppWidget(context, appWidgetManager, appWidgetId)
+        updateAppWidget(context, appWidgetManager, appWidgetId, defaultLayoutId)
     }
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
         if (intent.action == ACTION_REFRESH) {
             val appWidgetManager = AppWidgetManager.getInstance(context)
-            val componentName = ComponentName(context, AttendanceAppWidgetProvider::class.java)
-            val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
             
-            // Set loading state on all widgets
-            for (appWidgetId in appWidgetIds) {
-                val layoutId = getLayoutForWidgetSize(appWidgetManager, appWidgetId)
-                val views = RemoteViews(context.packageName, layoutId)
-                views.setTextViewText(R.id.widget_status_text, "Refreshing...")
-                appWidgetManager.updateAppWidget(appWidgetId, views)
+            // Set loading state on all sizes of widgets
+            val providers = listOf(
+                AttendanceAppWidgetProvider::class.java to R.layout.attendance_widget,
+                AttendanceAppWidgetProviderMedium::class.java to R.layout.attendance_widget_medium,
+                AttendanceAppWidgetProviderSmall::class.java to R.layout.attendance_widget_small
+            )
+
+            for ((providerClass, defaultLayout) in providers) {
+                val componentName = ComponentName(context, providerClass)
+                val ids = appWidgetManager.getAppWidgetIds(componentName)
+                for (appWidgetId in ids) {
+                    val layoutId = getLayoutForWidgetSize(appWidgetManager, appWidgetId, defaultLayout)
+                    val views = RemoteViews(context.packageName, layoutId)
+                    views.setTextViewText(R.id.widget_status_text, "Refreshing...")
+                    appWidgetManager.updateAppWidget(appWidgetId, views)
+                }
             }
             
             // Run network fetch in background thread using applicationContext and goAsync
@@ -79,92 +348,6 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     pendingResult.finish()
                 }
             }.start()
-        }
-    }
-
-    private fun getLayoutForWidgetSize(appWidgetManager: AppWidgetManager, appWidgetId: Int): Int {
-        val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
-        val category = options.getInt(AppWidgetManager.OPTION_APPWIDGET_HOST_CATEGORY, -1)
-        
-        // If it is on Lockscreen/Keyguard, use the Medium layout by default (or Small if it has limited size)
-        if (category == AppWidgetProviderInfo.WIDGET_CATEGORY_KEYGUARD) {
-            return R.layout.attendance_widget_medium
-        }
-        
-        val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0)
-        val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0)
-        
-        return when {
-            minWidth == 0 || minHeight == 0 -> R.layout.attendance_widget
-            minHeight < 80 -> {
-                if (minWidth < 180) R.layout.attendance_widget_small else R.layout.attendance_widget_medium
-            }
-            minWidth < 150 -> R.layout.attendance_widget_small
-            minWidth < 250 -> R.layout.attendance_widget_medium
-            else -> R.layout.attendance_widget
-        }
-    }
-
-    private fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
-        try {
-        val layoutId = getLayoutForWidgetSize(appWidgetManager, appWidgetId)
-        val views = RemoteViews(context.packageName, layoutId)
-        
-        // Bind Refresh Button
-        val intent = Intent(context, AttendanceAppWidgetProvider::class.java).apply {
-            action = ACTION_REFRESH
-        }
-        val pendingIntent = PendingIntent.getBroadcast(
-            context, 
-            appWidgetId, 
-            intent, 
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        views.setOnClickPendingIntent(R.id.widget_refresh_button, pendingIntent)
-        
-        // Bind Click on Widget to Launch App
-        val appIntent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        val appPendingIntent = PendingIntent.getActivity(
-            context, 
-            0, 
-            appIntent, 
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        views.setOnClickPendingIntent(R.id.widget_root, appPendingIntent)
-        
-        // Restore cached values from SharedPreferences
-        val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val workTime = sharedPrefs.getString("WidgetWorkTime", "0h 00m")
-        val firstIn = sharedPrefs.getString("WidgetFirstIn", "--:--")
-        val breakTime = sharedPrefs.getString("WidgetBreakTime", "0h 00m")
-        val exitTime = sharedPrefs.getString("WidgetExitTime", "--:--")
-        val statusText = sharedPrefs.getString("WidgetStatusText", "Not Synced")
-        val progressPercent = sharedPrefs.getInt("WidgetProgressPercent", 0)
-        val progressRemaining = sharedPrefs.getString("WidgetProgressRemaining", "--h --m left")
-        val lastUpdated = sharedPrefs.getString("WidgetLastUpdated", "Last updated: --:--")
-        
-        // Update views
-        views.setTextViewText(R.id.widget_status_text, statusText)
-        views.setTextViewText(R.id.widget_work_time_value, workTime)
-        
-        // Layout-specific bindings
-        if (layoutId == R.layout.attendance_widget_medium || layoutId == R.layout.attendance_widget) {
-            views.setTextViewText(R.id.widget_exit_time_value, exitTime)
-            views.setTextViewText(R.id.widget_last_updated, lastUpdated)
-        }
-        if (layoutId == R.layout.attendance_widget) {
-            views.setTextViewText(R.id.widget_first_in_value, firstIn)
-            views.setTextViewText(R.id.widget_break_time_value, breakTime)
-            views.setProgressBar(R.id.widget_progress_bar, 100, progressPercent, false)
-            views.setTextViewText(R.id.widget_progress_percent, "$progressPercent% Completed")
-            views.setTextViewText(R.id.widget_progress_remaining, progressRemaining)
-        }
-        
-        appWidgetManager.updateAppWidget(appWidgetId, views)
-        } catch (e: Exception) {
-            android.util.Log.e("HRMSWidget", "updateAppWidget crash: ${e.message}", e)
         }
     }
 
@@ -229,31 +412,33 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
                         metrics.progressRemaining,
                         "Last updated: " + getCurrentTime()
                     )
+                    // Check and trigger Completed notification if complete
+                    checkAndSendNotification(context, response.toString(), targetHours)
                 } else {
                     saveWidgetCache(context, "0h 00m", "--:--", "0h 00m", "--:--", "No logs today", 0, "--h --m left", "Last updated: " + getCurrentTime())
                 }
             } else if (connection.responseCode == 401) {
                 saveWidgetCache(context, "0h 00m", "--:--", "0h 00m", "--:--", "Session Expired", 0, "--h --m left", "Last updated: " + getCurrentTime())
             } else {
-                saveWidgetCache(context, "0h 00m", "--:--", "0h 00m", "--:--", "Sync Error (${connection.responseCode})", 0, "--h --m left", "Last updated: " + getCurrentTime())
+                saveWidgetCacheError(context, "Sync Error (${connection.responseCode})")
             }
         } catch (e: Exception) {
             e.printStackTrace()
             android.util.Log.e("HRMSWidget", "Fetch failed: ${e.message}", e)
             val errorDetails = e.javaClass.simpleName + if (e.message != null) ": ${e.message}" else ""
-            val statusMessage = if (errorDetails.length > 35) errorDetails.substring(0, 32) + "..." else errorDetails
-            saveWidgetCache(context, "0h 00m", "--:--", "0h 00m", "--:--", "Offline ($statusMessage)", 0, "--h --m left", "Last updated: " + getCurrentTime())
+            val statusMessage = if (errorDetails.length > 25) errorDetails.substring(0, 22) + "..." else errorDetails
+            saveWidgetCacheError(context, "Offline ($statusMessage)")
         }
         
         triggerWidgetUpdate(context)
     }
 
-    private fun calculateMetrics(jsonStr: String, targetHours: Float): WidgetMetrics? {
+    private fun checkAndSendNotification(context: Context, jsonStr: String, targetHours: Float) {
         try {
             val jsonObject = JSONObject(jsonStr)
-            val data = jsonObject.optJSONObject("data") ?: return null
-            val logsArray = data.optJSONArray("attendanceDailyLogs") ?: return null
-            if (logsArray.length() == 0) return null
+            val data = jsonObject.optJSONObject("data") ?: return
+            val logsArray = data.optJSONArray("attendanceDailyLogs") ?: return
+            if (logsArray.length() == 0) return
 
             val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
             val sdfTime = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
@@ -270,15 +455,12 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
 
             var workDurationMs = 0L
             var lastInTime: Date? = null
-            val firstClockIn = logs.firstOrNull { it.isIn == 0 }?.time ?: logs.first().time
 
-            var lastOutTime: Date? = null
             for (log in logs) {
                 if (log.isIn == 0) {
                     lastInTime = log.time
                 } else if (log.isIn == 1 && lastInTime != null) {
                     workDurationMs += (log.time.time - lastInTime.time)
-                    lastOutTime = log.time
                     lastInTime = null
                 }
             }
@@ -290,92 +472,53 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
 
             val totalWorkMinutes = workDurationMs / 60000.0
             val targetMinutes = targetHours * 60.0
-            val remainingMinutes = Math.max(0.0, targetMinutes - totalWorkMinutes)
             val completed = totalWorkMinutes >= targetMinutes
 
-            // Break time
-            val endTimestamp = if (isClockedIn) Date() else lastOutTime ?: firstClockIn
-            val totalElapsedMs = endTimestamp.time - firstClockIn.time
-            val totalBreakMinutes = Math.max(0.0, (totalElapsedMs - workDurationMs) / 60000.0)
-
-            // Formats
-            val firstInStr = SimpleDateFormat("hh:mm a", Locale.US).format(firstClockIn)
-            val workTimeStr = formatMinutes(totalWorkMinutes)
-            val breakTimeStr = formatMinutes(totalBreakMinutes)
-            
-            var exitTimeStr = "Completed"
-            if (!completed) {
-                val exitDate = Date(Date().time + (remainingMinutes * 60000).toLong())
-                exitTimeStr = SimpleDateFormat("hh:mm a", Locale.US).format(exitDate)
+            if (completed) {
+                val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                val lastNotifiedDate = sharedPrefs.getString("LastNotificationDate", "")
+                if (lastNotifiedDate != todayStr) {
+                    sendNotification(
+                        context,
+                        "Shift Completed!",
+                        "You have completed ${formatMinutes(totalWorkMinutes)} of biometric office time. Time to head home!"
+                    )
+                    sharedPrefs.edit().putString("LastNotificationDate", todayStr).apply()
+                }
             }
-
-            val statusText = when {
-                completed -> "Completed shift!"
-                isClockedIn -> "Clocked In"
-                else -> "Clocked Out / Break"
-            }
-
-            val progressPercent = Math.min(100, ((totalWorkMinutes / targetMinutes) * 100).toInt())
-            val progressRemaining = if (completed) "0m remaining" else "${formatMinutes(remainingMinutes)} remaining"
-
-            return WidgetMetrics(workTimeStr, firstInStr, breakTimeStr, exitTimeStr, statusText, progressPercent, progressRemaining)
         } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        return null
-    }
-
-    private fun formatMinutes(totalMin: Double): String {
-        val h = (totalMin / 60).toInt()
-        val m = (totalMin % 60).toInt()
-        return "${h}h ${String.format("%02d", m)}m"
-    }
-
-    private fun getCurrentTime(): String {
-        return SimpleDateFormat("hh:mm a", Locale.US).format(Date())
-    }
-
-    private fun saveWidgetCache(
-        context: Context,
-        workTime: String,
-        firstIn: String,
-        breakTime: String,
-        exitTime: String,
-        statusText: String,
-        progressPercent: Int,
-        progressRemaining: String,
-        lastUpdated: String
-    ) {
-        val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        sharedPrefs.edit()
-            .putString("WidgetWorkTime", workTime)
-            .putString("WidgetFirstIn", firstIn)
-            .putString("WidgetBreakTime", breakTime)
-            .putString("WidgetExitTime", exitTime)
-            .putString("WidgetStatusText", statusText)
-            .putInt("WidgetProgressPercent", progressPercent)
-            .putString("WidgetProgressRemaining", progressRemaining)
-            .putString("WidgetLastUpdated", lastUpdated)
-            .apply()
-    }
-
-    private fun triggerWidgetUpdate(context: Context) {
-        val appWidgetManager = AppWidgetManager.getInstance(context)
-        val componentName = ComponentName(context, AttendanceAppWidgetProvider::class.java)
-        val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
-        for (appWidgetId in appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId)
+            android.util.Log.e("HRMSWidget", "checkAndSendNotification error: ${e.message}", e)
         }
     }
 
-    data class LogEntry(val time: Date, val isIn: Int)
-    data class WidgetMetrics(
-        val workTime: String,
-        val firstIn: String,
-        val breakTime: String,
-        val exitTime: String,
-        val statusText: String,
-        val progressPercent: Int,
-        val progressRemaining: String
-    )
+    private fun sendNotification(context: Context, title: String, message: String) {
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val channelId = "hrms_tracker_channel"
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(channelId, "Shift Alerts", NotificationManager.IMPORTANCE_HIGH)
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context, 
+            0, 
+            intent, 
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = NotificationCompat.Builder(context, channelId)
+            .setSmallIcon(android.R.drawable.sym_def_app_icon)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .build()
+
+        notificationManager.notify(1, notification)
+    }
 }
