@@ -66,7 +66,7 @@
         </activity>
 
         <receiver
-            android:label="HRMS Attendance Insights"
+            android:label="HRMS Dashboard (Large)"
             android:name="com.balakamal.hrmstracker.AttendanceAppWidgetProvider"
             android:exported="true">
 
@@ -79,6 +79,38 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@ref/0x7f120000" />
+        </receiver>
+
+        <receiver
+            android:label="HRMS Info Card (Medium)"
+            android:name="com.balakamal.hrmstracker.AttendanceAppWidgetProviderMedium"
+            android:exported="true">
+
+            <intent-filter>
+
+                <action
+                    android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@ref/0x7f120001" />
+        </receiver>
+
+        <receiver
+            android:label="HRMS Compact Badge (Small)"
+            android:name="com.balakamal.hrmstracker.AttendanceAppWidgetProviderSmall"
+            android:exported="true">
+
+            <intent-filter>
+
+                <action
+                    android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@ref/0x7f120002" />
         </receiver>
 
         <provider
