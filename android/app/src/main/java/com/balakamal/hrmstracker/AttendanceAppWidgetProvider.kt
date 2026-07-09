@@ -147,12 +147,12 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
         
         // Update views
         views.setTextViewText(R.id.widget_status_text, statusText)
-        views.setTextViewText(R.id.widget_last_updated, lastUpdated)
         views.setTextViewText(R.id.widget_work_time_value, workTime)
         
         // Layout-specific bindings
         if (layoutId == R.layout.attendance_widget_medium || layoutId == R.layout.attendance_widget) {
             views.setTextViewText(R.id.widget_exit_time_value, exitTime)
+            views.setTextViewText(R.id.widget_last_updated, lastUpdated)
         }
         if (layoutId == R.layout.attendance_widget) {
             views.setTextViewText(R.id.widget_first_in_value, firstIn)
