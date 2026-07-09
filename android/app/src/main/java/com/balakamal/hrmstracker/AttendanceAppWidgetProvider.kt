@@ -23,6 +23,19 @@ import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
 
+// Top-level data classes to simplify type inference and cross-file package visibility
+data class LogEntry(val time: Date, val isIn: Int)
+
+data class WidgetMetrics(
+    val workTime: String,
+    val firstIn: String,
+    val breakTime: String,
+    val exitTime: String,
+    val statusText: String,
+    val progressPercent: Int,
+    val progressRemaining: String
+)
+
 open class AttendanceAppWidgetProvider : AppWidgetProvider() {
 
     open val defaultLayoutId: Int = R.layout.attendance_widget
@@ -95,7 +108,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             }
         }
 
-        private fun getLayoutForWidgetSize(appWidgetManager: AppWidgetManager, appWidgetId: Int, defaultLayoutId: Int): Int {
+        fun getLayoutForWidgetSize(appWidgetManager: AppWidgetManager, appWidgetId: Int, defaultLayoutId: Int): Int {
             val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
             val category = options.getInt(AppWidgetManager.OPTION_APPWIDGET_HOST_CATEGORY, -1)
             
@@ -257,7 +270,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             return null
         }
 
-        private fun saveWidgetCacheError(context: Context, errorText: String) {
+        fun saveWidgetCacheError(context: Context, errorText: String) {
             val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             val workTime = sharedPrefs.getString("WidgetWorkTime", "0h 00m") ?: "0h 00m"
             val firstIn = sharedPrefs.getString("WidgetFirstIn", "--:--") ?: "--:--"
@@ -326,7 +339,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             )
 
             for ((providerClass, defaultLayout) in providers) {
-                val componentName = ComponentName(context, providerClass)
+                val componentName = ComponentName(context, providerClass.name)
                 val ids = appWidgetManager.getAppWidgetIds(componentName)
                 for (appWidgetId in ids) {
                     val layoutId = getLayoutForWidgetSize(appWidgetManager, appWidgetId, defaultLayout)
