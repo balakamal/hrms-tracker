@@ -3,10 +3,12 @@ package com.balakamal.hrmstracker
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
+import android.appwidget.AppWidgetProviderInfo
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.os.Bundle
 import android.widget.RemoteViews
 import org.json.JSONObject
 import android.net.ConnectivityManager
@@ -40,6 +42,16 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
         }
     }
 
+    override fun onAppWidgetOptionsChanged(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        newOptions: Bundle
+    ) {
+        super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
+        updateAppWidget(context, appWidgetManager, appWidgetId)
+    }
+
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
         if (intent.action == ACTION_REFRESH) {
@@ -49,22 +61,54 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
             
             // Set loading state on all widgets
             for (appWidgetId in appWidgetIds) {
-                val views = RemoteViews(context.packageName, R.layout.attendance_widget)
+                val layoutId = getLayoutForWidgetSize(appWidgetManager, appWidgetId)
+                val views = RemoteViews(context.packageName, layoutId)
                 views.setTextViewText(R.id.widget_status_text, "Refreshing...")
                 appWidgetManager.updateAppWidget(appWidgetId, views)
             }
             
-            // Run network fetch in background thread using applicationContext
+            // Run network fetch in background thread using applicationContext and goAsync
+            val pendingResult = goAsync()
             val appContext = context.applicationContext
             Thread {
-                fetchAndRefreshWidget(appContext)
+                try {
+                    fetchAndRefreshWidget(appContext)
+                } catch (e: Exception) {
+                    android.util.Log.e("HRMSWidget", "Refresh thread error: ${e.message}", e)
+                } finally {
+                    pendingResult.finish()
+                }
             }.start()
+        }
+    }
+
+    private fun getLayoutForWidgetSize(appWidgetManager: AppWidgetManager, appWidgetId: Int): Int {
+        val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
+        val category = options.getInt(AppWidgetManager.OPTION_APPWIDGET_HOST_CATEGORY, -1)
+        
+        // If it is on Lockscreen/Keyguard, use the Medium layout by default (or Small if it has limited size)
+        if (category == AppWidgetProviderInfo.WIDGET_CATEGORY_KEYGUARD) {
+            return R.layout.attendance_widget_medium
+        }
+        
+        val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0)
+        val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0)
+        
+        return when {
+            minWidth == 0 || minHeight == 0 -> R.layout.attendance_widget
+            minHeight < 80 -> {
+                if (minWidth < 180) R.layout.attendance_widget_small else R.layout.attendance_widget_medium
+            }
+            minWidth < 150 -> R.layout.attendance_widget_small
+            minWidth < 250 -> R.layout.attendance_widget_medium
+            else -> R.layout.attendance_widget
         }
     }
 
     private fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
         try {
-        val views = RemoteViews(context.packageName, R.layout.attendance_widget)
+        val layoutId = getLayoutForWidgetSize(appWidgetManager, appWidgetId)
+        val views = RemoteViews(context.packageName, layoutId)
         
         // Bind Refresh Button
         val intent = Intent(context, AttendanceAppWidgetProvider::class.java).apply {
@@ -102,15 +146,21 @@ class AttendanceAppWidgetProvider : AppWidgetProvider() {
         val lastUpdated = sharedPrefs.getString("WidgetLastUpdated", "Last updated: --:--")
         
         // Update views
-        views.setTextViewText(R.id.widget_work_time_value, workTime)
-        views.setTextViewText(R.id.widget_first_in_value, firstIn)
-        views.setTextViewText(R.id.widget_break_time_value, breakTime)
-        views.setTextViewText(R.id.widget_exit_time_value, exitTime)
         views.setTextViewText(R.id.widget_status_text, statusText)
-        views.setProgressBar(R.id.widget_progress_bar, 100, progressPercent, false)
-        views.setTextViewText(R.id.widget_progress_percent, "$progressPercent% Completed")
-        views.setTextViewText(R.id.widget_progress_remaining, progressRemaining)
         views.setTextViewText(R.id.widget_last_updated, lastUpdated)
+        views.setTextViewText(R.id.widget_work_time_value, workTime)
+        
+        // Layout-specific bindings
+        if (layoutId == R.layout.attendance_widget_medium || layoutId == R.layout.attendance_widget) {
+            views.setTextViewText(R.id.widget_exit_time_value, exitTime)
+        }
+        if (layoutId == R.layout.attendance_widget) {
+            views.setTextViewText(R.id.widget_first_in_value, firstIn)
+            views.setTextViewText(R.id.widget_break_time_value, breakTime)
+            views.setProgressBar(R.id.widget_progress_bar, 100, progressPercent, false)
+            views.setTextViewText(R.id.widget_progress_percent, "$progressPercent% Completed")
+            views.setTextViewText(R.id.widget_progress_remaining, progressRemaining)
+        }
         
         appWidgetManager.updateAppWidget(appWidgetId, views)
         } catch (e: Exception) {
