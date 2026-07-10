@@ -50,18 +50,6 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 val layoutId = getLayoutForWidgetSize(appWidgetManager, appWidgetId, defaultLayoutId)
                 val views = RemoteViews(context.packageName, layoutId)
                 
-                // Bind Refresh Button
-                val intent = Intent(context, AttendanceAppWidgetProvider::class.java).apply {
-                    action = ACTION_REFRESH
-                }
-                val pendingIntent = PendingIntent.getBroadcast(
-                    context, 
-                    appWidgetId, 
-                    intent, 
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-                views.setOnClickPendingIntent(R.id.widget_refresh_button, pendingIntent)
-                
                 // Bind Click on Widget to Launch App
                 val appIntent = Intent(context, MainActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
