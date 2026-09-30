@@ -3,7 +3,7 @@
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/widget_minimal_bg"
+    android:background="@drawable/widget_m3_bg"
     android:orientation="vertical"
     android:padding="12dp">
 
@@ -18,10 +18,10 @@
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
-            android:letterSpacing="0.06"
+            android:letterSpacing="0.08"
             android:text="HRMS ATTENDANCE"
-            android:textColor="#94A3B8"
-            android:textSize="11sp"
+            android:textColor="#9E9EB2"
+            android:textSize="10sp"
             android:textStyle="bold" />
 
         <ImageButton
@@ -30,20 +30,20 @@
             android:layout_height="28dp"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:background="@drawable/widget_minimal_btn"
+            android:background="@drawable/widget_m3_btn_refresh"
             android:contentDescription="Refresh attendance stats"
             android:padding="6dp"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_refresh_white" />
     </RelativeLayout>
 
-    <!-- Main Hero Card (Balanced top space) -->
+    <!-- Main Hero Card (Material 3 Mint Tonal Pod) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="6dp"
         android:layout_weight="1.25"
-        android:background="@drawable/widget_minimal_pod"
+        android:background="@drawable/widget_m3_pill_mint"
         android:gravity="center"
         android:orientation="vertical"
         android:paddingStart="12dp"
@@ -55,9 +55,9 @@
             android:id="@+id/widget_work_subtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:letterSpacing="0.05"
+            android:letterSpacing="0.06"
             android:text="TIME AT DESK"
-            android:textColor="#94A3B8"
+            android:textColor="#7DE8B3"
             android:textSize="9sp"
             android:textStyle="bold" />
 
@@ -78,7 +78,7 @@
             android:ellipsize="end"
             android:singleLine="true"
             android:text="Clocked In"
-            android:textColor="#CBD5E1"
+            android:textColor="#A3F2C5"
             android:textSize="11sp"
             android:textStyle="bold" />
 
@@ -86,11 +86,11 @@
             android:id="@+id/widget_progress_bar"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
-            android:layout_height="5dp"
+            android:layout_height="6dp"
             android:layout_marginTop="6dp"
             android:max="100"
             android:progress="0"
-            android:progressDrawable="@drawable/widget_minimal_progress" />
+            android:progressDrawable="@drawable/widget_m3_progress_drawable" />
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -103,7 +103,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentStart="true"
                 android:text="0% Completed"
-                android:textColor="#CBD5E1"
+                android:textColor="#A3F2C5"
                 android:textSize="10sp"
                 android:textStyle="bold" />
 
@@ -113,12 +113,12 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
                 android:text="--h --m left"
-                android:textColor="#94A3B8"
+                android:textColor="#7DE8B3"
                 android:textSize="10sp" />
         </RelativeLayout>
     </LinearLayout>
 
-    <!-- Bottom 3-Column Stats Row (Balanced bottom space) -->
+    <!-- Bottom 3-Column Stats Row (Material 3 Expressive Tonal Pods) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -126,13 +126,13 @@
         android:layout_weight="0.85"
         android:orientation="horizontal">
 
-        <!-- Column 1: First In -->
+        <!-- Column 1: First In (Warm Amber Pod) -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_marginEnd="4dp"
             android:layout_weight="1"
-            android:background="@drawable/widget_minimal_pod"
+            android:background="@drawable/widget_m3_pill_amber"
             android:gravity="center"
             android:orientation="vertical"
             android:padding="4dp">
@@ -140,9 +140,9 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:letterSpacing="0.04"
+                android:letterSpacing="0.05"
                 android:text="FIRST IN"
-                android:textColor="#94A3B8"
+                android:textColor="#FFB77C"
                 android:textSize="8sp"
                 android:textStyle="bold" />
 
@@ -152,18 +152,18 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:text="--:--"
-                android:textColor="#FFFFFF"
+                android:textColor="#FFEADA"
                 android:textSize="13sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Column 2: Break -->
+        <!-- Column 2: Break (Lavender/Violet Pod) -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_marginEnd="4dp"
             android:layout_weight="1"
-            android:background="@drawable/widget_minimal_pod"
+            android:background="@drawable/widget_m3_pill_lavender"
             android:gravity="center"
             android:orientation="vertical"
             android:padding="4dp">
@@ -171,9 +171,9 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:letterSpacing="0.04"
+                android:letterSpacing="0.05"
                 android:text="BREAK"
-                android:textColor="#94A3B8"
+                android:textColor="#D0BCFF"
                 android:textSize="8sp"
                 android:textStyle="bold" />
 
@@ -183,17 +183,17 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:text="0h 00m"
-                android:textColor="#FFFFFF"
+                android:textColor="#F1EBFF"
                 android:textSize="13sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Column 3: Est. Exit -->
+        <!-- Column 3: Est. Exit (Emerald Pod) -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@drawable/widget_minimal_pod"
+            android:background="@drawable/widget_m3_pill_emerald"
             android:gravity="center"
             android:orientation="vertical"
             android:padding="4dp">
@@ -201,9 +201,9 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:letterSpacing="0.04"
+                android:letterSpacing="0.05"
                 android:text="EST. EXIT"
-                android:textColor="#94A3B8"
+                android:textColor="#7DE8B3"
                 android:textSize="8sp"
                 android:textStyle="bold" />
 
@@ -213,7 +213,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:text="--:--"
-                android:textColor="#FFFFFF"
+                android:textColor="#E6FFF0"
                 android:textSize="13sp"
                 android:textStyle="bold" />
         </LinearLayout>
