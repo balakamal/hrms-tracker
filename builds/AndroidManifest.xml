@@ -70,7 +70,7 @@
         </activity>
 
         <receiver
-            android:label="HRMS Pixel Hero (Large)"
+            android:label="HRMS Dashboard (Large)"
             android:name="com.balakamal.hrmstracker.AttendanceAppWidgetProvider"
             android:exported="true">
 
@@ -89,7 +89,7 @@
         </receiver>
 
         <receiver
-            android:label="HRMS Pixel Pill (Medium)"
+            android:label="HRMS Row (Medium)"
             android:name="com.balakamal.hrmstracker.AttendanceAppWidgetProviderMedium"
             android:exported="true">
 
@@ -108,7 +108,7 @@
         </receiver>
 
         <receiver
-            android:label="HRMS Pixel Badge (Small)"
+            android:label="HRMS Badge (Small)"
             android:name="com.balakamal.hrmstracker.AttendanceAppWidgetProviderSmall"
             android:exported="true">
 
