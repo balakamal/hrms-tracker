@@ -61,6 +61,18 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
                 views.setOnClickPendingIntent(R.id.widget_root, appPendingIntent)
+
+                // Bind 1-Tap Home-Screen Refresh FAB to trigger background sync without opening app
+                val refreshIntent = Intent(context, AttendanceAppWidgetProvider::class.java).apply {
+                    action = ACTION_REFRESH
+                }
+                val refreshPendingIntent = PendingIntent.getBroadcast(
+                    context, 
+                    appWidgetId, 
+                    refreshIntent, 
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                views.setOnClickPendingIntent(R.id.widget_btn_refresh, refreshPendingIntent)
                 
                 // Restore cached values from SharedPreferences
                 val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -73,16 +85,20 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 val progressRemaining = sharedPrefs.getString("WidgetProgressRemaining", "--h --m left")
                 val lastUpdated = sharedPrefs.getString("WidgetLastUpdated", "Last updated: --:--")
                 
-                // Update views
+                // Common view updates
                 views.setTextViewText(R.id.widget_status_text, statusText)
                 views.setTextViewText(R.id.widget_work_time_value, workTime)
                 
                 // Layout-specific bindings
-                if (layoutId == R.layout.attendance_widget_medium || layoutId == R.layout.attendance_widget) {
+                if (layoutId == R.layout.attendance_widget_small) {
+                    views.setProgressBar(R.id.widget_progress_bar, 100, progressPercent, false)
+                } else if (layoutId == R.layout.attendance_widget_medium) {
                     views.setTextViewText(R.id.widget_exit_time_value, exitTime)
                     views.setTextViewText(R.id.widget_last_updated, lastUpdated)
-                }
-                if (layoutId == R.layout.attendance_widget) {
+                    views.setTextViewText(R.id.widget_progress_percent, "$progressPercent%")
+                } else if (layoutId == R.layout.attendance_widget) {
+                    views.setTextViewText(R.id.widget_exit_time_value, exitTime)
+                    views.setTextViewText(R.id.widget_last_updated, lastUpdated)
                     views.setTextViewText(R.id.widget_first_in_value, firstIn)
                     views.setTextViewText(R.id.widget_break_time_value, breakTime)
                     views.setProgressBar(R.id.widget_progress_bar, 100, progressPercent, false)
@@ -113,11 +129,11 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             }
             
             return when {
-                minHeight < 80 -> {
+                minHeight < 90 -> {
                     if (minWidth < 180) R.layout.attendance_widget_small else R.layout.attendance_widget_medium
                 }
-                minWidth < 150 -> R.layout.attendance_widget_small
-                minWidth < 250 -> R.layout.attendance_widget_medium
+                minWidth < 170 -> R.layout.attendance_widget_small
+                minWidth < 270 -> R.layout.attendance_widget_medium
                 else -> R.layout.attendance_widget
             }
         }
@@ -242,14 +258,18 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     exitTimeStr = SimpleDateFormat("hh:mm a", Locale.US).format(exitDate)
                 }
 
-                val statusText = when {
-                    completed -> "Completed shift!"
-                    isClockedIn -> "Clocked In"
-                    else -> "Clocked Out / Break"
-                }
-
                 val progressPercent = Math.min(100, ((totalWorkMinutes / targetMinutes) * 100).toInt())
-                val progressRemaining = if (completed) "0m remaining" else "${formatMinutes(remainingMinutes)} remaining"
+                val progressRemaining = if (completed) "0m left" else "${formatMinutes(remainingMinutes)} left"
+
+                val statusText = when {
+                    completed -> "🎉 CONQUERED • Mission complete!"
+                    progressPercent in 88..99 -> "🎒 GOLDEN HOUR • Pack up & prep exit!"
+                    progressPercent in 50..87 && isClockedIn -> "🎯 IN THE ZONE • Halfway hero 🔥"
+                    progressPercent in 20..49 && isClockedIn -> "⚡ DEEP FOCUS • Cooking bugs & tasks"
+                    progressPercent in 1..19 && isClockedIn -> "☕ MORNING FUEL • Coffee ingested, let's roll"
+                    !isClockedIn && progressPercent > 0 -> "🥪 ON BREAK • Refueling braincells ☕"
+                    else -> "🛋️ NOT STARTED • Ready to clock in"
+                }
 
                 return WidgetMetrics(workTimeStr, firstInStr, breakTimeStr, exitTimeStr, statusText, progressPercent, progressRemaining)
             } catch (e: Exception) {
@@ -332,7 +352,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 for (appWidgetId in ids) {
                     val layoutId = getLayoutForWidgetSize(appWidgetManager, appWidgetId, defaultLayout)
                     val views = RemoteViews(context.packageName, layoutId)
-                    views.setTextViewText(R.id.widget_status_text, "Refreshing...")
+                    views.setTextViewText(R.id.widget_status_text, "🔄 Syncing...")
                     appWidgetManager.updateAppWidget(appWidgetId, views)
                 }
             }

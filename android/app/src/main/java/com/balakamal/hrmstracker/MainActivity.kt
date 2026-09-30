@@ -36,12 +36,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var webView: WebView
     private lateinit var sharedPrefs: SharedPreferences
     private lateinit var progressBar: ProgressBar
-    private lateinit var btnBack: ImageButton
     private lateinit var btnDesktopMode: ImageButton
     private lateinit var btnShortcuts: ImageButton
     private lateinit var btnRefresh: ImageButton
     private lateinit var btnMore: ImageButton
-    private lateinit var txtModeSubtitle: TextView
     private lateinit var layoutError: View
     private lateinit var btnRetry: Button
 
@@ -77,12 +75,10 @@ class MainActivity : AppCompatActivity() {
         // View initialization
         webView = findViewById(R.id.webView)
         progressBar = findViewById(R.id.progressBar)
-        btnBack = findViewById(R.id.btn_back)
         btnDesktopMode = findViewById(R.id.btn_desktop_mode)
         btnShortcuts = findViewById(R.id.btn_shortcuts)
         btnRefresh = findViewById(R.id.btn_refresh)
         btnMore = findViewById(R.id.btn_more)
-        txtModeSubtitle = findViewById(R.id.txt_mode_subtitle)
         layoutError = findViewById(R.id.layout_error)
         btnRetry = findViewById(R.id.btn_retry)
 
@@ -146,13 +142,11 @@ class MainActivity : AppCompatActivity() {
                 layoutError.visibility = View.GONE
                 webView.visibility = View.VISIBLE
                 progressBar.visibility = View.VISIBLE
-                btnBack.visibility = if (webView.canGoBack()) View.VISIBLE else View.GONE
             }
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 progressBar.visibility = View.GONE
-                btnBack.visibility = if (webView.canGoBack()) View.VISIBLE else View.GONE
 
                 // Force desktop viewport meta override if Desktop Mode is enabled
                 if (isDesktopMode) {
@@ -224,12 +218,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupBackNavigation() {
-        btnBack.setOnClickListener {
-            if (webView.canGoBack()) {
-                webView.goBack()
-            }
-        }
-
         // Intercept Android hardware/gesture back to navigate web history
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -255,13 +243,11 @@ class MainActivity : AppCompatActivity() {
             webSettings.useWideViewPort = true
             webSettings.loadWithOverviewMode = true
             btnDesktopMode.setBackgroundResource(R.drawable.bg_active_pill)
-            txtModeSubtitle.text = "Desktop View"
         } else {
             webSettings.userAgentString = null // Reverts to system default mobile UA
             webSettings.useWideViewPort = true
             webSettings.loadWithOverviewMode = true
             btnDesktopMode.setBackgroundResource(android.R.color.transparent)
-            txtModeSubtitle.text = "Mobile View"
         }
 
         if (reload) {

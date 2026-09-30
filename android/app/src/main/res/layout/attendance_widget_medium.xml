@@ -3,149 +3,123 @@
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/widget_bg"
-    android:orientation="vertical"
-    android:paddingLeft="12dp"
-    android:paddingRight="12dp"
-    android:paddingTop="10dp"
-    android:paddingBottom="10dp">
+    android:background="@drawable/widget_m3_bg"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="8dp">
 
-    <!-- Header Row -->
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+    <!-- Left Pod: Mint Tonal Pod (Work Time & Mood) -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="5dp"
+        android:layout_weight="1.1"
+        android:background="@drawable/widget_m3_pill_mint"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/widget_work_time_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:letterSpacing="-0.02"
+                android:text="0h 00m"
+                android:textColor="#E1F9EB"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_progress_percent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:text="0%"
+                android:textColor="#7DE8B3"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
 
         <TextView
-            android:id="@+id/widget_title"
-            android:layout_width="wrap_content"
+            android:id="@+id/widget_status_text"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
-            android:text="HRMS Insights"
-            android:textColor="#FFFFFF"
-            android:textSize="13sp"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:text="🎯 In the zone"
+            android:textColor="#A7D7BC"
+            android:textSize="9sp"
             android:textStyle="bold" />
-    </RelativeLayout>
+    </LinearLayout>
 
-    <!-- Divider -->
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginTop="4dp"
-        android:layout_marginBottom="8dp"
-        android:background="#1EFFFFFF" />
-
-    <!-- 2-Column Content Row -->
+    <!-- Right Pod: Lavender Tonal Pod (Exit Time & Refresh FAB) -->
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="match_parent"
+        android:layout_weight="0.9"
+        android:background="@drawable/widget_m3_pill_purple"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:paddingStart="10dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp">
 
-        <!-- Column 1: Work Time -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginRight="8dp">
+            android:orientation="vertical">
 
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_clock"
-                android:layout_marginRight="6dp" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:letterSpacing="0.04"
+                android:text="🚪 EXIT AT"
+                android:textColor="#D8B4FE"
+                android:textSize="9sp"
+                android:textStyle="bold" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="WORK TIME"
-                    android:textColor="#9CA3AF"
-                    android:textSize="8sp"
-                    android:textStyle="bold" />
+            <TextView
+                android:id="@+id/widget_exit_time_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="--:--"
+                android:textColor="#FAF5FF"
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/widget_work_time_value"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0h 00m"
-                    android:textColor="#00F2FE"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/widget_status_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Not Synced"
-                    android:textColor="#9CA3AF"
-                    android:textSize="8sp"
-                    android:singleLine="true"
-                    android:ellipsize="end" />
-            </LinearLayout>
+            <TextView
+                android:id="@+id/widget_last_updated"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text="Updated: --:--"
+                android:textColor="#C4B5FD"
+                android:textSize="8sp" />
         </LinearLayout>
 
-        <!-- Vertical Separator Divider -->
-        <ImageView
-            android:layout_width="1dp"
-            android:layout_height="24dp"
-            android:background="#1EFFFFFF"
-            android:layout_marginRight="8dp" />
-
-        <!-- Column 2: Est. Exit -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_exit"
-                android:layout_marginRight="6dp" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="EST. EXIT"
-                    android:textColor="#9CA3AF"
-                    android:textSize="8sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/widget_exit_time_value"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="--:--"
-                    android:textColor="#A78BFA"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/widget_last_updated"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Updated: --:--"
-                    android:textColor="#6B7280"
-                    android:textSize="8sp"
-                    android:singleLine="true"
-                    android:ellipsize="end" />
-            </LinearLayout>
-        </LinearLayout>
-
+        <!-- 1-Tap Home-Screen Refresh FAB -->
+        <ImageButton
+            android:id="@+id/widget_btn_refresh"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:background="@drawable/widget_m3_fab_refresh"
+            android:contentDescription="Refresh attendance stats"
+            android:padding="6dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_refresh_dark" />
     </LinearLayout>
 
 </LinearLayout>

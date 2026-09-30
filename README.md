@@ -21,11 +21,12 @@ A premium, glassmorphic attendance dashboard and insights utility designed for `
 *   **Hardware & On-Screen Back Navigation**: Smooth in-portal web history navigation without accidental app exits.
 *   **Loading Progress & Error Recovery**: Integrated progress bar and sleek offline connection retry layout.
 *   **Self-Contained Login**: Opens the official login screen securely. Once logged in, it automatically captures authentication tokens for background work.
-*   **Home-Screen Widget (Small, Medium, Large)**: Premium rounded layouts featuring:
-    *   Cyan-to-blue gradient progress bar matching the desktop widget.
-    *   Real-time stats: First In, Work Time, Break Time, and Est. Exit Time.
-    *   State synchronization: Auto-updates on device boot, app launch, login/logout, settings updates, and periodically in the background.
-    *   Timezone safety: Automatically uses the device's local calendar timezone to fetch correct biometric entries.
+*   **Material 3 Expressive Widgets (Pixel-Style)**:
+    *   **Multiple Responsive Sizes (Large 4x2 Hero, Medium 4x1 Pill, Small 2x1 Badge)**: Smoothly transforms and adapts layout on the fly as you resize it on your home screen.
+    *   **1-Tap Home-Screen Refresh FAB**: Dedicated circular refresh FAB `[🔄]` right on the widget to trigger immediate biometric background sync without opening the app.
+    *   **Expressive Mood & Personality Taglines**: Adapts dynamically throughout your shift (`☕ Morning Fuel`, `🎯 In The Zone`, `🥪 On Break`, `🎒 Golden Hour / Pack Up`, `🎉 Shift Conquered!`).
+    *   **Pixel Design Aesthetics**: Authentic Material You tonal mint (`#7DE8B3`) and lavender (`#D8B4FE`) pill containers, giant Google Sans hero numbers, and rounded progress capsules.
+    *   **State synchronization**: Auto-updates on device boot, app launch, home-screen refresh, login/logout, and background work checks.
 
 ---
 

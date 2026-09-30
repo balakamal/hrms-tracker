@@ -87,7 +87,7 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                     AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
 
                     // 4. Trigger Completed Shift Notification or Pre-Shift Pack-up Alert
-                    if (metrics.statusText == "Completed shift!") {
+                    if (metrics.statusText == "Completed shift!" || metrics.statusText.contains("CONQUERED") || metrics.progressPercent >= 100) {
                         val lastNotifiedDate = sharedPrefs.getString("LastNotificationDate", "")
                         if (lastNotifiedDate != todayStr) {
                             sendNotification(
