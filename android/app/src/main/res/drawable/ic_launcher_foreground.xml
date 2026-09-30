@@ -8,21 +8,26 @@
     <!-- Letter H -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M23.5,43 H28 V51.5 H31 V43 H35.5 V65 H31 V56 H28 V65 H23.5 Z" />
+        android:pathData="M16,34 H22.5 V50.75 H25.5 V34 H32 V74 H25.5 V57.25 H22.5 V74 H16 Z" />
 
     <!-- Letter R -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M39.5,43 H48 C51,43 52.5,45 52.5,49.5 C52.5,53.5 51,55.5 48,56 L52.5,65 H47.5 L43.5,56.5 H44 V65 H39.5 Z M44,47.5 H47.5 C48.5,47.5 48.5,51.5 47.5,51.5 H44 Z" />
+        android:pathData="M35.5,34 H51.5 V54 H45 V57.25 L51.5,74 H45 L40,57.25 H42 V74 H35.5 Z M42,40.5 H45 V47.5 H42 Z" />
 
     <!-- Letter M -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M55.5,43 H59.5 L62.5,53.5 L65.5,43 H69.5 V65 H65.5 V50 L63.2,57.5 H61.8 L59.5,50 V65 H55.5 Z" />
+        android:pathData="M55,34 H61.5 L63,47.5 L64.5,34 H71 V74 H65.5 V48 L64,60 H62 L60.5,48 V74 H55 Z" />
 
     <!-- Letter S -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M84,48 H79.5 C79.5,46.5 78.8,46.2 78,46.2 C77,46.2 76.5,46.8 76.5,47.8 C76.5,49.2 77.8,50 80,50.8 C83,52 84.5,53.8 84.5,57.5 C84.5,62.5 81,65 77.5,65 C73.5,65 72,62 72,58 H76.5 C76.5,60 77,61.2 78,61.2 C79,61.2 79.8,60.5 79.8,59.2 C79.8,57.5 78.5,56.8 76.5,56 C73.5,55 72,53.2 72,49.5 C72,45 74.5,43 78,43 C82,43 84,45.5 84,48 Z" />
+        android:pathData="M74.5,34 H90.5 V40.5 H81 V47.5 H90.5 V74 H74.5 V67.5 H84 V60.5 H74.5 Z" />
+
+    <!-- M3 Mint Accent Bar -->
+    <path
+        android:fillColor="#7DE8B3"
+        android:pathData="M16,78 H90.5 V80.5 H16 Z" />
 
 </vector>
