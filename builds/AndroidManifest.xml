@@ -70,7 +70,7 @@
         </activity>
 
         <receiver
-            android:label="HRMS Dashboard (Large)"
+            android:label="HRMS Pixel Hero (Large)"
             android:name="com.balakamal.hrmstracker.AttendanceAppWidgetProvider"
             android:exported="true">
 
@@ -78,6 +78,9 @@
 
                 <action
                     android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+
+                <action
+                    android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
             </intent-filter>
 
             <meta-data
@@ -86,7 +89,7 @@
         </receiver>
 
         <receiver
-            android:label="HRMS Info Card (Medium)"
+            android:label="HRMS Pixel Pill (Medium)"
             android:name="com.balakamal.hrmstracker.AttendanceAppWidgetProviderMedium"
             android:exported="true">
 
@@ -94,6 +97,9 @@
 
                 <action
                     android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+
+                <action
+                    android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
             </intent-filter>
 
             <meta-data
@@ -102,7 +108,7 @@
         </receiver>
 
         <receiver
-            android:label="HRMS Compact Badge (Small)"
+            android:label="HRMS Pixel Badge (Small)"
             android:name="com.balakamal.hrmstracker.AttendanceAppWidgetProviderSmall"
             android:exported="true">
 
@@ -110,6 +116,9 @@
 
                 <action
                     android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+
+                <action
+                    android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
             </intent-filter>
 
             <meta-data
