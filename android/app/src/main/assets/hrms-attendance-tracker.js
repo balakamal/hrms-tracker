@@ -30,8 +30,8 @@
       --at-shadow: rgba(0, 0, 0, 0.4);
       --at-title-color: #ffffff;
       --at-panel-border: rgba(255, 255, 255, 0.08);
-      --at-accent-work: #00f2fe;
-      --at-accent-exit: #a78bfa;
+      --at-accent-work: #FFFFFF;
+      --at-accent-exit: #CBD5E1;
       --at-bg-header: #14141c;
 
       position: fixed;
@@ -88,7 +88,7 @@
     .at-badge svg {
       width: 20px;
       height: 20px;
-      fill: #00f2fe;
+      fill: #CBD5E1;
     }
     .at-badge-text {
       font-weight: 600;
@@ -803,7 +803,7 @@
     // 1. Badge View (Collapsed)
     const badge = document.createElement("div");
     badge.className = "at-badge";
-    badge.innerHTML = `${ICONS.clock}<span class="at-badge-text" id="at-badge-work-time">--h --m</span>`;
+    badge.innerHTML = `<span style="font-weight: 800; font-size: 10px; letter-spacing: 0.05em; color: #FFFFFF; background: rgba(255,255,255,0.15); padding: 2px 6px; border-radius: 4px; margin-right: 6px;">HRMS</span><span class="at-badge-text" id="at-badge-work-time">--h --m</span>`;
     // Click is handled manually in dragEnd to prevent WebView touch scrolling bugs
     container.appendChild(badge);
     elements.badge = badge;
