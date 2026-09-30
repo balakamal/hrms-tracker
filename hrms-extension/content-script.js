@@ -78,6 +78,7 @@
       user-select: none;
       transition: all 0.2s ease;
       color: var(--at-text-primary);
+      touch-action: none;
     }
     .at-badge:hover {
       transform: translateY(-2px);
@@ -178,6 +179,7 @@
       padding: 4px;
       border-radius: 6px;
       transition: all 0.2s ease;
+      touch-action: none;
     }
     .at-drag-handle:hover {
       background: var(--at-bg-input);
@@ -513,6 +515,18 @@
     @keyframes at-spin {
       to { transform: rotate(360deg); }
     }
+    
+    @media (max-width: 600px) {
+      #at-widget-container.at-expanded {
+        right: 12px !important;
+        bottom: 12px !important;
+        left: 12px !important;
+        width: calc(100% - 24px) !important;
+      }
+      #at-widget-container.at-expanded .at-card {
+        width: 100% !important;
+      }
+    }
   `;
 
   // --- SVG ICONS ---
@@ -574,6 +588,16 @@
     return `${getTodayLocalDateStr()}T00:00:00.000Z`;
   };
 
+  const syncTokensToAndroid = () => {
+    if (window.AndroidApp) {
+      const token = localStorage.getItem("AccessToken");
+      const refreshToken = localStorage.getItem("RefreshToken");
+      if (token && token !== "null") {
+        window.AndroidApp.saveTokens(token, refreshToken || "");
+      }
+    }
+  };
+
   // --- SERVICE METHODS ---
   async function fetchUserIdentity() {
     if (state.userId) return; // Custom ID override already set
@@ -598,6 +622,9 @@
         // Cache details
         localStorage.setItem("at_user_id", state.userId);
         localStorage.setItem("at_user_name", state.userName);
+        if (window.AndroidApp) {
+          window.AndroidApp.saveUserData(state.userId, state.userName);
+        }
 
         // Extract user avatar photo UUID if present, or query from page DOM
         const photoId = resData.data.photo || resData.data.photoId;
@@ -629,6 +656,9 @@
   async function fetchAttendanceLogs() {
     if (!state.userId) await fetchUserIdentity();
     if (!state.userId) return;
+
+    // Sync tokens with Android side in case they have changed or are freshly available
+    syncTokensToAndroid();
 
     const todayDate = getTodayISO();
     const url = `https://apps.pal.tech/hrms-backend/api/Attendance/GetDailyLog?date=${todayDate}&userId=${state.userId}`;
@@ -746,16 +776,26 @@
   let wasDragging = false;
 
   function buildUI() {
+    if (document.getElementById("at-widget-container")) return;
+
     // Inject style sheet
-    const styleEl = document.createElement("style");
-    styleEl.innerHTML = styles;
-    document.head.appendChild(styleEl);
+    if (!document.getElementById("at-widget-styles")) {
+      const styleEl = document.createElement("style");
+      styleEl.id = "at-widget-styles";
+      styleEl.innerHTML = styles;
+      document.head.appendChild(styleEl);
+    }
 
     // Create Main Container
     const container = document.createElement("div");
     container.id = "at-widget-container";
     if (state.theme === "light") {
       container.classList.add("at-theme-light");
+    }
+    if (state.isMinimized) {
+      container.classList.add("at-minimized");
+    } else {
+      container.classList.add("at-expanded");
     }
     document.body.appendChild(container);
     elements.container = container;
@@ -764,7 +804,7 @@
     const badge = document.createElement("div");
     badge.className = "at-badge";
     badge.innerHTML = `${ICONS.clock}<span class="at-badge-text" id="at-badge-work-time">--h --m</span>`;
-    badge.addEventListener("click", toggleCollapse);
+    // Click is handled manually in dragEnd to prevent WebView touch scrolling bugs
     container.appendChild(badge);
     elements.badge = badge;
 
@@ -861,10 +901,6 @@
           </label>
         </div>
 
-        <div class="at-form-group">
-          <label>Mobile PWA URL</label>
-          <input type="text" class="at-input" id="at-setting-pwaurl" value="${state.pwaUrl}" placeholder="PWA URL for mobile sync">
-        </div>
         <button class="at-btn-save" id="at-btn-save-settings">Save & Apply</button>
       </div>
     `;
@@ -945,6 +981,7 @@
     let xOffset = 0;
     let yOffset = 0;
     let dragThresholdPassed = false;
+    let initialTarget = null;
 
     function dragStart(e) {
       // Don't drag if clicking buttons inside the header/handle
@@ -952,14 +989,14 @@
         return;
       }
 
-      const clientX =
-        e.type === "touchstart" ? e.touches[0].clientX : e.clientX;
-      const clientY =
-        e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
+      if (e.cancelable) {
+        e.preventDefault();
+      }
 
       const rect = container.getBoundingClientRect();
-      initialX = clientX;
-      initialY = clientY;
+      initialX = e.clientX;
+      initialY = e.clientY;
+      initialTarget = e.target;
 
       const styleLeft = container.style.left;
       const styleBottom = container.style.bottom;
@@ -986,17 +1023,20 @@
 
       if (dragThresholdPassed) {
         constrainToViewport();
+      } else {
+        // Tap/click fallback since we preventDefault in dragStart
+        if (initialTarget && initialTarget.closest(".at-badge")) {
+          toggleCollapse();
+        }
       }
+      initialTarget = null;
     }
 
     function drag(e) {
       if (!active) return;
 
-      const clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
-      const clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
-
-      const dx = clientX - initialX;
-      const dy = clientY - initialY;
+      const dx = e.clientX - initialX;
+      const dy = e.clientY - initialY;
 
       if (!dragThresholdPassed && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
         dragThresholdPassed = true;
@@ -1025,16 +1065,23 @@
 
     [badge, dragHandle].forEach((el) => {
       if (el) {
-        el.addEventListener("mousedown", dragStart);
-        el.addEventListener("touchstart", dragStart, { passive: true });
+        el.addEventListener("pointerdown", dragStart);
+        el.addEventListener("touchstart", (e) => {
+          if (e.cancelable) e.preventDefault();
+        }, { passive: false });
       }
     });
 
-    window.addEventListener("mousemove", drag);
-    window.addEventListener("touchmove", drag, { passive: false });
+    window.addEventListener("pointermove", drag);
+    window.addEventListener("pointerup", dragEnd);
+    window.addEventListener("pointercancel", dragEnd);
 
-    window.addEventListener("mouseup", dragEnd);
-    window.addEventListener("touchend", dragEnd);
+    // Prevent default scroll on touch screens while active dragging is occurring
+    window.addEventListener("touchmove", (e) => {
+      if (active) {
+        if (e.cancelable) e.preventDefault();
+      }
+    }, { passive: false });
   }
 
   function constrainToViewport() {
@@ -1079,7 +1126,13 @@
     state.isMinimized = !state.isMinimized;
     localStorage.setItem("at_is_minimized", state.isMinimized);
 
+    const container = elements.container;
+
     if (state.isMinimized) {
+      if (container) {
+        container.classList.add("at-minimized");
+        container.classList.remove("at-expanded");
+      }
       elements.card.style.opacity = "0";
       setTimeout(() => {
         elements.card.style.display = "none";
@@ -1088,6 +1141,10 @@
         constrainToViewport();
       }, 150);
     } else {
+      if (container) {
+        container.classList.add("at-expanded");
+        container.classList.remove("at-minimized");
+      }
       elements.badge.style.opacity = "0";
       setTimeout(() => {
         elements.badge.style.display = "none";
@@ -1209,9 +1266,6 @@
     ).value;
     const parsedMinutes = parseWorkTimeInput(minutesValStr);
     const notifyVal = elements.card.querySelector("#at-setting-notify").checked;
-    const pwaurlVal = elements.card
-      .querySelector("#at-setting-pwaurl")
-      .value.trim();
 
     state.targetHours =
       parsedMinutes === null || parsedMinutes <= 0 ? 8.5 : parsedMinutes / 60;
@@ -1223,6 +1277,9 @@
     localStorage.setItem("at_target_hours", state.targetHours);
     localStorage.setItem("at_notify_enabled", state.notifyEnabled);
     localStorage.setItem("at_theme", state.theme);
+    if (window.AndroidApp) {
+      window.AndroidApp.saveSettings(state.targetHours);
+    }
 
     if (state.theme === "light") {
       elements.container.classList.add("at-theme-light");
@@ -1230,10 +1287,7 @@
       elements.container.classList.remove("at-theme-light");
     }
 
-    if (pwaurlVal) {
-      state.pwaUrl = pwaurlVal;
-      localStorage.setItem("at_pwa_url", pwaurlVal);
-    }
+
 
     closeSettings();
     fetchAttendanceLogs();
@@ -1321,16 +1375,18 @@
     const now = Date.now();
     // Throttle notifications to run every 5 minutes (or whatever is in state.notificationInterval)
     if (now - state.lastNotificationTime > state.notificationInterval) {
-      if (Notification.permission === "default") {
-        Notification.requestPermission();
-      } else if (Notification.permission === "granted") {
-        const bodyText = `You have completed ${formatMinutes(workMinutes)} of biometric office time. Time to wrap up and head home!`;
-        const options = { body: bodyText };
-        if (state.userAvatar) {
-          options.icon = state.userAvatar;
+      if (typeof Notification !== "undefined") {
+        if (Notification.permission === "default") {
+          Notification.requestPermission();
+        } else if (Notification.permission === "granted") {
+          const bodyText = `You have completed ${formatMinutes(workMinutes)} of biometric office time. Time to wrap up and head home!`;
+          const options = { body: bodyText };
+          if (state.userAvatar) {
+            options.icon = state.userAvatar;
+          }
+          new Notification("Shift Completed!", options);
+          state.lastNotificationTime = now;
         }
-        new Notification("Shift Completed!", options);
-        state.lastNotificationTime = now;
       }
     }
   }
@@ -1338,8 +1394,17 @@
   // --- INITIALIZATION ---
   function init() {
     // Request notification permissions early
-    if (Notification.permission === "default") {
+    if (typeof Notification !== "undefined" && Notification.permission === "default") {
       Notification.requestPermission();
+    }
+
+    // Startup sync with Android SharedPreferences
+    if (window.AndroidApp) {
+      if (state.userId) {
+        window.AndroidApp.saveUserData(state.userId, state.userName);
+      }
+      window.AndroidApp.saveSettings(state.targetHours);
+      syncTokensToAndroid();
     }
 
     buildUI();
@@ -1347,6 +1412,14 @@
 
     // Listen for window resize to adjust layout
     window.addEventListener("resize", constrainToViewport);
+
+    // Periodic safety check to re-append widget if dynamic SPA routing clears it
+    setInterval(() => {
+      if (!document.getElementById("at-widget-container")) {
+        buildUI();
+        constrainToViewport();
+      }
+    }, 2000);
 
     // Initial load
     fetchAttendanceLogs();

@@ -14,9 +14,14 @@ A premium, glassmorphic attendance dashboard and insights utility designed for `
 *   **Premium Themes**: Glassmorphic styling with switchable Dark and Light modes.
 
 ### 📱 Android Application & Widget
+*   **Desktop Site Mode Toggle**: Switch between responsive mobile view and full 1280px desktop site layout to access exclusive desktop features (attendance punch regularization, detailed swipe tables, approval grids, and report exports) with smooth pinch-to-zoom.
+*   **Quick HRMS Shortcuts**: Direct one-tap jump shortcuts to Timesheet & Swipes, Leave Portal, Payslips & Compensation, Regularization, and Shift Target Hours configuration.
+*   **Smart Shift Alerts**: Push notifications for both completed shifts and pre-shift "Pack-Up" warnings (~15-20 minutes remaining).
+*   **Built-in Download Manager**: Seamlessly download salary payslips, Form 16, and attendance reports directly to Android's `Downloads` folder.
+*   **Hardware & On-Screen Back Navigation**: Smooth in-portal web history navigation without accidental app exits.
+*   **Loading Progress & Error Recovery**: Integrated progress bar and sleek offline connection retry layout.
 *   **Self-Contained Login**: Opens the official login screen securely. Once logged in, it automatically captures authentication tokens for background work.
-*   **Background Notifications**: Uses Android `WorkManager` to periodically check your attendance logs and post a push alert when your shift is completed.
-*   **Home-Screen Widget**: A premium, rounded layout featuring:
+*   **Home-Screen Widget (Small, Medium, Large)**: Premium rounded layouts featuring:
     *   Cyan-to-blue gradient progress bar matching the desktop widget.
     *   Real-time stats: First In, Work Time, Break Time, and Est. Exit Time.
     *   State synchronization: Auto-updates on device boot, app launch, login/logout, settings updates, and periodically in the background.

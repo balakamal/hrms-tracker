@@ -2,26 +2,30 @@ package com.balakamal.hrmstracker
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.DownloadManager
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.os.Handler
-import android.os.Looper
-import android.widget.Button
-import androidx.core.app.NotificationCompat
+import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.webkit.JavascriptInterface
-import android.webkit.WebSettings
-import android.webkit.WebView
-import android.webkit.WebViewClient
-import android.widget.Toast
+import android.os.Environment
+import android.os.Handler
+import android.os.Looper
+import android.text.InputType
+import android.view.View
+import android.webkit.*
+import android.widget.*
+import androidx.activity.OnBackPressedCallback
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.work.*
@@ -31,6 +35,17 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
     private lateinit var sharedPrefs: SharedPreferences
+    private lateinit var progressBar: ProgressBar
+    private lateinit var btnBack: ImageButton
+    private lateinit var btnDesktopMode: ImageButton
+    private lateinit var btnShortcuts: ImageButton
+    private lateinit var btnRefresh: ImageButton
+    private lateinit var btnMore: ImageButton
+    private lateinit var txtModeSubtitle: TextView
+    private lateinit var layoutError: View
+    private lateinit var btnRetry: Button
+
+    private var isDesktopMode = false
 
     companion object {
         private const val PREFS_NAME = "HRMS_PREFS"
@@ -39,9 +54,14 @@ class MainActivity : AppCompatActivity() {
         private const val KEY_USER_ID = "UserId"
         private const val KEY_USER_NAME = "UserName"
         private const val KEY_TARGET_HOURS = "TargetHours"
-        private const val PWA_URL = "https://balakamal.github.io/hrms-tracker/hrms-pwa/"
+        private const val KEY_DESKTOP_MODE = "DesktopMode"
         private const val LOGIN_URL = "https://apps.pal.tech/hrms/login"
+        private const val HOME_URL = "https://apps.pal.tech/hrms/"
         private const val PERMISSION_REQUEST_CODE = 101
+
+        // Desktop User Agent matching standard Chrome on Linux/Windows
+        private const val DESKTOP_USER_AGENT =
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -52,9 +72,30 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         
         sharedPrefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        
-        webView = findViewById(R.id.webView)
+        isDesktopMode = sharedPrefs.getBoolean(KEY_DESKTOP_MODE, false)
 
+        // View initialization
+        webView = findViewById(R.id.webView)
+        progressBar = findViewById(R.id.progressBar)
+        btnBack = findViewById(R.id.btn_back)
+        btnDesktopMode = findViewById(R.id.btn_desktop_mode)
+        btnShortcuts = findViewById(R.id.btn_shortcuts)
+        btnRefresh = findViewById(R.id.btn_refresh)
+        btnMore = findViewById(R.id.btn_more)
+        txtModeSubtitle = findViewById(R.id.txt_mode_subtitle)
+        layoutError = findViewById(R.id.layout_error)
+        btnRetry = findViewById(R.id.btn_retry)
+
+        setupWebView()
+        setupTopBarListeners()
+        setupBackNavigation()
+
+        requestNotificationPermissions()
+        startAppFlow()
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    private fun setupWebView() {
         val webSettings = webView.settings
         webSettings.javaScriptEnabled = true
         webSettings.domStorageEnabled = true
@@ -62,17 +103,35 @@ class MainActivity : AppCompatActivity() {
         webSettings.loadWithOverviewMode = true
         webSettings.useWideViewPort = true
         webSettings.cacheMode = WebSettings.LOAD_DEFAULT
-        
+
+        // Enable zoom controls for desktop site navigation
+        webSettings.setSupportZoom(true)
+        webSettings.builtInZoomControls = true
+        webSettings.displayZoomControls = false
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             webSettings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
         }
 
+        // Apply saved Desktop Mode state
+        applyDesktopMode(isDesktopMode, reload = false)
+
         // Register bidirectional bridge JavaScript Interface
         webView.addJavascriptInterface(WebAppInterface(), "AndroidApp")
 
-        // Add WebChromeClient for console logging and debugging
-        webView.webChromeClient = object : android.webkit.WebChromeClient() {
-            override fun onConsoleMessage(consoleMessage: android.webkit.ConsoleMessage?): Boolean {
+        // Add WebChromeClient for loading progress and console logging
+        webView.webChromeClient = object : WebChromeClient() {
+            override fun onProgressChanged(view: WebView?, newProgress: Int) {
+                super.onProgressChanged(view, newProgress)
+                if (newProgress < 100) {
+                    progressBar.visibility = View.VISIBLE
+                    progressBar.progress = newProgress
+                } else {
+                    progressBar.visibility = View.GONE
+                }
+            }
+
+            override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
                 if (consoleMessage != null) {
                     android.util.Log.d("WebViewConsole", "${consoleMessage.message()} -- From line ${consoleMessage.lineNumber()} of ${consoleMessage.sourceId()}")
                 }
@@ -80,10 +139,26 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Configure WebViewClient for page flow, error handling, and script injection
         webView.webViewClient = object : WebViewClient() {
+            override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                super.onPageStarted(view, url, favicon)
+                layoutError.visibility = View.GONE
+                webView.visibility = View.VISIBLE
+                progressBar.visibility = View.VISIBLE
+                btnBack.visibility = if (webView.canGoBack()) View.VISIBLE else View.GONE
+            }
+
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                
+                progressBar.visibility = View.GONE
+                btnBack.visibility = if (webView.canGoBack()) View.VISIBLE else View.GONE
+
+                // Force desktop viewport meta override if Desktop Mode is enabled
+                if (isDesktopMode) {
+                    injectDesktopViewport()
+                }
+
                 if (url != null && url.contains("apps.pal.tech")) {
                     // Extract tokens silently for background notifications if they log in
                     if (url.contains("dashboard") || url.contains("time-sheet") || url.contains("me/timesheet")) {
@@ -94,30 +169,289 @@ class MainActivity : AppCompatActivity() {
                     injectScriptFromAssets()
                 }
             }
+
+            override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
+                super.onReceivedError(view, request, error)
+                if (request?.isForMainFrame == true) {
+                    layoutError.visibility = View.VISIBLE
+                    webView.visibility = View.GONE
+                    progressBar.visibility = View.GONE
+                }
+            }
         }
 
-        // Bind Refresh Button
-        findViewById<android.widget.ImageButton>(R.id.btn_refresh).setOnClickListener {
+        // Download Listener to handle Payslips, Tax forms, and Attendance Reports
+        webView.setDownloadListener { url, userAgent, contentDisposition, mimetype, _ ->
+            handleFileDownload(url, userAgent, contentDisposition, mimetype)
+        }
+    }
+
+    private fun setupTopBarListeners() {
+        // Desktop Site Toggle
+        btnDesktopMode.setOnClickListener {
+            val newMode = !isDesktopMode
+            sharedPrefs.edit().putBoolean(KEY_DESKTOP_MODE, newMode).apply()
+            applyDesktopMode(newMode, reload = true)
+
+            val statusMsg = if (newMode) "Desktop Site Mode Enabled (1280px)" else "Mobile Site Mode Enabled"
+            Toast.makeText(this, statusMsg, Toast.LENGTH_SHORT).show()
+        }
+
+        // HRMS Shortcuts Menu
+        btnShortcuts.setOnClickListener {
+            showShortcutsDialog()
+        }
+
+        // Refresh Page
+        btnRefresh.setOnClickListener {
             Toast.makeText(this, "Refreshing page...", Toast.LENGTH_SHORT).show()
+            layoutError.visibility = View.GONE
+            webView.visibility = View.VISIBLE
             webView.reload()
         }
 
-        // Bind Test Notification Button
-        findViewById<Button>(R.id.btn_test_notification).setOnClickListener {
-            Toast.makeText(this, "Notification scheduled: triggering in 10 seconds!", Toast.LENGTH_SHORT).show()
-            Handler(Looper.getMainLooper()).postDelayed({
-                sendTestNotification()
-            }, 10000)
+        // More Options Menu
+        btnMore.setOnClickListener {
+            showMoreOptionsMenu()
         }
 
-        requestNotificationPermissions()
-        startAppFlow()
+        // Retry Button on Error Layout
+        btnRetry.setOnClickListener {
+            layoutError.visibility = View.GONE
+            webView.visibility = View.VISIBLE
+            webView.reload()
+        }
+    }
+
+    private fun setupBackNavigation() {
+        btnBack.setOnClickListener {
+            if (webView.canGoBack()) {
+                webView.goBack()
+            }
+        }
+
+        // Intercept Android hardware/gesture back to navigate web history
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (webView.canGoBack()) {
+                    webView.goBack()
+                } else {
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        })
+    }
+
+    /**
+     * Applies Desktop Site or Mobile Site configurations to WebView settings
+     */
+    private fun applyDesktopMode(enabled: Boolean, reload: Boolean) {
+        isDesktopMode = enabled
+        val webSettings = webView.settings
+
+        if (enabled) {
+            webSettings.userAgentString = DESKTOP_USER_AGENT
+            webSettings.useWideViewPort = true
+            webSettings.loadWithOverviewMode = true
+            btnDesktopMode.setBackgroundResource(R.drawable.bg_active_pill)
+            txtModeSubtitle.text = "Desktop View"
+        } else {
+            webSettings.userAgentString = null // Reverts to system default mobile UA
+            webSettings.useWideViewPort = true
+            webSettings.loadWithOverviewMode = true
+            btnDesktopMode.setBackgroundResource(android.R.color.transparent)
+            txtModeSubtitle.text = "Mobile View"
+        }
+
+        if (reload) {
+            webView.reload()
+        }
+    }
+
+    /**
+     * Injects a fixed 1280px viewport meta tag to force responsive web apps to render
+     * the full desktop layout with all exclusive desktop menus and tables.
+     */
+    private fun injectDesktopViewport() {
+        val js = """
+            (function() {
+                var meta = document.querySelector('meta[name="viewport"]');
+                if (!meta) {
+                    meta = document.createElement('meta');
+                    meta.name = 'viewport';
+                    document.head.appendChild(meta);
+                }
+                meta.setAttribute('content', 'width=1280, initial-scale=0.35, maximum-scale=3.0, user-scalable=yes');
+                if (document.body) {
+                    document.body.style.minWidth = '1280px';
+                }
+            })();
+        """.trimIndent()
+        webView.evaluateJavascript(js, null)
+    }
+
+    /**
+     * Handles downloads for payslips, tax certificates, and attendance reports
+     */
+    private fun handleFileDownload(url: String, userAgent: String, contentDisposition: String, mimetype: String) {
+        try {
+            val request = DownloadManager.Request(Uri.parse(url))
+            request.setMimeType(mimetype)
+            
+            val cookies = CookieManager.getInstance().getCookie(url)
+            if (cookies != null) {
+                request.addRequestHeader("cookie", cookies)
+            }
+            request.addRequestHeader("User-Agent", userAgent)
+            request.setDescription("Downloading file from HRMS...")
+
+            val filename = URLUtil.guessFileName(url, contentDisposition, mimetype)
+            request.setTitle(filename)
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, filename)
+
+            val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            dm.enqueue(request)
+            Toast.makeText(this, "Downloading: $filename", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(this, "Download failed: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    /**
+     * Displays a Quick HRMS Shortcuts dialog to jump directly to key modules
+     */
+    private fun showShortcutsDialog() {
+        val options = arrayOf(
+            "🕒 My Swipes & Timesheet",
+            "📅 Leave Application & Balance",
+            "💰 Payslips & Compensation",
+            "✍️ Attendance Regularization",
+            "🏠 HRMS Portal Dashboard",
+            "🎯 Adjust Shift Target Hours"
+        )
+
+        AlertDialog.Builder(this)
+            .setTitle("Quick HRMS Shortcuts")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> webView.loadUrl("https://apps.pal.tech/hrms/me/timesheet")
+                    1 -> webView.loadUrl("https://apps.pal.tech/hrms/leave")
+                    2 -> webView.loadUrl("https://apps.pal.tech/hrms/payroll")
+                    3 -> webView.loadUrl("https://apps.pal.tech/hrms/regularization")
+                    4 -> webView.loadUrl(HOME_URL)
+                    5 -> showTargetHoursDialog()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    /**
+     * Quick dialog to update daily target hours (syncs to widget & background notifications)
+     */
+    private fun showTargetHoursDialog() {
+        val currentTarget = sharedPrefs.getFloat(KEY_TARGET_HOURS, 8.5f)
+        val options = arrayOf(
+            "8.5 Hours (Standard Full-Day)",
+            "4.25 Hours (Half-Day)",
+            "9.0 Hours (Extended Shift)",
+            "Custom Value..."
+        )
+
+        AlertDialog.Builder(this)
+            .setTitle("Daily Target Hours (Current: ${currentTarget}h)")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> setTargetHours(8.5f)
+                    1 -> setTargetHours(4.25f)
+                    2 -> setTargetHours(9.0f)
+                    3 -> promptCustomTargetHours(currentTarget)
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun promptCustomTargetHours(current: Float) {
+        val input = EditText(this).apply {
+            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+            setText(current.toString())
+            setSelection(text.length)
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Enter Target Hours (e.g. 8.5)")
+            .setView(input)
+            .setPositiveButton("Save") { _, _ ->
+                val entered = input.text.toString().toFloatOrNull()
+                if (entered != null && entered > 0) {
+                    setTargetHours(entered)
+                } else {
+                    Toast.makeText(this, "Invalid number entered", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun setTargetHours(hours: Float) {
+        sharedPrefs.edit().putFloat(KEY_TARGET_HOURS, hours).apply()
+        
+        // Push target hours update into the web localStorage and in-page widget
+        val jsSync = "try { localStorage.setItem('at_target_hours', '$hours'); } catch(e){}"
+        webView.evaluateJavascript(jsSync, null)
+
+        scheduleBackgroundWorker()
+        triggerWidgetRefresh()
+        Toast.makeText(this, "Target set to ${hours}h. Widget updated!", Toast.LENGTH_SHORT).show()
+    }
+
+    /**
+     * Displays secondary options menu
+     */
+    private fun showMoreOptionsMenu() {
+        val modeText = if (isDesktopMode) "Switch to Mobile Mode" else "Switch to Desktop Mode"
+        val options = arrayOf(
+            modeText,
+            "🔔 Test Notification (in 10s)",
+            "🔄 Re-inject Insights Widget",
+            "🚪 Clear Cache & Relogin",
+            "ℹ️ About HRMS Insights"
+        )
+
+        AlertDialog.Builder(this)
+            .setTitle("More Options")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> btnDesktopMode.performClick()
+                    1 -> {
+                        Toast.makeText(this, "Notification scheduled in 10s!", Toast.LENGTH_SHORT).show()
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            sendTestNotification()
+                        }, 10000)
+                    }
+                    2 -> {
+                        injectScriptFromAssets()
+                        Toast.makeText(this, "Insights Widget re-injected!", Toast.LENGTH_SHORT).show()
+                    }
+                    3 -> clearTokensAndShowLogin()
+                    4 -> {
+                        AlertDialog.Builder(this)
+                            .setTitle("HRMS Insights App")
+                            .setMessage("Version 1.0\n\n• Desktop & Mobile Viewports\n• Real-time Biometric Tracking\n• Home-Screen Widgets\n• Shift Completion & Pack-up Alerts\n• Secure Local Token Storage")
+                            .setPositiveButton("OK", null)
+                            .show()
+                    }
+                }
+            }
+            .setNegativeButton("Close", null)
+            .show()
     }
 
     private fun startAppFlow() {
-        // Always load the original HRMS portal homepage.
-        // WebView manages cookies natively, so it will redirect to the dashboard if already logged in.
-        webView.loadUrl("https://apps.pal.tech/hrms/")
+        webView.loadUrl(HOME_URL)
         
         val token = sharedPrefs.getString(KEY_ACCESS_TOKEN, null)
         if (token != null) {
@@ -201,7 +535,7 @@ class MainActivity : AppCompatActivity() {
         
         // Clear WebView Cookies & Storage
         webView.clearCache(true)
-        android.webkit.CookieManager.getInstance().removeAllCookies(null)
+        CookieManager.getInstance().removeAllCookies(null)
         
         webView.loadUrl(LOGIN_URL)
         triggerWidgetRefresh()
@@ -269,7 +603,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Bidirectional JS interface for the PWA
+    // Bidirectional JS interface for the PWA or in-page script
     inner class WebAppInterface {
         @JavascriptInterface
         fun onLogout() {

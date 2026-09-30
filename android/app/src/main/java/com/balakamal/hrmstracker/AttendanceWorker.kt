@@ -86,7 +86,7 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                     )
                     AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
 
-                    // 4. Trigger Completed Shift Notification (no clocked-in restriction)
+                    // 4. Trigger Completed Shift Notification or Pre-Shift Pack-up Alert
                     if (metrics.statusText == "Completed shift!") {
                         val lastNotifiedDate = sharedPrefs.getString("LastNotificationDate", "")
                         if (lastNotifiedDate != todayStr) {
@@ -95,6 +95,15 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                                 "You have completed ${metrics.workTime} of biometric office time. Time to head home!"
                             )
                             sharedPrefs.edit().putString("LastNotificationDate", todayStr).apply()
+                        }
+                    } else if (metrics.progressPercent in 92..99) {
+                        val lastPreNotifiedDate = sharedPrefs.getString("LastPreNotificationDate", "")
+                        if (lastPreNotifiedDate != todayStr) {
+                            sendNotification(
+                                "Almost Done! (${metrics.progressRemaining})",
+                                "Shift is at ${metrics.progressPercent}%. Wrap up tasks and get ready to pack up!"
+                            )
+                            sharedPrefs.edit().putString("LastPreNotificationDate", todayStr).apply()
                         }
                     }
                 }

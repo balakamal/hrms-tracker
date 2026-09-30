@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -10,59 +11,177 @@
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:background="#0F0F14"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
         android:elevation="4dp">
 
-        <TextView
-            android:id="@+id/app_title"
+        <LinearLayout
+            android:id="@+id/left_container"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
-            android:text="HRMS Insights"
-            android:textColor="#FFFFFF"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btn_back"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Go Back"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_arrow_back"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/app_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="HRMS Insights"
+                    android:textColor="#FFFFFF"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/txt_mode_subtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Mobile View"
+                    android:textColor="#9CA3AF"
+                    android:textSize="11sp" />
+            </LinearLayout>
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-            <Button
-                android:id="@+id/btn_test_notification"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:text="Test Alert"
-                android:textSize="11sp"
-                android:textColor="#FFFFFF"
-                android:backgroundTint="#2563EB"
-                android:layout_marginEnd="8dp"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                style="?android:attr/borderlessButtonStyle" />
+            <!-- Desktop Mode Toggle Button -->
+            <ImageButton
+                android:id="@+id/btn_desktop_mode"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Desktop Site Mode"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_desktop" />
 
+            <!-- Quick HRMS Shortcuts Button -->
+            <ImageButton
+                android:id="@+id/btn_shortcuts"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="HRMS Shortcuts"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_shortcuts" />
+
+            <!-- Refresh Button -->
             <ImageButton
                 android:id="@+id/btn_refresh"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Refresh Page"
-                android:padding="12dp"
+                android:padding="8dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_refresh" />
+
+            <!-- More Options Button -->
+            <ImageButton
+                android:id="@+id/btn_more"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="More Options"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_more" />
         </LinearLayout>
     </RelativeLayout>
 
-    <!-- WebView Container -->
-    <WebView
-        android:id="@+id/webView"
+    <!-- Page Loading Progress Bar -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1" />
+        android:layout_height="3dp"
+        android:indeterminate="false"
+        android:max="100"
+        android:progressDrawable="@drawable/loading_progress_bar"
+        android:visibility="gone" />
+
+    <!-- Main Container -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <WebView
+            android:id="@+id/webView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!-- Offline / Network Error View -->
+        <LinearLayout
+            android:id="@+id/layout_error"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#0F0F14"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="32dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:src="@drawable/ic_refresh"
+                app:tint="#EF4444" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Portal Connection Failed"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txt_error_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:text="Unable to reach apps.pal.tech. Please check your internet or VPN connection."
+                android:textColor="#9CA3AF"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/btn_retry"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:layout_marginTop="24dp"
+                android:backgroundTint="#2563EB"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:text="Retry Connection"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </FrameLayout>
 
 </LinearLayout>
