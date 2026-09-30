@@ -6,7 +6,7 @@
         <item name="windowSplashScreenBackground">#0f0f14</item>
         
         <!-- Icon of the splash screen -->
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
         
         <!-- Theme to transition to after the splash screen finishes -->
         <item name="postSplashScreenTheme">@style/Theme.AppCompat.NoActionBar</item>

@@ -3,24 +3,33 @@
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/widget_m3_bg"
+    android:background="@drawable/widget_minimal_bg"
     android:gravity="center_vertical"
     android:orientation="horizontal"
     android:padding="8dp">
 
-    <!-- Left Pod: Mint Tonal Pod (Work Time & Mood) -->
+    <!-- Left Pod: Work Time & Progress (Fills height and width evenly) -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_marginEnd="5dp"
-        android:layout_weight="1.1"
-        android:background="@drawable/widget_m3_pill_mint"
+        android:layout_marginEnd="6dp"
+        android:layout_weight="1"
+        android:background="@drawable/widget_minimal_pod"
         android:gravity="center_vertical"
         android:orientation="vertical"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
         android:paddingTop="6dp"
         android:paddingBottom="6dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:letterSpacing="0.04"
+            android:text="TIME AT DESK"
+            android:textColor="#94A3B8"
+            android:textSize="8sp"
+            android:textStyle="bold" />
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -33,7 +42,7 @@
                 android:layout_alignParentStart="true"
                 android:letterSpacing="-0.02"
                 android:text="0h 00m"
-                android:textColor="#E1F9EB"
+                android:textColor="#FFFFFF"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
@@ -44,7 +53,7 @@
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
                 android:text="0%"
-                android:textColor="#7DE8B3"
+                android:textColor="#CBD5E1"
                 android:textSize="11sp"
                 android:textStyle="bold" />
         </RelativeLayout>
@@ -53,21 +62,19 @@
             android:id="@+id/widget_status_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
             android:ellipsize="end"
             android:singleLine="true"
-            android:text="🎯 In the zone"
-            android:textColor="#A7D7BC"
-            android:textSize="9sp"
-            android:textStyle="bold" />
+            android:text="Clocked In"
+            android:textColor="#94A3B8"
+            android:textSize="9sp" />
     </LinearLayout>
 
-    <!-- Right Pod: Lavender Tonal Pod (Exit Time & Refresh FAB) -->
+    <!-- Right Pod: Exit Goal & 1-Tap Refresh Button -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="0.9"
-        android:background="@drawable/widget_m3_pill_purple"
+        android:layout_weight="1"
+        android:background="@drawable/widget_minimal_pod"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="10dp"
@@ -85,9 +92,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:letterSpacing="0.04"
-                android:text="🚪 EXIT AT"
-                android:textColor="#D8B4FE"
-                android:textSize="9sp"
+                android:text="EST. EXIT"
+                android:textColor="#94A3B8"
+                android:textSize="8sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -95,8 +102,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="--:--"
-                android:textColor="#FAF5FF"
-                android:textSize="15sp"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -106,20 +113,19 @@
                 android:ellipsize="end"
                 android:singleLine="true"
                 android:text="Updated: --:--"
-                android:textColor="#C4B5FD"
+                android:textColor="#64748B"
                 android:textSize="8sp" />
         </LinearLayout>
 
-        <!-- 1-Tap Home-Screen Refresh FAB -->
         <ImageButton
             android:id="@+id/widget_btn_refresh"
             android:layout_width="28dp"
             android:layout_height="28dp"
-            android:background="@drawable/widget_m3_fab_refresh"
+            android:background="@drawable/widget_minimal_btn"
             android:contentDescription="Refresh attendance stats"
             android:padding="6dp"
             android:scaleType="fitCenter"
-            android:src="@drawable/ic_refresh_dark" />
+            android:src="@drawable/ic_refresh_white" />
     </LinearLayout>
 
 </LinearLayout>

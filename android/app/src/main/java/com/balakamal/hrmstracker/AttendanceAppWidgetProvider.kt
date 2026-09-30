@@ -91,14 +91,15 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 
                 // Layout-specific bindings
                 if (layoutId == R.layout.attendance_widget_small) {
+                    views.setTextViewText(R.id.widget_status_text, "Exit: $exitTime")
                     views.setProgressBar(R.id.widget_progress_bar, 100, progressPercent, false)
                 } else if (layoutId == R.layout.attendance_widget_medium) {
                     views.setTextViewText(R.id.widget_exit_time_value, exitTime)
-                    views.setTextViewText(R.id.widget_last_updated, lastUpdated)
+                    views.setTextViewText(R.id.widget_last_updated, "Updated: " + getCurrentTime())
                     views.setTextViewText(R.id.widget_progress_percent, "$progressPercent%")
                 } else if (layoutId == R.layout.attendance_widget) {
+                    views.setTextViewText(R.id.widget_status_text, "$statusText • $progressPercent% Done")
                     views.setTextViewText(R.id.widget_exit_time_value, exitTime)
-                    views.setTextViewText(R.id.widget_last_updated, lastUpdated)
                     views.setTextViewText(R.id.widget_first_in_value, firstIn)
                     views.setTextViewText(R.id.widget_break_time_value, breakTime)
                     views.setProgressBar(R.id.widget_progress_bar, 100, progressPercent, false)
@@ -262,13 +263,10 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 val progressRemaining = if (completed) "0m left" else "${formatMinutes(remainingMinutes)} left"
 
                 val statusText = when {
-                    completed -> "🎉 CONQUERED • Mission complete!"
-                    progressPercent in 88..99 -> "🎒 GOLDEN HOUR • Pack up & prep exit!"
-                    progressPercent in 50..87 && isClockedIn -> "🎯 IN THE ZONE • Halfway hero 🔥"
-                    progressPercent in 20..49 && isClockedIn -> "⚡ DEEP FOCUS • Cooking bugs & tasks"
-                    progressPercent in 1..19 && isClockedIn -> "☕ MORNING FUEL • Coffee ingested, let's roll"
-                    !isClockedIn && progressPercent > 0 -> "🥪 ON BREAK • Refueling braincells ☕"
-                    else -> "🛋️ NOT STARTED • Ready to clock in"
+                    completed -> "Shift Complete"
+                    isClockedIn -> "Clocked In"
+                    progressPercent > 0 -> "On Break"
+                    else -> "Not Clocked In"
                 }
 
                 return WidgetMetrics(workTimeStr, firstInStr, breakTimeStr, exitTimeStr, statusText, progressPercent, progressRemaining)
@@ -352,7 +350,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 for (appWidgetId in ids) {
                     val layoutId = getLayoutForWidgetSize(appWidgetManager, appWidgetId, defaultLayout)
                     val views = RemoteViews(context.packageName, layoutId)
-                    views.setTextViewText(R.id.widget_status_text, "🔄 Syncing...")
+                    views.setTextViewText(R.id.widget_status_text, "Syncing...")
                     appWidgetManager.updateAppWidget(appWidgetId, views)
                 }
             }

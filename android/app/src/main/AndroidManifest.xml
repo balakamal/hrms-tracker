@@ -30,7 +30,7 @@
         <!-- Android Home Screen Widgets -->
         <receiver android:name=".AttendanceAppWidgetProvider"
             android:exported="true"
-            android:label="HRMS Pixel Hero (Large)">
+            android:label="HRMS Dashboard (Large)">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
@@ -42,7 +42,7 @@
 
         <receiver android:name=".AttendanceAppWidgetProviderMedium"
             android:exported="true"
-            android:label="HRMS Pixel Pill (Medium)">
+            android:label="HRMS Row (Medium)">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
@@ -54,7 +54,7 @@
 
         <receiver android:name=".AttendanceAppWidgetProviderSmall"
             android:exported="true"
-            android:label="HRMS Pixel Badge (Small)">
+            android:label="HRMS Badge (Small)">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
