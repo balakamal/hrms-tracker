@@ -37,19 +37,19 @@
             android:src="@drawable/ic_refresh_white" />
     </RelativeLayout>
 
-    <!-- Main Hero Card (Occupies full middle vertical space) -->
+    <!-- Main Hero Card (Balanced top space) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
-        android:layout_weight="1"
+        android:layout_marginTop="6dp"
+        android:layout_weight="1.25"
         android:background="@drawable/widget_minimal_pod"
         android:gravity="center"
         android:orientation="vertical"
         android:paddingStart="12dp"
         android:paddingEnd="12dp"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp">
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp">
 
         <TextView
             android:id="@+id/widget_work_subtitle"
@@ -68,7 +68,7 @@
             android:letterSpacing="-0.02"
             android:text="0h 00m"
             android:textColor="#FFFFFF"
-            android:textSize="32sp"
+            android:textSize="30sp"
             android:textStyle="bold" />
 
         <TextView
@@ -87,7 +87,7 @@
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
             android:layout_height="5dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="6dp"
             android:max="100"
             android:progress="0"
             android:progressDrawable="@drawable/widget_minimal_progress" />
@@ -95,7 +95,7 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp">
+            android:layout_marginTop="3dp">
 
             <TextView
                 android:id="@+id/widget_progress_percent"
@@ -118,24 +118,24 @@
         </RelativeLayout>
     </LinearLayout>
 
-    <!-- Bottom 3-Column Stats Row (Equal weights, no text wrap) -->
+    <!-- Bottom 3-Column Stats Row (Balanced bottom space) -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="6dp"
+        android:layout_weight="0.85"
         android:orientation="horizontal">
 
         <!-- Column 1: First In -->
         <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_marginEnd="4dp"
             android:layout_weight="1"
             android:background="@drawable/widget_minimal_pod"
             android:gravity="center"
             android:orientation="vertical"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp">
+            android:padding="4dp">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -160,14 +160,13 @@
         <!-- Column 2: Break -->
         <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_marginEnd="4dp"
             android:layout_weight="1"
             android:background="@drawable/widget_minimal_pod"
             android:gravity="center"
             android:orientation="vertical"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp">
+            android:padding="4dp">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -192,13 +191,12 @@
         <!-- Column 3: Est. Exit -->
         <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@drawable/widget_minimal_pod"
             android:gravity="center"
             android:orientation="vertical"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp">
+            android:padding="4dp">
 
             <TextView
                 android:layout_width="wrap_content"

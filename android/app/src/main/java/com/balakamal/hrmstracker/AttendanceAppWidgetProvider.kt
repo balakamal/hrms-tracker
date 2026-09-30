@@ -117,26 +117,36 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
             val category = options.getInt(AppWidgetManager.OPTION_APPWIDGET_HOST_CATEGORY, -1)
             
-            // If it is on Lockscreen/Keyguard, use the Medium layout by default (or Small if it has limited size)
+            // If it is on Lockscreen/Keyguard, use the Medium layout by default
             if (category == AppWidgetProviderInfo.WIDGET_CATEGORY_KEYGUARD) {
                 return R.layout.attendance_widget_medium
             }
             
             val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0)
-            val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0)
+            val maxHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 0)
             
-            if (minWidth == 0 || minHeight == 0) {
+            if (minWidth == 0 || maxHeight == 0) {
                 return defaultLayoutId
             }
             
-            return when {
-                minHeight < 90 -> {
-                    if (minWidth < 180) R.layout.attendance_widget_small else R.layout.attendance_widget_medium
+            // Respect the provider's designated layout, only resizing when dragged to smaller breakpoints
+            if (defaultLayoutId == R.layout.attendance_widget) {
+                if (maxHeight < 85 || minWidth < 160) {
+                    return R.layout.attendance_widget_small
+                } else if (maxHeight < 110 || minWidth < 220) {
+                    return R.layout.attendance_widget_medium
                 }
-                minWidth < 170 -> R.layout.attendance_widget_small
-                minWidth < 270 -> R.layout.attendance_widget_medium
-                else -> R.layout.attendance_widget
+                return R.layout.attendance_widget
             }
+            
+            if (defaultLayoutId == R.layout.attendance_widget_medium) {
+                if (minWidth < 160) {
+                    return R.layout.attendance_widget_small
+                }
+                return R.layout.attendance_widget_medium
+            }
+            
+            return defaultLayoutId
         }
 
         fun saveWidgetCache(
