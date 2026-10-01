@@ -59,7 +59,7 @@ jobs:
       run: |
         mkdir -p builds
         cp android/app/build/outputs/apk/debug/app-debug.apk builds/app-debug.apk
-        cp android/app/build/outputs/apk/debug/app-debug.apk builds/hrms-tracker-v1.8.apk
+        cp android/app/build/outputs/apk/debug/app-debug.apk builds/hrms-tracker-v1.9.apk
         cp android/app/build/outputs/apk/debug/app-debug.apk builds/hrms-tracker-latest.apk
         $ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer manifest print builds/app-debug.apk > builds/AndroidManifest.xml || true
         git config --global user.name "github-actions[bot]"

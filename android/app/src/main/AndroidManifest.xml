@@ -22,12 +22,20 @@
             android:enabled="true"
             android:exported="true"
             android:configChanges="orientation|screenSize"
-            android:theme="@style/Theme.App.Starting">
+            android:theme="@style/Theme.App.Starting" />
+
+        <activity-alias
+            android:name=".LauncherActivity"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_launcher"
+            android:roundIcon="@mipmap/ic_launcher_round"
+            android:label="HRMS Insights"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity-alias>
 
         <!-- Android Home Screen Widgets -->
         <receiver android:name=".AttendanceAppWidgetProvider"
