@@ -90,6 +90,13 @@ class MainActivity : AppCompatActivity() {
         startAppFlow()
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (::webView.isInitialized) {
+            TokenManager.syncTokensToWebView(webView, applicationContext)
+        }
+    }
+
     @SuppressLint("SetJavaScriptEnabled")
     private fun setupWebView() {
         val webSettings = webView.settings
@@ -154,6 +161,12 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 if (url != null && url.contains("apps.pal.tech")) {
+                    // Push rotated tokens from native storage into WebView localStorage
+                    TokenManager.syncTokensToWebView(webView, applicationContext)
+
+                    // Inject localStorage hook to catch silent Angular token refreshes in real time
+                    injectTokenRefreshObserver()
+
                     // Extract tokens silently for background notifications if they log in
                     if (url.contains("dashboard") || url.contains("time-sheet") || url.contains("me/timesheet")) {
                         extractTokensForBackgroundWorker()
@@ -454,6 +467,29 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    private fun injectTokenRefreshObserver() {
+        val hookJs = """
+            (function() {
+                if (window.__hrmsTokenObserverInjected) return;
+                window.__hrmsTokenObserverInjected = true;
+                var origSetItem = localStorage.setItem;
+                localStorage.setItem = function(key, val) {
+                    origSetItem.apply(this, arguments);
+                    if (key === 'AccessToken' || key === 'RefreshToken') {
+                        try {
+                            var a = localStorage.getItem('AccessToken') || '';
+                            var r = localStorage.getItem('RefreshToken') || '';
+                            if (a && window.AndroidApp) {
+                                window.AndroidApp.saveTokens(a, r);
+                            }
+                        } catch(e) {}
+                    }
+                };
+            })();
+        """.trimIndent()
+        webView.evaluateJavascript(hookJs, null)
     }
 
     private fun extractTokensForBackgroundWorker() {

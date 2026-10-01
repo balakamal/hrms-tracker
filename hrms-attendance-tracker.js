@@ -599,21 +599,71 @@
   };
 
   // --- SERVICE METHODS ---
+  async function attemptTokenRefresh() {
+    const refreshToken = localStorage.getItem("RefreshToken");
+    if (!refreshToken) return false;
+
+    try {
+      const refreshUrl = "https://apps.pal.tech/hrms-backend/api/Account/RefreshToken";
+      const res = await fetch(refreshUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({ refreshToken }),
+      });
+
+      if (!res.ok) return false;
+      const resData = await res.json();
+      const data = resData.data || resData;
+      const newAccess = data.access_token || data.accessToken;
+      const newRefresh = data.refresh_token || data.refreshToken;
+
+      if (newAccess) {
+        localStorage.setItem("AccessToken", newAccess);
+        if (newRefresh) {
+          localStorage.setItem("RefreshToken", newRefresh);
+        }
+        syncTokensToAndroid();
+        return true;
+      }
+    } catch (e) {
+      console.error("Token refresh failed in tracker script:", e);
+    }
+    return false;
+  }
+
   async function fetchUserIdentity() {
     if (state.userId) return; // Custom ID override already set
     const url = "https://apps.pal.tech/hrms-backend/api/Employee/GetMyDetails";
-    const token = localStorage.getItem("AccessToken");
+    let token = localStorage.getItem("AccessToken");
     if (!token) return;
 
     state.loading = true;
     updateLoadingUI();
     try {
-      const response = await fetch(url, {
+      let response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
         },
       });
+
+      if (response.status === 401) {
+        const refreshed = await attemptTokenRefresh();
+        if (refreshed) {
+          token = localStorage.getItem("AccessToken");
+          response = await fetch(url, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/json",
+            },
+          });
+        }
+      }
+
+      if (!response.ok) return;
       const resData = await response.json();
       if (resData && resData.data) {
         state.userId = resData.data.id;
@@ -662,22 +712,36 @@
 
     const todayDate = getTodayISO();
     const url = `https://apps.pal.tech/hrms-backend/api/Attendance/GetDailyLog?date=${todayDate}&userId=${state.userId}`;
-    const token = localStorage.getItem("AccessToken");
+    let token = localStorage.getItem("AccessToken");
     if (!token) return;
 
     state.loading = true;
     updateLoadingUI();
     try {
-      const response = await fetch(url, {
+      let response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
         },
       });
+
       if (response.status === 401) {
-        state.userId = null;
-        return;
+        const refreshed = await attemptTokenRefresh();
+        if (refreshed) {
+          token = localStorage.getItem("AccessToken");
+          response = await fetch(url, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/json",
+            },
+          });
+        } else {
+          state.userId = null;
+          return;
+        }
       }
+
+      if (!response.ok) return;
       const resData = await response.json();
       if (resData && resData.data) {
         state.attendanceData = resData.data;
@@ -690,6 +754,9 @@
       updateLoadingUI();
     }
   }
+
+  // Expose global hook for native token refresh updates
+  window.atReloadAttendance = fetchAttendanceLogs;
 
   // Calculate work metrics in real-time
   function calculateMetrics() {

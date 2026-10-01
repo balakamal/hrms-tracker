@@ -22,20 +22,8 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
 
     private val sharedPrefs: SharedPreferences = context.getSharedPreferences("HRMS_PREFS", Context.MODE_PRIVATE)
 
-    private fun openConnection(context: Context, apiUrl: String): HttpURLConnection {
-        val url = URL(apiUrl)
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val activeNetwork = connectivityManager.activeNetwork
-            if (activeNetwork != null) {
-                return activeNetwork.openConnection(url) as HttpURLConnection
-            }
-        }
-        return url.openConnection() as HttpURLConnection
-    }
-
     override fun doWork(): Result {
-        val accessToken = sharedPrefs.getString("AccessToken", null) ?: return Result.failure()
+        var accessToken = TokenManager.getValidAccessToken(applicationContext) ?: return Result.failure()
         val userId = sharedPrefs.getString("UserId", null) ?: return Result.failure()
         val targetHours = sharedPrefs.getFloat("TargetHours", 8.5f)
 
@@ -48,7 +36,7 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
         val apiUrl = "https://apps.pal.tech/hrms-backend/api/Attendance/GetDailyLog?date=$todayISO&userId=$userId"
         
         try {
-            val connection = openConnection(applicationContext, apiUrl)
+            var connection = TokenManager.openConnection(applicationContext, apiUrl)
             connection.requestMethod = "GET"
             connection.setRequestProperty("Authorization", "Bearer $accessToken")
             connection.setRequestProperty("Accept", "application/json")
@@ -56,7 +44,31 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
             connection.readTimeout = 10000
 
             if (connection.responseCode == 401) {
-                // Token has expired; notify user to re-authenticate
+                // Access token expired; silently rotate token and retry once
+                val refreshResult = TokenManager.refreshTokens(applicationContext)
+                when (refreshResult) {
+                    is TokenManager.RefreshResult.Success -> {
+                        accessToken = refreshResult.accessToken
+                        connection.disconnect()
+                        connection = TokenManager.openConnection(applicationContext, apiUrl)
+                        connection.requestMethod = "GET"
+                        connection.setRequestProperty("Authorization", "Bearer $accessToken")
+                        connection.setRequestProperty("Accept", "application/json")
+                        connection.connectTimeout = 10000
+                        connection.readTimeout = 10000
+                    }
+                    is TokenManager.RefreshResult.SessionExpired -> {
+                        sendNotification("Session Expired", "Please open the HRMS Insights app to log in again.")
+                        return Result.failure()
+                    }
+                    is TokenManager.RefreshResult.NetworkError -> {
+                        return Result.retry()
+                    }
+                }
+            }
+
+            if (connection.responseCode == 401) {
+                // Retried token is still unauthorized
                 sendNotification("Session Expired", "Please open the HRMS Insights app to log in again.")
                 return Result.failure()
             }

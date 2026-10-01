@@ -380,21 +380,9 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
         }
     }
 
-    private fun openConnection(context: Context, apiUrl: String): HttpURLConnection {
-        val url = URL(apiUrl)
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val activeNetwork = connectivityManager.activeNetwork
-            if (activeNetwork != null) {
-                return activeNetwork.openConnection(url) as HttpURLConnection
-            }
-        }
-        return url.openConnection() as HttpURLConnection
-    }
-
     private fun fetchAndRefreshWidget(context: Context) {
         val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val accessToken = sharedPrefs.getString("AccessToken", null)
+        var accessToken = TokenManager.getValidAccessToken(context)
         val userId = sharedPrefs.getString("UserId", null)
         val targetHours = sharedPrefs.getFloat("TargetHours", 8.5f)
         
@@ -411,13 +399,43 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
         val apiUrl = "https://apps.pal.tech/hrms-backend/api/Attendance/GetDailyLog?date=$todayISO&userId=$userId"
 
         try {
-            val connection = openConnection(context, apiUrl)
+            var connection = TokenManager.openConnection(context, apiUrl)
             connection.requestMethod = "GET"
             connection.setRequestProperty("Authorization", "Bearer $accessToken")
             connection.setRequestProperty("Accept", "application/json")
             connection.connectTimeout = 8000
             connection.readTimeout = 8000
             connection.connect()
+
+            if (connection.responseCode == 401) {
+                // Access token expired; silently rotate token and retry once
+                val refreshResult = TokenManager.refreshTokens(context)
+                if (refreshResult is TokenManager.RefreshResult.Success) {
+                    accessToken = refreshResult.accessToken
+                    connection.disconnect()
+                    connection = TokenManager.openConnection(context, apiUrl)
+                    connection.requestMethod = "GET"
+                    connection.setRequestProperty("Authorization", "Bearer $accessToken")
+                    connection.setRequestProperty("Accept", "application/json")
+                    connection.connectTimeout = 8000
+                    connection.readTimeout = 8000
+                    connection.connect()
+                } else if (refreshResult is TokenManager.RefreshResult.SessionExpired) {
+                    saveWidgetCache(context, "0h 00m", "--:--", "0h 00m", "--:--", "Session Expired", 0, "--h --m left", "Last updated: " + getCurrentTime())
+                    triggerWidgetUpdate(context)
+                    return
+                } else {
+                    saveWidgetCacheError(context, "Sync Error (401)")
+                    triggerWidgetUpdate(context)
+                    return
+                }
+            }
+
+            if (connection.responseCode == 401) {
+                saveWidgetCache(context, "0h 00m", "--:--", "0h 00m", "--:--", "Session Expired", 0, "--h --m left", "Last updated: " + getCurrentTime())
+                triggerWidgetUpdate(context)
+                return
+            }
 
             if (connection.responseCode == 200) {
                 val reader = BufferedReader(InputStreamReader(connection.inputStream))
@@ -446,8 +464,6 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 } else {
                     saveWidgetCache(context, "0h 00m", "--:--", "0h 00m", "--:--", "No logs today", 0, "--h --m left", "Last updated: " + getCurrentTime())
                 }
-            } else if (connection.responseCode == 401) {
-                saveWidgetCache(context, "0h 00m", "--:--", "0h 00m", "--:--", "Session Expired", 0, "--h --m left", "Last updated: " + getCurrentTime())
             } else {
                 saveWidgetCacheError(context, "Sync Error (${connection.responseCode})")
             }

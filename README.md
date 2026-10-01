@@ -21,6 +21,7 @@ A premium, glassmorphic attendance dashboard and insights utility designed for `
 *   **Hardware & On-Screen Back Navigation**: Smooth in-portal web history navigation without accidental app exits.
 *   **Loading Progress & Error Recovery**: Integrated progress bar and sleek offline connection retry layout.
 *   **Self-Contained Login**: Opens the official login screen securely. Once logged in, it automatically captures authentication tokens for background work.
+*   **Automatic 24/7 Session Token Rotation**: Native background token manager proactively and reactively rotates JWT tokens via SSO before expiration, keeping shift alerts and home-screen widgets alive without manual app launches.
 *   **Minimalist Home-Screen Widgets**:
     *   **Multiple Responsive Sizes (Large 4x2 Dashboard, Medium 4x1 Row, Small 2x1 Badge)**: Automatically adapts layout and fills the widget space completely with zero text-wrapping.
     *   **1-Tap Home-Screen Refresh**: Dedicated minimal circular button `[🔄]` to trigger biometric background sync without opening the app.
@@ -61,7 +62,7 @@ A premium, glassmorphic attendance dashboard and insights utility designed for `
 
 ### 1. Install the APK
 Download the compiled APK directly:
-* **Direct Download**: Download [`builds/hrms-tracker-v1.6.apk`](builds/hrms-tracker-v1.6.apk) (or [`builds/hrms-tracker-latest.apk`](builds/hrms-tracker-latest.apk))
+* **Direct Download**: Download [`builds/hrms-tracker-v1.7.apk`](builds/hrms-tracker-v1.7.apk) (or [`builds/hrms-tracker-latest.apk`](builds/hrms-tracker-latest.apk))
 * Or download from the **Actions** tab in GitHub: Click the latest **Build Android APK** workflow run > Download `hrms-insights-apk`.
 * Install the APK on your Android device (ensure "Install from Unknown Sources" is enabled in settings).
 
