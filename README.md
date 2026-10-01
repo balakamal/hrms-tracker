@@ -62,7 +62,7 @@ A premium, glassmorphic attendance dashboard and insights utility designed for `
 
 ### 1. Install the APK
 Download the compiled APK directly:
-* **Direct Download**: Download [`builds/hrms-tracker-v1.7.apk`](builds/hrms-tracker-v1.7.apk) (or [`builds/hrms-tracker-latest.apk`](builds/hrms-tracker-latest.apk))
+* **Direct Download**: Download [`builds/hrms-tracker-v1.8.apk`](builds/hrms-tracker-v1.8.apk) (or [`builds/hrms-tracker-latest.apk`](builds/hrms-tracker-latest.apk))
 * Or download from the **Actions** tab in GitHub: Click the latest **Build Android APK** workflow run > Download `hrms-insights-apk`.
 * Install the APK on your Android device (ensure "Install from Unknown Sources" is enabled in settings).
 
