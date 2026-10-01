@@ -3,10 +3,10 @@
     <!-- Splash Screen theme. -->
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
         <!-- Background color of the splash screen -->
-        <item name="windowSplashScreenBackground">#0f0f14</item>
+        <item name="windowSplashScreenBackground">#161822</item>
         
         <!-- Icon of the splash screen -->
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
         
         <!-- Theme to transition to after the splash screen finishes -->
         <item name="postSplashScreenTheme">@style/Theme.AppCompat.NoActionBar</item>

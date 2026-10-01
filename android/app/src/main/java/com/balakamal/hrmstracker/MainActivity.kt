@@ -570,7 +570,7 @@ class MainActivity : AppCompatActivity() {
         )
 
         val notification = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(android.R.drawable.sym_def_app_icon)
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle("HRMS Shift Complete!")
             .setContentText("This is a test notification from HRMS Insights.")
             .setPriority(NotificationCompat.PRIORITY_HIGH)

@@ -1,19 +1,20 @@
 import os
 from PIL import Image, ImageDraw, ImageFont
 
+# Tuple of (legacy_size_px, adaptive_foreground_size_px)
 DENSITIES = {
-    'mipmap-mdpi': 48,
-    'mipmap-hdpi': 72,
-    'mipmap-xhdpi': 96,
-    'mipmap-xxhdpi': 144,
-    'mipmap-xxxhdpi': 192,
+    'mipmap-mdpi': (48, 108),
+    'mipmap-hdpi': (72, 162),
+    'mipmap-xhdpi': (96, 216),
+    'mipmap-xxhdpi': (144, 324),
+    'mipmap-xxxhdpi': (192, 432),
 }
 
 BASE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'android', 'app', 'src', 'main', 'res')
 FONT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'font.ttf')
 
-def draw_hrms_icon(size, is_round=False):
-    # Render at 4x for clean supersampling
+def draw_hrms_legacy_icon(size, is_round=False):
+    """Generates legacy launcher icon with solid background and clean Roboto HRMS text."""
     scale = 4
     hi_size = size * scale
     
@@ -43,21 +44,58 @@ def draw_hrms_icon(size, is_round=False):
     
     return img.resize((size, size), Image.Resampling.LANCZOS)
 
+def draw_hrms_adaptive_foreground(size):
+    """
+    Generates adaptive icon foreground layer (108dp canvas equivalent).
+    Background is transparent; clean white Roboto HRMS text is centered
+    within the 72dp safe zone so Android launcher masks never crop it.
+    """
+    scale = 4
+    hi_size = size * scale
+    
+    img = Image.new('RGBA', (hi_size, hi_size), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    
+    # Font size sized to comfortably fit within the 72dp safe circle
+    font_size = int(hi_size * 0.22)
+    font = ImageFont.truetype(FONT_PATH, font_size)
+    
+    bbox = draw.textbbox((0, 0), "HRMS", font=font)
+    text_w = bbox[2] - bbox[0]
+    text_h = bbox[3] - bbox[1]
+    
+    tx = (hi_size - text_w) / 2.0 - bbox[0]
+    ty = (hi_size - text_h) / 2.0 - bbox[1]
+    
+    draw.text((tx, ty), "HRMS", fill=(255, 255, 255, 255), font=font)
+    
+    return img.resize((size, size), Image.Resampling.LANCZOS)
+
 def main():
-    for folder_name, size in DENSITIES.items():
+    print(f"Generating HRMS icons using font: {FONT_PATH}")
+    for folder_name, (legacy_sz, adaptive_sz) in DENSITIES.items():
         folder_path = os.path.join(BASE_DIR, folder_name)
         os.makedirs(folder_path, exist_ok=True)
         
+        # 1. Legacy square launcher icon
         square_path = os.path.join(folder_path, 'ic_launcher.png')
-        round_path = os.path.join(folder_path, 'ic_launcher_round.png')
-
-        img_sq = draw_hrms_icon(size, is_round=False)
+        img_sq = draw_hrms_legacy_icon(legacy_sz, is_round=False)
         img_sq.save(square_path, 'PNG')
-        print(f"Generated clean Roboto HRMS icon: {square_path} ({size}x{size})")
+        print(f"Generated legacy square icon: {square_path} ({legacy_sz}x{legacy_sz})")
 
-        img_rd = draw_hrms_icon(size, is_round=True)
+        # 2. Legacy round launcher icon
+        round_path = os.path.join(folder_path, 'ic_launcher_round.png')
+        img_rd = draw_hrms_legacy_icon(legacy_sz, is_round=True)
         img_rd.save(round_path, 'PNG')
-        print(f"Generated clean Roboto round HRMS icon: {round_path} ({size}x{size})")
+        print(f"Generated legacy round icon:  {round_path} ({legacy_sz}x{legacy_sz})")
+
+        # 3. Adaptive foreground layer (for API 26+ Android adaptive launcher icons)
+        fg_path = os.path.join(folder_path, 'ic_launcher_foreground.png')
+        img_fg = draw_hrms_adaptive_foreground(adaptive_sz)
+        img_fg.save(fg_path, 'PNG')
+        print(f"Generated adaptive foreground: {fg_path} ({adaptive_sz}x{adaptive_sz})")
+
+    print("All HRMS launcher and adaptive icon assets successfully generated!")
 
 if __name__ == '__main__':
     main()
