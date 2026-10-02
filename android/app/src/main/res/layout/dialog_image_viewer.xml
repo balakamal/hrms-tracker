@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/viewer_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FA0B0C10"
+    android:fitsSystemWindows="true">
+
+    <!-- Interactive Hardware-Accelerated Zoomable Image View -->
+    <com.balakamal.hrmstracker.ZoomableImageView
+        android:id="@+id/viewer_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="Fullscreen Image" />
+
+    <!-- Loading Indicator -->
+    <ProgressBar
+        android:id="@+id/viewer_progress"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_centerInParent="true"
+        android:indeterminateTint="#7DE8B3"
+        android:visibility="VISIBLE" />
+
+    <!-- Error View -->
+    <TextView
+        android:id="@+id/viewer_error_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:gravity="center"
+        android:padding="24dp"
+        android:text="Failed to load image.\nPlease check network connection."
+        android:textColor="#FF6B6B"
+        android:textSize="14sp"
+        android:visibility="GONE" />
+
+    <!-- Floating Top Bar -->
+    <RelativeLayout
+        android:id="@+id/viewer_top_bar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_alignParentTop="true"
+        android:background="#B3161822"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+
+        <ImageButton
+            android:id="@+id/viewer_btn_close"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Close viewer"
+            android:padding="10dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_close_white" />
+
+        <TextView
+            android:id="@+id/viewer_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_toStartOf="@+id/viewer_actions"
+            android:layout_toEndOf="@+id/viewer_btn_close"
+            android:ellipsize="middle"
+            android:singleLine="true"
+            android:text="Image Preview"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/viewer_actions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/viewer_btn_reset"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="48dp"
+                android:layout_height="40dp"
+                android:minWidth="0dp"
+                android:padding="0dp"
+                android:text="1:1"
+                android:textColor="#7DE8B3"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/viewer_btn_share"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Share image"
+                android:padding="10dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_share" />
+
+            <ImageButton
+                android:id="@+id/viewer_btn_download"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Download full-resolution image"
+                android:padding="10dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_download" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <!-- Bottom Controls & Pinch-to-zoom Hint -->
+    <TextView
+        android:id="@+id/viewer_hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="24dp"
+        android:background="#99161822"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:text="Pinch or double-tap to zoom • Drag to pan"
+        android:textColor="#A0A5BA"
+        android:textSize="11sp" />
+
+</RelativeLayout>

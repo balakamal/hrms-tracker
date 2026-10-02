@@ -17,6 +17,8 @@ A premium, glassmorphic attendance dashboard and insights utility designed for `
 *   **Desktop Site Mode Toggle**: Switch between responsive mobile view and full 1280px desktop site layout to access exclusive desktop features (attendance punch regularization, detailed swipe tables, approval grids, and report exports) with smooth pinch-to-zoom.
 *   **Quick HRMS Shortcuts**: Direct one-tap jump shortcuts to Timesheet & Swipes, Leave Portal, Payslips & Compensation, Regularization, and Shift Target Hours configuration.
 *   **Smart Shift Alerts**: Push notifications for both completed shifts and pre-shift "Pack-Up" warnings (~15-20 minutes remaining).
+*   **Fullscreen High-Resolution Image Viewer**: Tap any image on the portal (company notices, holiday calendars, event circulars, proof captures, employee badges) to view in an immersive fullscreen modal with multi-touch pinch-to-zoom (up to 5x), smooth panning, double-tap zoom, and direct download to your phone's gallery.
+*   **Smart Link Dispatching**: Intelligently opens external links and company documents in your system browser without disrupting your portal session. Device action protocols (`mailto:`, `tel:`, `whatsapp:`) dispatch directly to native dialers and apps.
 *   **Built-in Download Manager**: Seamlessly download salary payslips, Form 16, and attendance reports directly to Android's `Downloads` folder.
 *   **Hardware & On-Screen Back Navigation**: Smooth in-portal web history navigation without accidental app exits.
 *   **Loading Progress & Error Recovery**: Integrated progress bar and sleek offline connection retry layout.
@@ -62,7 +64,7 @@ A premium, glassmorphic attendance dashboard and insights utility designed for `
 
 ### 1. Install the APK
 Download the compiled APK directly:
-* **Direct Download**: Download [`builds/hrms-tracker-v2.0.apk`](builds/hrms-tracker-v2.0.apk) (or [`builds/hrms-tracker-latest.apk`](builds/hrms-tracker-latest.apk))
+* **Direct Download**: Download [`builds/hrms-tracker-v2.1.apk`](builds/hrms-tracker-v2.1.apk) (or [`builds/hrms-tracker-latest.apk`](builds/hrms-tracker-latest.apk))
 * Or download from the **Actions** tab in GitHub: Click the latest **Build Android APK** workflow run > Download `hrms-insights-apk`.
 * Install the APK on your Android device (ensure "Install from Unknown Sources" is enabled in settings).
 

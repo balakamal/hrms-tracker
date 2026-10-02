@@ -6,6 +6,8 @@ import android.app.DownloadManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -111,6 +113,8 @@ class MainActivity : AppCompatActivity() {
         webSettings.setSupportZoom(true)
         webSettings.builtInZoomControls = true
         webSettings.displayZoomControls = false
+        webSettings.setSupportMultipleWindows(true)
+        webSettings.javaScriptCanOpenWindowsAutomatically = true
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             webSettings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
@@ -122,7 +126,7 @@ class MainActivity : AppCompatActivity() {
         // Register bidirectional bridge JavaScript Interface
         webView.addJavascriptInterface(WebAppInterface(), "AndroidApp")
 
-        // Add WebChromeClient for loading progress and console logging
+        // Add WebChromeClient for loading progress, console logging, and multi-window popups
         webView.webChromeClient = object : WebChromeClient() {
             override fun onProgressChanged(view: WebView?, newProgress: Int) {
                 super.onProgressChanged(view, newProgress)
@@ -140,10 +144,55 @@ class MainActivity : AppCompatActivity() {
                 }
                 return true
             }
+
+            override fun onCreateWindow(
+                view: WebView?,
+                isDialog: Boolean,
+                isUserGesture: Boolean,
+                resultMsg: android.os.Message?
+            ): Boolean {
+                val hrefMsg = view?.handler?.obtainMessage()
+                view?.requestFocusNodeHref(hrefMsg)
+                val targetUrl = hrefMsg?.data?.getString("url")
+                if (!targetUrl.isNullOrBlank()) {
+                    handleLinkDispatch(targetUrl)
+                    return true
+                }
+
+                // Fallback: create temporary WebView to catch targetUrl
+                val tempWebView = WebView(this@MainActivity)
+                tempWebView.webViewClient = object : WebViewClient() {
+                    override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+                        val url = request?.url?.toString() ?: return false
+                        handleLinkDispatch(url)
+                        return true
+                    }
+                    @Deprecated("Deprecated in Java")
+                    override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
+                        if (url != null) handleLinkDispatch(url)
+                        return true
+                    }
+                }
+                val transport = resultMsg?.obj as? WebView.WebViewTransport
+                transport?.webView = tempWebView
+                resultMsg?.sendToTarget()
+                return true
+            }
         }
 
-        // Configure WebViewClient for page flow, error handling, and script injection
+        // Configure WebViewClient for page flow, error handling, link interception, and script injection
         webView.webViewClient = object : WebViewClient() {
+            override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+                val url = request?.url?.toString() ?: return false
+                return handleLinkDispatch(url)
+            }
+
+            @Deprecated("Deprecated in Java")
+            override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
+                if (url == null) return false
+                return handleLinkDispatch(url)
+            }
+
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                 super.onPageStarted(view, url, favicon)
                 layoutError.visibility = View.GONE
@@ -185,6 +234,28 @@ class MainActivity : AppCompatActivity() {
                     progressBar.visibility = View.GONE
                 }
             }
+        }
+
+        // Long click listener on WebView to inspect and view images or links
+        webView.setOnLongClickListener {
+            val result = webView.hitTestResult
+            val extra = result.extra
+            when (result.type) {
+                WebView.HitTestResult.IMAGE_TYPE,
+                WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE -> {
+                    if (!extra.isNullOrBlank()) {
+                        showImageContextMenu(extra)
+                        return@setOnLongClickListener true
+                    }
+                }
+                WebView.HitTestResult.SRC_ANCHOR_TYPE -> {
+                    if (!extra.isNullOrBlank()) {
+                        showLinkContextMenu(extra)
+                        return@setOnLongClickListener true
+                    }
+                }
+            }
+            false
         }
 
         // Download Listener to handle Payslips, Tax forms, and Attendance Reports
@@ -668,5 +739,159 @@ class MainActivity : AppCompatActivity() {
                 triggerWidgetRefresh()
             }
         }
+
+        @JavascriptInterface
+        fun openImageFullscreen(imageUrl: String, title: String? = null) {
+            openImageViewer(imageUrl, title)
+        }
+
+        @JavascriptInterface
+        fun openExternalLink(url: String) {
+            runOnUiThread {
+                handleLinkDispatch(url)
+            }
+        }
+    }
+
+    /**
+     * Intelligently dispatches links:
+     * - Non-HTTP schemes (mailto, tel, whatsapp, intent) -> system app
+     * - Image URLs (.jpg, .png, etc.) -> Fullscreen ImageViewerDialog
+     * - External domains -> external browser chooser
+     * - Internal HRMS portal -> normal in-app navigation
+     */
+    fun handleLinkDispatch(url: String): Boolean {
+        try {
+            val uri = Uri.parse(url)
+            val scheme = uri.scheme?.lowercase() ?: ""
+
+            // 1. Handle non-HTTP app schemes (e.g. mailto:, tel:, sms:, whatsapp:, intent:)
+            if (scheme.isNotEmpty() && scheme != "http" && scheme != "https" && scheme != "file" && scheme != "data" && scheme != "about" && scheme != "javascript") {
+                val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                try {
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    Toast.makeText(this, "No app available to open this link ($scheme)", Toast.LENGTH_SHORT).show()
+                }
+                return true
+            }
+
+            // 2. Direct Image URLs -> Open in Fullscreen Image Viewer
+            if (isImageUrl(url)) {
+                openImageViewer(url)
+                return true
+            }
+
+            // 3. External Domain check -> Open in System Browser
+            val host = uri.host?.lowercase() ?: ""
+            val isInternal = host.isEmpty() ||
+                    host.contains("apps.pal.tech") ||
+                    host.contains("pal.tech") ||
+                    host.contains("microsoftonline.com") ||
+                    host.contains("live.com") ||
+                    host.contains("login.") ||
+                    host.contains("msftauth.")
+
+            if (!isInternal) {
+                val browserIntent = Intent(Intent.ACTION_VIEW, uri).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                startActivity(Intent.createChooser(browserIntent, "Open Link in Browser"))
+                return true
+            }
+
+            return false
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return false
+        }
+    }
+
+    private fun isImageUrl(url: String): Boolean {
+        val cleanUrl = url.split("?")[0].lowercase()
+        return cleanUrl.endsWith(".jpg") ||
+                cleanUrl.endsWith(".jpeg") ||
+                cleanUrl.endsWith(".png") ||
+                cleanUrl.endsWith(".webp") ||
+                cleanUrl.endsWith(".gif") ||
+                cleanUrl.endsWith(".svg") ||
+                cleanUrl.endsWith(".bmp")
+    }
+
+    fun openImageViewer(url: String, title: String? = null) {
+        runOnUiThread {
+            try {
+                ImageViewerDialog(this, url, title).show()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(this, "Could not open image viewer", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun showImageContextMenu(imageUrl: String) {
+        val options = arrayOf(
+            "🔍 View in Fullscreen (Zoom & Pan)",
+            "⬇️ Download Image",
+            "↗️ Share Image",
+            "📋 Copy Image Link",
+            "🌐 Open Image in Browser"
+        )
+        AlertDialog.Builder(this)
+            .setTitle("Image Options")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> openImageViewer(imageUrl)
+                    1 -> {
+                        openImageViewer(imageUrl)
+                        Toast.makeText(this, "Tap the Download button (⬇) at top right", Toast.LENGTH_SHORT).show()
+                    }
+                    2 -> {
+                        openImageViewer(imageUrl)
+                        Toast.makeText(this, "Tap the Share button (↗) at top right", Toast.LENGTH_SHORT).show()
+                    }
+                    3 -> {
+                        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        clipboard.setPrimaryClip(ClipData.newPlainText("Image Link", imageUrl))
+                        Toast.makeText(this, "Image link copied to clipboard", Toast.LENGTH_SHORT).show()
+                    }
+                    4 -> {
+                        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(imageUrl)))
+                    }
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showLinkContextMenu(linkUrl: String) {
+        val options = arrayOf(
+            "🌐 Open Link in Browser",
+            "📋 Copy Link URL",
+            "↗️ Share Link"
+        )
+        AlertDialog.Builder(this)
+            .setTitle("Link Options")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(linkUrl)))
+                    1 -> {
+                        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        clipboard.setPrimaryClip(ClipData.newPlainText("Link", linkUrl))
+                        Toast.makeText(this, "Link copied to clipboard", Toast.LENGTH_SHORT).show()
+                    }
+                    2 -> {
+                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, linkUrl)
+                        }
+                        startActivity(Intent.createChooser(shareIntent, "Share Link via"))
+                    }
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 }

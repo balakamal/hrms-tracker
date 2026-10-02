@@ -1,0 +1,8 @@
+.gradle/
+android/.gradle/
+android/build/
+android/app/build/
+*.iml
+.idea/
+.DS_Store
+*.apk.idsig
