@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:versionCode="10"
-    android:versionName="1.9"
+    android:versionCode="11"
+    android:versionName="2.0"
     android:compileSdkVersion="34"
     android:compileSdkVersionCodename="14"
     package="com.balakamal.hrmstracker"
@@ -49,25 +49,16 @@
         android:debuggable="true"
         android:allowBackup="true"
         android:supportsRtl="true"
-        android:roundIcon="@ref/0x7f0d0002"
         android:appComponentFactory="androidx.core.app.CoreComponentFactory">
 
         <activity
             android:theme="@ref/0x7f100203"
+            android:label="HRMS Insights"
             android:icon="@ref/0x7f0d0000"
             android:name="com.balakamal.hrmstracker.MainActivity"
             android:enabled="true"
             android:exported="true"
-            android:configChanges="0x480"
-            android:roundIcon="@ref/0x7f0d0002" />
-
-        <activity-alias
-            android:label="HRMS Insights"
-            android:icon="@ref/0x7f0d0000"
-            android:name="com.balakamal.hrmstracker.LauncherActivity"
-            android:exported="true"
-            android:targetActivity="com.balakamal.hrmstracker.MainActivity"
-            android:roundIcon="@ref/0x7f0d0002">
+            android:configChanges="0x480">
 
             <intent-filter>
 
@@ -77,7 +68,7 @@
                 <category
                     android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity-alias>
+        </activity>
 
         <receiver
             android:label="HRMS Dashboard (Large)"
