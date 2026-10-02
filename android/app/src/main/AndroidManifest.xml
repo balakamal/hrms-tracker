@@ -10,32 +10,23 @@
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="HRMS Insights"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.NoActionBar">
         
         <activity
             android:name=".MainActivity"
+            android:label="HRMS Insights"
             android:icon="@mipmap/ic_launcher"
-            android:roundIcon="@mipmap/ic_launcher_round"
             android:enabled="true"
             android:exported="true"
             android:configChanges="orientation|screenSize"
-            android:theme="@style/Theme.App.Starting" />
-
-        <activity-alias
-            android:name=".LauncherActivity"
-            android:targetActivity=".MainActivity"
-            android:icon="@mipmap/ic_launcher"
-            android:roundIcon="@mipmap/ic_launcher_round"
-            android:label="HRMS Insights"
-            android:exported="true">
+            android:theme="@style/Theme.App.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity-alias>
+        </activity>
 
         <!-- Android Home Screen Widgets -->
         <receiver android:name=".AttendanceAppWidgetProvider"

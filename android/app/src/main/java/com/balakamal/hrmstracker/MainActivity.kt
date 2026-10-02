@@ -437,9 +437,14 @@ class MainActivity : AppCompatActivity() {
                     }
                     3 -> clearTokensAndShowLogin()
                     4 -> {
+                        val verName = try {
+                            packageManager.getPackageInfo(packageName, 0).versionName ?: "2.0"
+                        } catch (e: Exception) {
+                            "2.0"
+                        }
                         AlertDialog.Builder(this)
                             .setTitle("HRMS Insights App")
-                            .setMessage("Version 1.0\n\n• Desktop & Mobile Viewports\n• Real-time Biometric Tracking\n• Home-Screen Widgets\n• Shift Completion & Pack-up Alerts\n• Secure Local Token Storage")
+                            .setMessage("Version $verName\n\n• Desktop & Mobile Viewports\n• Real-time Biometric Tracking\n• Home-Screen Widgets\n• Shift Completion & Pack-up Alerts\n• Secure Local Token Storage")
                             .setPositiveButton("OK", null)
                             .show()
                     }

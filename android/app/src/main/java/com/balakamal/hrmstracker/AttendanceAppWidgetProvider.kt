@@ -556,7 +556,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
         )
 
         val notification = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(android.R.drawable.sym_def_app_icon)
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(title)
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
