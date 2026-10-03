@@ -49,6 +49,7 @@
         android:debuggable="true"
         android:allowBackup="true"
         android:supportsRtl="true"
+        android:roundIcon="@ref/0x7f0e0002"
         android:appComponentFactory="androidx.core.app.CoreComponentFactory">
 
         <activity
@@ -58,7 +59,8 @@
             android:name="com.balakamal.hrmstracker.MainActivity"
             android:enabled="true"
             android:exported="true"
-            android:configChanges="0x480">
+            android:configChanges="0x480"
+            android:roundIcon="@ref/0x7f0e0002">
 
             <intent-filter>
 
