@@ -11,8 +11,8 @@ android {
         applicationId "com.balakamal.hrmstracker"
         minSdk 21
         targetSdk 34
-        versionCode 12
-        versionName "2.1"
+        versionCode 13
+        versionName "2.2"
     }
 
     buildTypes {
@@ -34,6 +34,7 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.9.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.8.0'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     implementation 'androidx.work:work-runtime-ktx:2.8.1'
     implementation 'androidx.core:core-splashscreen:1.0.1'
 }

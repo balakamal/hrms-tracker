@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="shortcut_timesheet"
+        android:enabled="true"
+        android:icon="@drawable/ic_login"
+        android:shortcutShortLabel="@string/shortcut_timesheet_short"
+        android:shortcutLongLabel="@string/shortcut_timesheet_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.balakamal.hrmstracker"
+            android:targetClass="com.balakamal.hrmstracker.MainActivity">
+            <extra
+                android:name="shortcut_url"
+                android:value="https://apps.pal.tech/hrms/me/timesheet" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="shortcut_leave"
+        android:enabled="true"
+        android:icon="@drawable/ic_coffee"
+        android:shortcutShortLabel="@string/shortcut_leave_short"
+        android:shortcutLongLabel="@string/shortcut_leave_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.balakamal.hrmstracker"
+            android:targetClass="com.balakamal.hrmstracker.MainActivity">
+            <extra
+                android:name="shortcut_url"
+                android:value="https://apps.pal.tech/hrms/leave" />
+        </intent>
+    </shortcut>
+</shortcuts>

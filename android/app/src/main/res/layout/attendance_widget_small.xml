@@ -24,6 +24,18 @@
             android:textSize="9sp"
             android:textStyle="bold" />
 
+        <TextView
+            android:id="@+id/widget_wfh_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/widget_title"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="4dp"
+            android:text="🏡"
+            android:textColor="#FBBF24"
+            android:textSize="9sp"
+            android:visibility="gone" />
+
         <ImageButton
             android:id="@+id/widget_btn_refresh"
             android:layout_width="22dp"

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_home"
+        android:icon="@drawable/ic_home"
+        android:title="Home" />
+    <item
+        android:id="@+id/nav_timesheet"
+        android:icon="@drawable/ic_login"
+        android:title="Timesheet" />
+    <item
+        android:id="@+id/nav_leave"
+        android:icon="@drawable/ic_coffee"
+        android:title="Leave" />
+    <item
+        android:id="@+id/nav_payslips"
+        android:icon="@drawable/ic_download"
+        android:title="Payslips" />
+</menu>

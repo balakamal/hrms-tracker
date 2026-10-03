@@ -98,8 +98,12 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                     )
                     AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
 
-                    // 4. Trigger Completed Shift Notification or Pre-Shift Pack-up Alert
-                    if (metrics.statusText == "Completed shift!" || metrics.statusText.contains("CONQUERED") || metrics.progressPercent >= 100) {
+                    // 4. Trigger Completed Shift Notification or Pre-Shift Pack-up Alert (respect user settings)
+                    val notifyShiftComplete = sharedPrefs.getBoolean("NotifShiftComplete", true)
+                    val notifyPreExit = sharedPrefs.getBoolean("NotifPreExit", true)
+                    val isWfh = sharedPrefs.getBoolean("WfhMode", false)
+
+                    if (!isWfh && notifyShiftComplete && (metrics.statusText == "Completed shift!" || metrics.statusText.contains("CONQUERED") || metrics.progressPercent >= 100)) {
                         val lastNotifiedDate = sharedPrefs.getString("LastNotificationDate", "")
                         if (lastNotifiedDate != todayStr) {
                             sendNotification(
@@ -108,7 +112,7 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                             )
                             sharedPrefs.edit().putString("LastNotificationDate", todayStr).apply()
                         }
-                    } else if (metrics.progressPercent in 92..99) {
+                    } else if (!isWfh && notifyPreExit && metrics.progressPercent in 92..99) {
                         val lastPreNotifiedDate = sharedPrefs.getString("LastPreNotificationDate", "")
                         if (lastPreNotifiedDate != todayStr) {
                             sendNotification(

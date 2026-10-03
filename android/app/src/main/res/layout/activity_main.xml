@@ -11,21 +11,37 @@
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:background="#0F0F14"
-        android:paddingStart="12dp"
+        android:paddingStart="16dp"
         android:paddingEnd="12dp"
         android:elevation="4dp">
 
-        <TextView
-            android:id="@+id/app_title"
+        <!-- App Title and Shift Countdown Subtitle -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
-            android:text="HRMS Insights"
-            android:textColor="#FFFFFF"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:orientation="vertical">
 
+            <TextView
+                android:id="@+id/app_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/app_name"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txt_countdown"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⏳ --"
+                android:textColor="#9CA3AF"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <!-- Header Actions: Desktop Mode & Refresh -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
@@ -44,17 +60,6 @@
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_desktop" />
 
-            <!-- Quick HRMS Shortcuts Button -->
-            <ImageButton
-                android:id="@+id/btn_shortcuts"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:contentDescription="HRMS Shortcuts"
-                android:padding="8dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_shortcuts" />
-
             <!-- Refresh Button -->
             <ImageButton
                 android:id="@+id/btn_refresh"
@@ -65,19 +70,27 @@
                 android:padding="8dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_refresh" />
-
-            <!-- More Options Button -->
-            <ImageButton
-                android:id="@+id/btn_more"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:contentDescription="More Options"
-                android:padding="8dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_more" />
         </LinearLayout>
     </RelativeLayout>
+
+    <!-- WFH Mode Amber Banner -->
+    <LinearLayout
+        android:id="@+id/layout_wfh_banner"
+        android:layout_width="match_parent"
+        android:layout_height="32dp"
+        android:background="#D97706"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🏡  WFH Mode Active — Biometric tracking paused"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
     <!-- Page Loading Progress Bar -->
     <ProgressBar
@@ -96,10 +109,179 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <WebView
-            android:id="@+id/webView"
+        <!-- Pull-to-Refresh Wrapper -->
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipe_refresh"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent">
+
+            <WebView
+                android:id="@+id/webView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+        <!-- Daily Summary Card Overlay (App Open) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/layout_summary_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_marginStart="14dp"
+            android:layout_marginEnd="14dp"
+            android:layout_marginBottom="14dp"
+            app:cardBackgroundColor="#1A1A26"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="10dp"
+            app:strokeColor="#2E2E3E"
+            app:strokeWidth="1dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- Header -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:text="⚡ Daily Attendance Summary"
+                        android:textColor="#FFFFFF"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <ImageButton
+                        android:id="@+id/btn_close_summary"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_close_white"
+                        android:contentDescription="Close summary"
+                        app:tint="#9CA3AF" />
+                </RelativeLayout>
+
+                <!-- Metrics Grid -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="12dp"
+                    android:weightSum="4">
+
+                    <!-- First In -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="FIRST IN"
+                            android:textColor="#9CA3AF"
+                            android:textSize="9sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/txt_summary_first_in"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="--:--"
+                            android:textColor="#34D399"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Work Time -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="WORK"
+                            android:textColor="#9CA3AF"
+                            android:textSize="9sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/txt_summary_work_time"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="--:--"
+                            android:textColor="#60A5FA"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Est. Exit -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="EST. EXIT"
+                            android:textColor="#9CA3AF"
+                            android:textSize="9sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/txt_summary_exit_time"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="--:--"
+                            android:textColor="#FBBF24"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Status -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="STATUS"
+                            android:textColor="#9CA3AF"
+                            android:textSize="9sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/txt_summary_status"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="--"
+                            android:textColor="#A78BFA"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:maxLines="1"
+                            android:ellipsize="end" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Offline / Network Error View -->
         <LinearLayout
@@ -150,5 +332,17 @@
                 android:textSize="14sp" />
         </LinearLayout>
     </FrameLayout>
+
+    <!-- Pinned Bottom Navigation Bar -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#0F0F14"
+        app:itemIconTint="@color/bottom_nav_color"
+        app:itemTextColor="@color/bottom_nav_color"
+        app:labelVisibilityMode="labeled"
+        app:elevation="8dp"
+        app:menu="@menu/bottom_nav_menu" />
 
 </LinearLayout>

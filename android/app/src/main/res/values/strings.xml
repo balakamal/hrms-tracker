@@ -5,4 +5,8 @@
     <string name="widget_description_small">Compact badge showing your biometric office hours spent today.</string>
     <string name="widget_description_medium">Info card showing office hours spent and estimated exit time side-by-side.</string>
     <string name="widget_description_large">Full metrics dashboard showing shift progress, First In, Work Time, Break, and Est. Exit.</string>
+    <string name="shortcut_timesheet_short">Timesheet</string>
+    <string name="shortcut_timesheet_long">Open Timesheet</string>
+    <string name="shortcut_leave_short">Apply Leave</string>
+    <string name="shortcut_leave_long">Apply / View Leave</string>
 </resources>

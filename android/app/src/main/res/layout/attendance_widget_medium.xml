@@ -22,14 +22,31 @@
         android:paddingTop="6dp"
         android:paddingBottom="6dp">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:letterSpacing="0.05"
-            android:text="TIME AT DESK"
-            android:textColor="#7DE8B3"
-            android:textSize="8sp"
-            android:textStyle="bold" />
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:letterSpacing="0.05"
+                android:text="TIME AT DESK"
+                android:textColor="#7DE8B3"
+                android:textSize="8sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_wfh_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="🏡 WFH"
+                android:textColor="#FBBF24"
+                android:textSize="8sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+        </LinearLayout>
 
         <RelativeLayout
             android:layout_width="match_parent"

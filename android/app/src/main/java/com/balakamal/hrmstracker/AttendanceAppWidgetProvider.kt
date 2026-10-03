@@ -84,10 +84,12 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 val progressPercent = sharedPrefs.getInt("WidgetProgressPercent", 0)
                 val progressRemaining = sharedPrefs.getString("WidgetProgressRemaining", "--h --m left")
                 val lastUpdated = sharedPrefs.getString("WidgetLastUpdated", "Last updated: --:--")
+                val isWfh = sharedPrefs.getBoolean("WfhMode", false)
                 
                 // Common view updates
                 views.setTextViewText(R.id.widget_status_text, statusText)
                 views.setTextViewText(R.id.widget_work_time_value, workTime)
+                views.setViewVisibility(R.id.widget_wfh_badge, if (isWfh) android.view.View.VISIBLE else android.view.View.GONE)
                 
                 // Layout-specific bindings
                 if (layoutId == R.layout.attendance_widget_small) {
