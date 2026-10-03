@@ -44,7 +44,7 @@
 
     <application
         android:theme="@ref/0x7f100219"
-        android:label="HRMS Insights"
+        android:label="@ref/0x7f0f001c"
         android:icon="@ref/0x7f0d0000"
         android:debuggable="true"
         android:allowBackup="true"
@@ -53,7 +53,7 @@
 
         <activity
             android:theme="@ref/0x7f100203"
-            android:label="HRMS Insights"
+            android:label="@ref/0x7f0f001c"
             android:icon="@ref/0x7f0d0000"
             android:name="com.balakamal.hrmstracker.MainActivity"
             android:enabled="true"
