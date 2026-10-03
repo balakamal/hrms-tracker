@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:versionCode="12"
-    android:versionName="2.1"
+    android:versionCode="13"
+    android:versionName="2.2"
     android:compileSdkVersion="34"
     android:compileSdkVersionCodename="14"
     package="com.balakamal.hrmstracker"
@@ -43,18 +43,18 @@
         android:name="com.balakamal.hrmstracker.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
 
     <application
-        android:theme="@ref/0x7f100219"
-        android:label="@ref/0x7f0f001c"
-        android:icon="@ref/0x7f0d0000"
+        android:theme="@ref/0x7f110219"
+        android:label="@ref/0x7f10001c"
+        android:icon="@ref/0x7f0e0000"
         android:debuggable="true"
         android:allowBackup="true"
         android:supportsRtl="true"
         android:appComponentFactory="androidx.core.app.CoreComponentFactory">
 
         <activity
-            android:theme="@ref/0x7f100203"
-            android:label="@ref/0x7f0f001c"
-            android:icon="@ref/0x7f0d0000"
+            android:theme="@ref/0x7f110203"
+            android:label="@ref/0x7f10001c"
+            android:icon="@ref/0x7f0e0000"
             android:name="com.balakamal.hrmstracker.MainActivity"
             android:enabled="true"
             android:exported="true"
@@ -68,6 +68,10 @@
                 <category
                     android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@ref/0x7f130004" />
         </activity>
 
         <receiver
@@ -86,7 +90,7 @@
 
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@ref/0x7f120000" />
+                android:resource="@ref/0x7f130000" />
         </receiver>
 
         <receiver
@@ -105,7 +109,7 @@
 
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@ref/0x7f120001" />
+                android:resource="@ref/0x7f130001" />
         </receiver>
 
         <receiver
@@ -124,7 +128,7 @@
 
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@ref/0x7f120002" />
+                android:resource="@ref/0x7f130002" />
         </receiver>
 
         <provider
@@ -135,7 +139,7 @@
 
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@ref/0x7f120003" />
+                android:resource="@ref/0x7f130003" />
         </provider>
 
         <provider
