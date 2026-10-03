@@ -103,7 +103,36 @@ def main():
         img_fg.save(fg_mipmap_path, 'PNG')
         print(f"Generated icons for {density}: legacy={legacy_sz}px, adaptive={adaptive_sz}px")
 
-    # 4. Generate extension icons
+    # 4. Generate Adaptive Icon XMLs for modern Android (API 26+)
+    v26_folder = os.path.join(RES_DIR, 'mipmap-anydpi-v26')
+    drawable_folder = os.path.join(RES_DIR, 'drawable')
+    os.makedirs(v26_folder, exist_ok=True)
+    os.makedirs(drawable_folder, exist_ok=True)
+
+    adaptive_xml_content = (
+        '<?xml version="1.0" encoding="utf-8"?>\n'
+        '<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">\n'
+        '    <background android:drawable="@color/ic_launcher_background" />\n'
+        '    <foreground android:drawable="@mipmap/ic_launcher_foreground" />\n'
+        '    <monochrome android:drawable="@mipmap/ic_launcher_foreground" />\n'
+        '</adaptive-icon>\n'
+    )
+    for xml_filename in ['ic_launcher.xml', 'ic_launcher_round.xml']:
+        with open(os.path.join(v26_folder, xml_filename), 'w', encoding='utf-8') as f:
+            f.write(adaptive_xml_content)
+        print(f"Generated adaptive icon XML: {xml_filename}")
+
+    bg_xml_content = (
+        '<?xml version="1.0" encoding="utf-8"?>\n'
+        '<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">\n'
+        '    <solid android:color="#161822" />\n'
+        '</shape>\n'
+    )
+    with open(os.path.join(drawable_folder, 'ic_launcher_background.xml'), 'w', encoding='utf-8') as f:
+        f.write(bg_xml_content)
+    print("Generated adaptive icon background XML")
+
+    # 5. Generate extension icons
     if os.path.exists(EXT_DIR):
         for sz in [16, 48, 128]:
             ext_icon_path = os.path.join(EXT_DIR, f'icon{sz}.png')

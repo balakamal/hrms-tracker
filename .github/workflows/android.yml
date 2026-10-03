@@ -59,13 +59,14 @@ jobs:
     - name: Commit and Push APK to Repo
       run: |
         mkdir -p builds
+        VERSION=$(grep 'versionName' android/app/build.gradle | head -n1 | sed -E 's/.*"([^"]+)".*/\1/')
         cp android/app/build/outputs/apk/debug/app-debug.apk builds/app-debug.apk
-        cp android/app/build/outputs/apk/debug/app-debug.apk builds/hrms-tracker-v2.1.apk
+        cp android/app/build/outputs/apk/debug/app-debug.apk "builds/hrms-tracker-v${VERSION}.apk"
         cp android/app/build/outputs/apk/debug/app-debug.apk builds/hrms-tracker-latest.apk
         $ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer manifest print builds/app-debug.apk > builds/AndroidManifest.xml || true
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git add builds/
+        git add builds/ android/app/src/main/res/
         git commit -m "build: compile, extract manifest and update builds/ [skip ci]" || true
         git pull --rebase origin main || true
         git push origin HEAD:main
