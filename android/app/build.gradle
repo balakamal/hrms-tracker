@@ -11,13 +11,13 @@ android {
         applicationId "com.balakamal.hrmstracker"
         minSdk 21
         targetSdk 34
-        versionCode 14
-        versionName "2.3"
+        versionCode 15
+        versionName "2.4"
     }
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
