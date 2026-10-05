@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:versionCode="16"
-    android:versionName="2.5"
+    android:versionCode="17"
+    android:versionName="3.0"
     android:compileSdkVersion="34"
     android:compileSdkVersionCodename="14"
-    package="com.balakamal.hrmstracker"
+    package="com.balakamal.hrmsinsights"
     platformBuildVersionCode="34"
     platformBuildVersionName="14">
 
@@ -36,11 +36,11 @@
         android:name="android.permission.FOREGROUND_SERVICE" />
 
     <permission
-        android:name="com.balakamal.hrmstracker.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        android:name="com.balakamal.hrmsinsights.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
         android:protectionLevel="0x2" />
 
     <uses-permission
-        android:name="com.balakamal.hrmstracker.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+        android:name="com.balakamal.hrmsinsights.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
 
     <application
         android:theme="@ref/0x7f110220"
@@ -145,7 +145,7 @@
         <provider
             android:name="androidx.core.content.FileProvider"
             android:exported="false"
-            android:authorities="com.balakamal.hrmstracker.fileprovider"
+            android:authorities="com.balakamal.hrmsinsights.fileprovider"
             android:grantUriPermissions="true">
 
             <meta-data
@@ -156,7 +156,7 @@
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:exported="false"
-            android:authorities="com.balakamal.hrmstracker.androidx-startup">
+            android:authorities="com.balakamal.hrmsinsights.androidx-startup">
 
             <meta-data
                 android:name="androidx.work.WorkManagerInitializer"
