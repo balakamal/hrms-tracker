@@ -1,7 +1,6 @@
 package com.balakamal.hrmstracker
 
 import android.app.Dialog
-import android.app.DownloadManager
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
@@ -18,6 +17,7 @@ import android.util.Base64
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
+import android.webkit.CookieManager
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ProgressBar
@@ -28,7 +28,6 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
-import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -37,13 +36,19 @@ import java.util.Locale
 class ImageViewerDialog(
     context: Context,
     private val imageUrl: String,
+    private val previewUrl: String? = null,
     private val displayTitle: String? = null
 ) : Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen) {
+
+    // Overload for single-URL callers
+    constructor(context: Context, imageUrl: String, title: String? = null) :
+            this(context, imageUrl, null, title)
 
     private lateinit var zoomImageView: ZoomableImageView
     private lateinit var progressView: ProgressBar
     private lateinit var errorView: TextView
     private lateinit var titleView: TextView
+    private lateinit var resolutionBadge: TextView
     private lateinit var btnClose: ImageButton
     private lateinit var btnReset: Button
     private lateinit var btnShare: ImageButton
@@ -64,6 +69,7 @@ class ImageViewerDialog(
         progressView = findViewById(R.id.viewer_progress)
         errorView = findViewById(R.id.viewer_error_text)
         titleView = findViewById(R.id.viewer_title)
+        resolutionBadge = findViewById(R.id.viewer_resolution_badge)
         btnClose = findViewById(R.id.viewer_btn_close)
         btnReset = findViewById(R.id.viewer_btn_reset)
         btnShare = findViewById(R.id.viewer_btn_share)
@@ -91,12 +97,13 @@ class ImageViewerDialog(
             }.start()
         }, 3000)
 
-        loadImage()
+        loadImagesTwoStage()
     }
 
     private fun extractFilenameFromUrl(url: String): String {
         return try {
-            val uri = Uri.parse(url)
+            val cleanUrl = url.split("?")[0]
+            val uri = Uri.parse(cleanUrl)
             val lastSegment = uri.lastPathSegment
             if (!lastSegment.isNullOrBlank() && lastSegment.contains(".")) {
                 lastSegment
@@ -108,35 +115,80 @@ class ImageViewerDialog(
         }
     }
 
-    private fun loadImage() {
-        progressView.visibility = View.VISIBLE
+    /**
+     * Two-stage loader:
+     * 1. If a previewUrl (thumbnail/DOM image) is available, decode/display it immediately.
+     * 2. In parallel, fetch the uncompressed original high-res image with portal cookies & tokens.
+     */
+    private fun loadImagesTwoStage() {
         errorView.visibility = View.GONE
         zoomImageView.visibility = View.VISIBLE
 
+        val hasDistinctPreview = !previewUrl.isNullOrBlank() && previewUrl != imageUrl
+
+        if (hasDistinctPreview) {
+            resolutionBadge.text = "Loading preview..."
+            resolutionBadge.visibility = View.VISIBLE
+
+            // Stage 1: Load thumbnail immediately
+            Thread {
+                val previewBitmap = if (previewUrl!!.startsWith("data:image/")) {
+                    decodeBase64Image(previewUrl)
+                } else {
+                    fetchHttpImage(previewUrl)
+                }
+
+                mainHandler.post {
+                    if (previewBitmap != null && loadedBitmap == null) {
+                        loadedBitmap = previewBitmap
+                        zoomImageView.setImageBitmap(previewBitmap)
+                        progressView.visibility = View.GONE
+                        resolutionBadge.text = "Enhancing to crisp original..."
+                    }
+                }
+            }.start()
+        } else {
+            progressView.visibility = View.VISIBLE
+            resolutionBadge.text = "Loading original..."
+        }
+
+        // Stage 2: Fetch crisp original image
         Thread {
             try {
-                val bitmap: Bitmap? = if (imageUrl.startsWith("data:image/")) {
+                val originalBitmap: Bitmap? = if (imageUrl.startsWith("data:image/")) {
                     decodeBase64Image(imageUrl)
                 } else {
                     fetchHttpImage(imageUrl)
                 }
 
                 mainHandler.post {
-                    if (bitmap != null) {
-                        loadedBitmap = bitmap
-                        progressView.visibility = View.GONE
-                        zoomImageView.setImageBitmap(bitmap)
-                    } else {
-                        progressView.visibility = View.GONE
+                    progressView.visibility = View.GONE
+                    if (originalBitmap != null) {
+                        loadedBitmap = originalBitmap
+                        zoomImageView.setImageBitmap(originalBitmap)
+                        resolutionBadge.text = "${originalBitmap.width} × ${originalBitmap.height} • Crisp Original"
+                        resolutionBadge.setTextColor(0xFF7DE8B3.toInt()) // subtle mint green
+                    } else if (loadedBitmap == null) {
+                        // Neither original nor preview could be loaded
                         errorView.visibility = View.VISIBLE
+                        resolutionBadge.visibility = View.GONE
+                    } else {
+                        // Original failed, but preview is active
+                        resolutionBadge.text = "Preview Mode (${loadedBitmap?.width} × ${loadedBitmap?.height})"
+                        resolutionBadge.setTextColor(0xFFA0A5BA.toInt())
                     }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
                 mainHandler.post {
                     progressView.visibility = View.GONE
-                    errorView.visibility = View.VISIBLE
-                    errorView.text = "Failed to load image: ${e.localizedMessage}"
+                    if (loadedBitmap == null) {
+                        errorView.visibility = View.VISIBLE
+                        errorView.text = "Failed to load image: ${e.localizedMessage}"
+                        resolutionBadge.visibility = View.GONE
+                    } else {
+                        resolutionBadge.text = "Preview Mode"
+                    }
                 }
             }
         }.start()
@@ -147,7 +199,10 @@ class ImageViewerDialog(
         if (commaIndex == -1) return null
         val base64Data = dataUri.substring(commaIndex + 1)
         val decodedBytes = Base64.decode(base64Data, Base64.DEFAULT)
-        return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+        val options = BitmapFactory.Options().apply {
+            inPreferredConfig = Bitmap.Config.ARGB_8888
+        }
+        return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size, options)
     }
 
     private fun fetchHttpImage(urlString: String): Bitmap? {
@@ -156,10 +211,27 @@ class ImageViewerDialog(
         try {
             connection = TokenManager.openConnection(context, urlString)
             connection.requestMethod = "GET"
-            connection.connectTimeout = 12000
-            connection.readTimeout = 15000
+            connection.connectTimeout = 15000
+            connection.readTimeout = 20000
+            connection.instanceFollowRedirects = true
 
-            // If it's on pal.tech domain, attach Bearer auth token if available
+            // Set modern browser headers
+            connection.setRequestProperty("Accept", "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8")
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36")
+            connection.setRequestProperty("Referer", "https://apps.pal.tech/hrms/")
+
+            // Attach active session cookies from WebView CookieManager
+            try {
+                val cookieManager = CookieManager.getInstance()
+                val cookies = cookieManager.getCookie(urlString)
+                if (!cookies.isNullOrBlank()) {
+                    connection.setRequestProperty("Cookie", cookies)
+                }
+            } catch (e: Exception) {
+                // Ignore cookie errors
+            }
+
+            // Attach Bearer token if HRMS domain
             val token = TokenManager.getValidAccessToken(context)
             if (token != null && (urlString.contains("pal.tech") || urlString.contains("hrms"))) {
                 connection.setRequestProperty("Authorization", "Bearer $token")
@@ -170,21 +242,21 @@ class ImageViewerDialog(
             val responseCode = connection.responseCode
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 inputStream = connection.inputStream
-                // Read fully into byte array to calculate bitmap dimensions accurately
                 val byteBuffer = ByteArrayOutputStream()
-                val buffer = ByteArray(8192)
+                val buffer = ByteArray(16384)
                 var bytesRead: Int
                 while (inputStream.read(buffer).also { bytesRead = it } != -1) {
                     byteBuffer.write(buffer, 0, bytesRead)
                 }
                 val imageBytes = byteBuffer.toByteArray()
 
-                // Decode bounds first to verify image
                 val options = BitmapFactory.Options().apply {
                     inPreferredConfig = Bitmap.Config.ARGB_8888
                 }
                 return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size, options)
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         } finally {
             inputStream?.close()
             connection?.disconnect()
@@ -276,7 +348,7 @@ class ImageViewerDialog(
             }
         }
 
-        // Fallback: share the direct URL
+        // Fallback: share direct URL
         if (imageUrl.startsWith("http")) {
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "text/plain"

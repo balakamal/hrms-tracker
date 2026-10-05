@@ -1582,40 +1582,111 @@
       document.head.appendChild(style);
     }
 
-    document.addEventListener("click", function (e) {
-      const target = e.target;
-      if (!target) return;
+    function resolveImageSources(target) {
+      if (!target) return null;
+      if (target.closest("#at-widget-container") || target.classList.contains("at-lightbox-img")) return null;
 
-      let imgUrl = null;
-      let imgTitle = "";
+      let originalUrl = null;
+      let previewUrl = null;
+      let title = "";
 
-      if (target.tagName === "IMG") {
-        if (target.closest("#at-widget-container") || target.classList.contains("at-lightbox-img")) return;
-        imgUrl = target.currentSrc || target.src || target.getAttribute("data-src") || target.getAttribute("data-original");
-        imgTitle = target.alt || target.title || "HRMS Image";
-      } else if (target.tagName === "A" || target.closest("a")) {
-        const link = target.tagName === "A" ? target : target.closest("a");
-        const href = link ? link.getAttribute("href") : "";
-        if (href && /\.(jpe?g|png|webp|gif|svg|bmp)(\?.*)?$/i.test(href)) {
-          imgUrl = link.href;
-          imgTitle = link.innerText?.trim() || link.getAttribute("title") || "HRMS Attachment";
+      // 1. Check if target or parent is an anchor tag linking to an image or file/attachment
+      const parentLink = target.closest("a");
+      if (parentLink && parentLink.href) {
+        const href = parentLink.getAttribute("href") || "";
+        const isImgHref = /\.(jpe?g|png|webp|gif|svg|bmp)(\?.*)?$/i.test(href);
+        const isDocOrAttHref = /(attachment|view|download|notice|circular|document|file|showimage|getimage)/i.test(href);
+        if (isImgHref || isDocOrAttHref) {
+          originalUrl = parentLink.href;
+          title = parentLink.innerText?.trim() || parentLink.getAttribute("title") || "";
         }
       }
 
-      if (imgUrl) {
-        // Native Android App wrapper: use native high-res pinch-to-zoom viewer
-        if (window.AndroidApp && typeof window.AndroidApp.openImageFullscreen === "function") {
-          e.preventDefault();
-          e.stopPropagation();
-          window.AndroidApp.openImageFullscreen(imgUrl, imgTitle);
-          return;
+      // 2. If target is an <img> or has an <img> inside
+      const imgEl = target.tagName === "IMG" ? target : (target.querySelector ? target.querySelector("img") : null);
+      if (imgEl) {
+        previewUrl = imgEl.currentSrc || imgEl.src;
+        if (!title) {
+          title = imgEl.alt || imgEl.title || imgEl.getAttribute("aria-label") || "";
         }
 
-        // Desktop browser (extension or Tampermonkey): use glassmorphic modal
+        // Check high-res data attributes on the img element
+        const highResAttr = imgEl.getAttribute("data-original") ||
+                            imgEl.getAttribute("data-highres") ||
+                            imgEl.getAttribute("data-full") ||
+                            imgEl.getAttribute("data-zoom-src") ||
+                            imgEl.getAttribute("data-large") ||
+                            imgEl.getAttribute("data-src");
+        if (highResAttr) {
+          try {
+            originalUrl = new URL(highResAttr, window.location.href).href;
+          } catch (_) {
+            originalUrl = highResAttr;
+          }
+        }
+
+        // Check srcset for highest resolution candidate
+        const srcset = imgEl.getAttribute("srcset");
+        if (srcset && !originalUrl) {
+          try {
+            const candidates = srcset.split(",").map(s => s.trim().split(/\s+/)).filter(parts => parts[0]);
+            if (candidates.length > 0) {
+              const best = candidates[candidates.length - 1][0];
+              originalUrl = new URL(best, window.location.href).href;
+            }
+          } catch (_) {}
+        }
+
+        // De-thumbnail preview URL if still no separate original URL
+        if (!originalUrl && previewUrl) {
+          try {
+            const parsed = new URL(previewUrl, window.location.href);
+            let modified = false;
+            ['w', 'width', 'h', 'height', 'size', 'thumb', 'thumbnail', 'maxwidth', 'maxheight'].forEach(p => {
+              if (parsed.searchParams.has(p)) {
+                parsed.searchParams.delete(p);
+                modified = true;
+              }
+            });
+            if (modified) {
+              originalUrl = parsed.href;
+            }
+          } catch (_) {}
+        }
+
+        if (!originalUrl && previewUrl) {
+          originalUrl = previewUrl;
+        }
+      } else if (originalUrl) {
+        previewUrl = originalUrl;
+      }
+
+      if (!originalUrl && !previewUrl) return null;
+      if (!originalUrl) originalUrl = previewUrl;
+      if (!previewUrl) previewUrl = originalUrl;
+      if (!title) title = "HRMS Image";
+
+      return { originalUrl, previewUrl, title };
+    }
+
+    document.addEventListener("click", function (e) {
+      const resolved = resolveImageSources(e.target);
+      if (!resolved) return;
+
+      const { originalUrl, previewUrl, title } = resolved;
+
+      // Native Android App wrapper: use native high-res pinch-to-zoom viewer with two-stage load
+      if (window.AndroidApp && typeof window.AndroidApp.openImageFullscreen === "function") {
         e.preventDefault();
         e.stopPropagation();
-        openDesktopLightbox(imgUrl, imgTitle);
+        window.AndroidApp.openImageFullscreen(originalUrl, previewUrl, title);
+        return;
       }
+
+      // Desktop browser (extension or Tampermonkey): use glassmorphic modal
+      e.preventDefault();
+      e.stopPropagation();
+      openDesktopLightbox(originalUrl, title);
     }, true);
   }
 

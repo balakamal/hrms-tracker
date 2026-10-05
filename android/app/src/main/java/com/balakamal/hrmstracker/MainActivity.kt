@@ -980,8 +980,18 @@ class MainActivity : AppCompatActivity() {
         }
 
         @JavascriptInterface
-        fun openImageFullscreen(imageUrl: String, title: String? = null) {
-            openImageViewer(imageUrl, title)
+        fun openImageFullscreen(imageUrl: String, previewUrl: String?, title: String?) {
+            openImageViewer(imageUrl, previewUrl, title)
+        }
+
+        @JavascriptInterface
+        fun openImageFullscreen(imageUrl: String, title: String?) {
+            openImageViewer(imageUrl, null, title)
+        }
+
+        @JavascriptInterface
+        fun openImageFullscreen(imageUrl: String) {
+            openImageViewer(imageUrl, null, null)
         }
 
         @JavascriptInterface
@@ -1059,15 +1069,19 @@ class MainActivity : AppCompatActivity() {
                 cleanUrl.endsWith(".bmp")
     }
 
-    fun openImageViewer(url: String, title: String? = null) {
+    fun openImageViewer(url: String, previewUrl: String? = null, title: String? = null) {
         runOnUiThread {
             try {
-                ImageViewerDialog(this, url, title).show()
+                ImageViewerDialog(this, url, previewUrl, title).show()
             } catch (e: Exception) {
                 e.printStackTrace()
                 Toast.makeText(this, "Could not open image viewer", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    fun openImageViewer(url: String, title: String?) {
+        openImageViewer(url, null, title)
     }
 
     private fun showImageContextMenu(imageUrl: String) {

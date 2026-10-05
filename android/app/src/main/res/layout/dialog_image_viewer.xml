@@ -13,7 +13,7 @@
         android:layout_height="match_parent"
         android:contentDescription="Fullscreen Image" />
 
-    <!-- Loading Indicator -->
+    <!-- Centered Loading Indicator (Used if no preview exists) -->
     <ProgressBar
         android:id="@+id/viewer_progress"
         style="?android:attr/progressBarStyleLarge"
@@ -58,8 +58,8 @@
             android:scaleType="fitCenter"
             android:src="@drawable/ic_close_white" />
 
-        <TextView
-            android:id="@+id/viewer_title"
+        <LinearLayout
+            android:id="@+id/viewer_title_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
@@ -67,12 +67,29 @@
             android:layout_marginEnd="8dp"
             android:layout_toStartOf="@+id/viewer_actions"
             android:layout_toEndOf="@+id/viewer_btn_close"
-            android:ellipsize="middle"
-            android:singleLine="true"
-            android:text="Image Preview"
-            android:textColor="#FFFFFF"
-            android:textSize="15sp"
-            android:textStyle="bold" />
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/viewer_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="middle"
+                android:singleLine="true"
+                android:text="Image Preview"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/viewer_resolution_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text="Fetching original..."
+                android:textColor="#7DE8B3"
+                android:textSize="11sp" />
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/viewer_actions"
