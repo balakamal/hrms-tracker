@@ -83,15 +83,15 @@ def main():
         os.makedirs(mipmap_folder, exist_ok=True)
         os.makedirs(drawable_folder, exist_ok=True)
         
-        # 1. Legacy square launcher icon (in mipmap)
-        square_path = os.path.join(mipmap_folder, 'ic_launcher.png')
+        # 1. Square launcher icon (in mipmap) - write to both ic_app_hrms and ic_launcher
         img_sq = draw_hrms_legacy_icon(legacy_sz, is_round=False)
-        img_sq.save(square_path, 'PNG')
+        img_sq.save(os.path.join(mipmap_folder, 'ic_app_hrms.png'), 'PNG')
+        img_sq.save(os.path.join(mipmap_folder, 'ic_launcher.png'), 'PNG')
 
-        # 2. Legacy round launcher icon (in mipmap)
-        round_path = os.path.join(mipmap_folder, 'ic_launcher_round.png')
+        # 2. Round launcher icon (in mipmap) - write to both ic_app_hrms_round and ic_launcher_round
         img_rd = draw_hrms_legacy_icon(legacy_sz, is_round=True)
-        img_rd.save(round_path, 'PNG')
+        img_rd.save(os.path.join(mipmap_folder, 'ic_app_hrms_round.png'), 'PNG')
+        img_rd.save(os.path.join(mipmap_folder, 'ic_launcher_round.png'), 'PNG')
 
         # 3. Adaptive foreground PNG (in drawable-{density} for adaptive icon and splash screen)
         fg_drawable_path = os.path.join(drawable_folder, 'ic_launcher_foreground.png')
@@ -113,10 +113,11 @@ def main():
         '<?xml version="1.0" encoding="utf-8"?>\n'
         '<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">\n'
         '    <background android:drawable="@drawable/ic_launcher_background" />\n'
-        '    <foreground android:drawable="@mipmap/ic_launcher_foreground" />\n'
+        '    <foreground android:drawable="@drawable/ic_launcher_foreground" />\n'
+        '    <monochrome android:drawable="@drawable/ic_launcher_foreground" />\n'
         '</adaptive-icon>\n'
     )
-    for xml_filename in ['ic_launcher.xml', 'ic_launcher_round.xml']:
+    for xml_filename in ['ic_app_hrms.xml', 'ic_app_hrms_round.xml', 'ic_launcher.xml', 'ic_launcher_round.xml']:
         with open(os.path.join(v26_folder, xml_filename), 'w', encoding='utf-8') as f:
             f.write(adaptive_xml_content)
         print(f"Generated adaptive icon XML: {xml_filename}")
