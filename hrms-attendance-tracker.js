@@ -563,11 +563,21 @@
     isMinimized: localStorage.getItem("at_is_minimized") === "true",
     theme: localStorage.getItem("at_theme") || "dark",
     userAvatar: localStorage.getItem("at_user_avatar") || null,
+    userAvatarOriginal: localStorage.getItem("at_user_avatar_orig") || null,
+    isWfh: localStorage.getItem("at_wfh_mode") === "true",
+    imageMap: {},
     attendanceData: null,
     lastNotificationTime: 0,
     notificationInterval: 5 * 60 * 1000, // 5 minutes in milliseconds
     loading: false,
   };
+
+  // Sync initial WFH state from Android native bridge if present
+  if (window.AndroidApp && typeof window.AndroidApp.getWfhMode === "function") {
+    try {
+      state.isWfh = window.AndroidApp.getWfhMode();
+    } catch (_) {}
+  }
 
   // --- UTILS ---
   const formatMinutes = (totalMin) => {
@@ -677,7 +687,9 @@
         }
 
         // Extract user avatar photo UUID if present, or query from page DOM
-        const photoId = resData.data.photo || resData.data.photoId;
+        const photoId = resData.data.photo || resData.data.photoId || resData.data.imageId;
+        const originalPhotoId = resData.data.originalPhoto || resData.data.originalPhotoId || resData.data.originalImageId || resData.data.originalImage || resData.data.originalId;
+
         if (photoId) {
           state.userAvatar = `https://apps.pal.tech/hrms-backend/images/${photoId}`;
         } else {
@@ -692,6 +704,17 @@
           localStorage.setItem("at_user_avatar", state.userAvatar);
         }
 
+        if (originalPhotoId) {
+          state.userAvatarOriginal = `https://apps.pal.tech/hrms-backend/images/${originalPhotoId}`;
+          localStorage.setItem("at_user_avatar_orig", state.userAvatarOriginal);
+          if (photoId) {
+            state.imageMap[photoId] = originalPhotoId;
+            if (window.AndroidApp && typeof window.AndroidApp.saveImageMapping === "function") {
+              window.AndroidApp.saveImageMapping(photoId, originalPhotoId);
+            }
+          }
+        }
+
         const subtitleEl = document.querySelector(".at-subtitle");
         if (subtitleEl) subtitleEl.innerText = state.userName;
       }
@@ -703,9 +726,135 @@
     }
   }
 
-  async function fetchAttendanceLogs() {
+  function checkDomForWfhStatus() {
+    if (state.isWfh) return;
+    try {
+      const candidates = document.querySelectorAll('.ant-tag, .badge, .status-tag, [class*="status"], [class*="attendance"], [class*="badge"], [class*="chip"]');
+      for (let i = 0; i < candidates.length; i++) {
+        const text = (candidates[i].textContent || "").trim();
+        if (/^(wfh|work from home|remote|remote work)$/i.test(text)) {
+          state.isWfh = true;
+          localStorage.setItem("at_wfh_mode", "true");
+          if (window.AndroidApp && typeof window.AndroidApp.setWfhMode === "function") {
+            window.AndroidApp.setWfhMode(true);
+          }
+          updateUI();
+          break;
+        }
+      }
+    } catch (_) {}
+  }
+
+  function interceptNetworkForImages() {
+    if (typeof window.fetch === "function") {
+      const origFetch = window.fetch;
+      window.fetch = async function (...args) {
+        const response = await origFetch.apply(this, args);
+        try {
+          const clone = response.clone();
+          const ct = clone.headers.get("content-type") || "";
+          if (ct.includes("application/json")) {
+            clone.json().then(data => scanForImageIds(data)).catch(() => {});
+          }
+        } catch (_) {}
+        return response;
+      };
+    }
+
+    if (typeof XMLHttpRequest !== "undefined") {
+      const origSend = XMLHttpRequest.prototype.send;
+      XMLHttpRequest.prototype.send = function (...args) {
+        this.addEventListener("load", function () {
+          try {
+            if (this.responseType === "" || this.responseType === "text" || this.responseType === "json") {
+              const raw = typeof this.response === "string" ? JSON.parse(this.response) : this.response;
+              scanForImageIds(raw);
+            }
+          } catch (_) {}
+        });
+        return origSend.apply(this, args);
+      };
+    }
+  }
+
+  function scanForImageIds(obj) {
+    if (!obj || typeof obj !== "object") return;
+    if (Array.isArray(obj)) {
+      for (let i = 0; i < obj.length; i++) scanForImageIds(obj[i]);
+      return;
+    }
+    const thumbId = obj.photo || obj.photoId || obj.imageId || obj.thumbnailId;
+    const origId = obj.originalPhoto || obj.originalPhotoId || obj.originalImageId || obj.originalImage || obj.originalId;
+    if (thumbId && origId && typeof thumbId === "string" && typeof origId === "string" && thumbId !== origId) {
+      state.imageMap[thumbId] = origId;
+      if (window.AndroidApp && typeof window.AndroidApp.saveImageMapping === "function") {
+        window.AndroidApp.saveImageMapping(thumbId, origId);
+      }
+    }
+    const keys = Object.keys(obj);
+    for (let i = 0; i < keys.length; i++) {
+      if (typeof obj[keys[i]] === "object" && obj[keys[i]] !== null) {
+        scanForImageIds(obj[keys[i]]);
+      }
+    }
+  }
+
+  async function fetchEmployeeStatus() {
     if (!state.userId) await fetchUserIdentity();
     if (!state.userId) return;
+
+    const url = `https://apps.pal.tech/hrms-backend/api/Employee/GetEmployeeStatus?employeeIds=${state.userId}`;
+    let token = localStorage.getItem("AccessToken");
+    if (!token) return;
+
+    try {
+      let response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
+
+      if (response.status === 401) {
+        const refreshed = await attemptTokenRefresh();
+        if (refreshed) {
+          token = localStorage.getItem("AccessToken");
+          response = await fetch(url, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/json",
+            },
+          });
+        }
+      }
+
+      if (!response.ok) return;
+      const resData = await response.json();
+      if (resData && resData.data) {
+        const idKey = String(state.userId);
+        const userStatus = resData.data[idKey] || resData.data[state.userId] || Object.values(resData.data)[0];
+        if (userStatus && typeof userStatus.WFH !== "undefined") {
+          const isWfhActive = Number(userStatus.WFH) === 1;
+          state.isWfh = isWfhActive;
+          localStorage.setItem("at_wfh_mode", isWfhActive ? "true" : "false");
+          if (window.AndroidApp && typeof window.AndroidApp.setWfhMode === "function") {
+            window.AndroidApp.setWfhMode(isWfhActive);
+          }
+          updateUI();
+        }
+      }
+    } catch (e) {
+      console.error("Error fetching employee status in tracker script:", e);
+    }
+  }
+
+  async function fetchAttendanceLogs() {
+    checkDomForWfhStatus();
+    if (!state.userId) await fetchUserIdentity();
+    if (!state.userId) return;
+
+    // Fetch official employee status from HRMS backend (WFH: 1 check)
+    fetchEmployeeStatus();
 
     // Sync tokens with Android side in case they have changed or are freshly available
     syncTokensToAndroid();
@@ -870,7 +1019,7 @@
     // 1. Badge View (Collapsed)
     const badge = document.createElement("div");
     badge.className = "at-badge";
-    badge.innerHTML = `<span style="font-weight: 800; font-size: 10px; letter-spacing: 0.05em; color: #FFFFFF; background: rgba(255,255,255,0.15); padding: 2px 6px; border-radius: 4px; margin-right: 6px;">HRMS</span><span class="at-badge-text" id="at-badge-work-time">--h --m</span>`;
+    badge.innerHTML = `<span style="font-weight: 800; font-size: 10px; letter-spacing: 0.05em; color: #FFFFFF; background: rgba(255,255,255,0.15); padding: 2px 6px; border-radius: 4px; margin-right: 6px;">HRMS</span><span id="at-badge-wfh" style="display:${state.isWfh ? "inline" : "none"}; font-size:10px; margin-right:4px;">🏡</span><span class="at-badge-text" id="at-badge-work-time">--h --m</span>`;
     // Click is handled manually in dragEnd to prevent WebView touch scrolling bugs
     container.appendChild(badge);
     elements.badge = badge;
@@ -901,6 +1050,7 @@
       <div class="at-status-banner">
         <span class="at-status-indicator at-status-out" id="at-status-indicator"></span>
         <span id="at-status-text">Determining status...</span>
+        <span id="at-wfh-badge" style="display:${state.isWfh ? "inline-flex" : "none"}; margin-left:auto; font-size:10px; font-weight:700; color:#FBBF24; background:rgba(251,191,36,0.15); border:1px solid rgba(251,191,36,0.3); padding:2px 8px; border-radius:20px; vertical-align:middle;">🏡 WFH</span>
       </div>
 
       <div class="at-grid">
@@ -952,6 +1102,13 @@
         <div class="at-form-group">
           <label>Target Work (Minutes / Formula)</label>
           <input type="text" class="at-input" id="at-setting-minutes-input" value="${Math.round(state.targetHours * 60)}" placeholder="e.g. 510 or 8*60+30">
+        </div>
+        <div class="at-form-group row">
+          <label>Work From Home (WFH) 🏡</label>
+          <label class="at-toggle">
+            <input type="checkbox" id="at-setting-wfh" ${state.isWfh ? "checked" : ""}>
+            <span class="at-slider"></span>
+          </label>
         </div>
         <div class="at-form-group row">
           <label>Enable Notifications</label>
@@ -1341,6 +1498,15 @@
       ? "light"
       : "dark";
 
+    const wfhCheck = elements.card.querySelector("#at-setting-wfh");
+    if (wfhCheck) {
+      state.isWfh = wfhCheck.checked;
+      localStorage.setItem("at_wfh_mode", state.isWfh ? "true" : "false");
+      if (window.AndroidApp && typeof window.AndroidApp.setWfhMode === "function") {
+        window.AndroidApp.setWfhMode(state.isWfh);
+      }
+    }
+
     localStorage.setItem("at_target_hours", state.targetHours);
     localStorage.setItem("at_notify_enabled", state.notifyEnabled);
     localStorage.setItem("at_theme", state.theme);
@@ -1354,18 +1520,35 @@
       elements.container.classList.remove("at-theme-light");
     }
 
-
-
     closeSettings();
+    updateUI();
     fetchAttendanceLogs();
   }
 
   function updateUI() {
+    // Check and update WFH badges on card and collapsed badge
+    const wfhBadge = elements.card ? elements.card.querySelector("#at-wfh-badge") : null;
+    if (wfhBadge) {
+      wfhBadge.style.display = state.isWfh ? "inline-flex" : "none";
+    }
+    const badgeWfh = document.getElementById("at-badge-wfh");
+    if (badgeWfh) {
+      badgeWfh.style.display = state.isWfh ? "inline" : "none";
+    }
+
     const metrics = calculateMetrics();
     if (!metrics) {
       // No logs yet today
       const statusTextEl = elements.card.querySelector("#at-status-text");
-      if (statusTextEl) statusTextEl.innerText = "No attendance logs today";
+      if (statusTextEl) {
+        statusTextEl.innerText = state.isWfh ? "Working from Home" : "No attendance logs today";
+      }
+      const indicator = elements.card.querySelector("#at-status-indicator");
+      if (indicator && state.isWfh) {
+        indicator.className = "at-status-indicator";
+        indicator.style.background = "#FBBF24";
+        indicator.style.boxShadow = "0 0 8px #FBBF24";
+      }
       return;
     }
 
@@ -1384,10 +1567,10 @@
         textNode.innerText = "Completed shift! Time to leave.";
       } else if (metrics.isClockedIn) {
         indicator.classList.add("at-status-in");
-        textNode.innerText = `Clocked In (${metrics.lastLocation})`;
+        textNode.innerText = state.isWfh ? `Clocked In (${metrics.lastLocation}) • WFH` : `Clocked In (${metrics.lastLocation})`;
       } else {
         indicator.classList.add("at-status-out");
-        textNode.innerText = "Clocked Out / Break";
+        textNode.innerText = state.isWfh ? "Working from Home (Break)" : "Clocked Out / Break";
       }
     }
 
@@ -1610,6 +1793,15 @@
           title = imgEl.alt || imgEl.title || imgEl.getAttribute("aria-label") || "";
         }
 
+        // Check if element or parent has explicit original photo/image ID
+        const explicitOrigId = imgEl.getAttribute("data-original-id") ||
+                               imgEl.getAttribute("data-original-photo-id") ||
+                               imgEl.getAttribute("data-original-image-id") ||
+                               imgEl.getAttribute("data-original-image");
+        if (explicitOrigId && !originalUrl) {
+          originalUrl = `https://apps.pal.tech/hrms-backend/images/${explicitOrigId}`;
+        }
+
         // Check high-res data attributes on the img element
         const highResAttr = imgEl.getAttribute("data-original") ||
                             imgEl.getAttribute("data-highres") ||
@@ -1617,11 +1809,24 @@
                             imgEl.getAttribute("data-zoom-src") ||
                             imgEl.getAttribute("data-large") ||
                             imgEl.getAttribute("data-src");
-        if (highResAttr) {
+        if (highResAttr && !originalUrl) {
           try {
             originalUrl = new URL(highResAttr, window.location.href).href;
           } catch (_) {
             originalUrl = highResAttr;
+          }
+        }
+
+        // Check if previewUrl points to /images/UUID and maps to an original ID
+        if (!originalUrl && previewUrl && previewUrl.includes("/images/")) {
+          const match = previewUrl.match(/\/images\/([a-zA-Z0-9_-]+)/);
+          if (match && match[1]) {
+            const thumbUuid = match[1];
+            if (state.imageMap && state.imageMap[thumbUuid]) {
+              originalUrl = `https://apps.pal.tech/hrms-backend/images/${state.imageMap[thumbUuid]}`;
+            } else if (state.userAvatarOriginal && (previewUrl === state.userAvatar || previewUrl.includes(thumbUuid))) {
+              originalUrl = state.userAvatarOriginal;
+            }
           }
         }
 
@@ -1838,6 +2043,9 @@
 
   // --- INITIALIZATION ---
   function init() {
+    // Intercept network requests to capture thumbnail-to-original photo mappings
+    interceptNetworkForImages();
+
     // Initialize Fullscreen Image Viewer on all page images
     initImageFullscreenObserver();
 

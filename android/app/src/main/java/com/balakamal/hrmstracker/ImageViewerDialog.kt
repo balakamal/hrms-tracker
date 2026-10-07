@@ -90,6 +90,42 @@ class ImageViewerDialog(
         btnShare.setOnClickListener { shareImage() }
         btnDownload.setOnClickListener { saveImageToDevice() }
 
+        // Tap-to-toggle top and bottom bars for immersive fullscreen view
+        var barsVisible = true
+        fun toggleBars() {
+            barsVisible = !barsVisible
+            val topBar = findViewById<View>(R.id.viewer_top_bar)
+            val alpha = if (barsVisible) 1f else 0f
+            val transYTop = if (barsVisible) 0f else -100f
+            val transYBottom = if (barsVisible) 0f else 100f
+
+            topBar?.animate()
+                ?.alpha(alpha)
+                ?.translationY(transYTop)
+                ?.setDuration(250)
+                ?.start()
+
+            if (barsVisible) {
+                hintView.visibility = View.VISIBLE
+            }
+            hintView.animate()
+                ?.alpha(alpha)
+                ?.translationY(transYBottom)
+                ?.setDuration(250)
+                ?.withEndAction {
+                    if (!barsVisible) hintView.visibility = View.GONE
+                }
+                ?.start()
+        }
+
+        zoomImageView.onSingleTapListener = {
+            toggleBars()
+        }
+
+        findViewById<View>(R.id.viewer_root)?.setOnClickListener {
+            toggleBars()
+        }
+
         // Fade hint after 3 seconds
         mainHandler.postDelayed({
             hintView.animate().alpha(0f).setDuration(600).withEndAction {
@@ -125,6 +161,8 @@ class ImageViewerDialog(
         zoomImageView.visibility = View.VISIBLE
 
         val hasDistinctPreview = !previewUrl.isNullOrBlank() && previewUrl != imageUrl
+        var previewW = 0
+        var previewH = 0
 
         if (hasDistinctPreview) {
             resolutionBadge.text = "Loading preview..."
@@ -141,9 +179,11 @@ class ImageViewerDialog(
                 mainHandler.post {
                     if (previewBitmap != null && loadedBitmap == null) {
                         loadedBitmap = previewBitmap
+                        previewW = previewBitmap.width
+                        previewH = previewBitmap.height
                         zoomImageView.setImageBitmap(previewBitmap)
                         progressView.visibility = View.GONE
-                        resolutionBadge.text = "Enhancing to crisp original..."
+                        resolutionBadge.text = "${previewBitmap.width} × ${previewBitmap.height} • Enhancing..."
                     }
                 }
             }.start()
@@ -166,8 +206,14 @@ class ImageViewerDialog(
                     if (originalBitmap != null) {
                         loadedBitmap = originalBitmap
                         zoomImageView.setImageBitmap(originalBitmap)
-                        resolutionBadge.text = "${originalBitmap.width} × ${originalBitmap.height} • Crisp Original"
-                        resolutionBadge.setTextColor(0xFF7DE8B3.toInt()) // subtle mint green
+                        val isHighResUpgrade = originalBitmap.width > previewW || originalBitmap.height > previewH || !hasDistinctPreview
+                        if (isHighResUpgrade && (originalBitmap.width > 120 || originalBitmap.height > 120)) {
+                            resolutionBadge.text = "${originalBitmap.width} × ${originalBitmap.height} • Crisp Original"
+                            resolutionBadge.setTextColor(0xFF7DE8B3.toInt()) // subtle mint green
+                        } else {
+                            resolutionBadge.text = "${originalBitmap.width} × ${originalBitmap.height}"
+                            resolutionBadge.setTextColor(0xFFA0A5BA.toInt())
+                        }
                     } else if (loadedBitmap == null) {
                         // Neither original nor preview could be loaded
                         errorView.visibility = View.VISIBLE
@@ -201,6 +247,7 @@ class ImageViewerDialog(
         val decodedBytes = Base64.decode(base64Data, Base64.DEFAULT)
         val options = BitmapFactory.Options().apply {
             inPreferredConfig = Bitmap.Config.ARGB_8888
+            inScaled = false
         }
         return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size, options)
     }
@@ -252,6 +299,7 @@ class ImageViewerDialog(
 
                 val options = BitmapFactory.Options().apply {
                     inPreferredConfig = Bitmap.Config.ARGB_8888
+                    inScaled = false
                 }
                 return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size, options)
             }

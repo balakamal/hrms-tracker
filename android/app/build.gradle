@@ -11,8 +11,8 @@ android {
         applicationId "com.balakamal.hrmsinsights"
         minSdk 21
         targetSdk 34
-        versionCode 18
-        versionName "3.1"
+        versionCode 19
+        versionName "3.2"
     }
 
     buildTypes {

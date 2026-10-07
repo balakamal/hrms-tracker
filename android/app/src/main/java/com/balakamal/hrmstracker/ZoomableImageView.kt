@@ -41,6 +41,9 @@ class ZoomableImageView @JvmOverloads constructor(
     private var midScale = 2.5f
     private var maxScale = 6.0f
 
+    /** Single-tap callback fired after confirming not a double-tap */
+    var onSingleTapListener: (() -> Unit)? = null
+
     // Touch tracking
     private var activePointerId = MotionEvent.INVALID_POINTER_ID
     private var lastTouchX = 0f
@@ -310,6 +313,11 @@ class ZoomableImageView @JvmOverloads constructor(
                 // Zoom in to midScale centered at the tap point
                 animateZoomTo(midScale, e.x, e.y)
             }
+            return true
+        }
+
+        override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+            onSingleTapListener?.invoke()
             return true
         }
     }

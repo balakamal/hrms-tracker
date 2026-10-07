@@ -86,21 +86,38 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 val lastUpdated = sharedPrefs.getString("WidgetLastUpdated", "Last updated: --:--")
                 val isWfh = sharedPrefs.getBoolean("WfhMode", false)
                 
+                val isCompleted = progressPercent >= 100 || statusText?.contains("Complete", ignoreCase = true) == true
+                val displayStatus = if (isWfh && (statusText == "Not Clocked In" || statusText == "No logs today" || statusText == "Not Synced")) {
+                    "Working from Home"
+                } else {
+                    statusText ?: "Not Synced"
+                }
+
                 // Common view updates
-                views.setTextViewText(R.id.widget_status_text, statusText)
+                views.setTextViewText(R.id.widget_status_text, displayStatus)
                 views.setTextViewText(R.id.widget_work_time_value, workTime)
                 views.setViewVisibility(R.id.widget_wfh_badge, if (isWfh) android.view.View.VISIBLE else android.view.View.GONE)
                 
+                // Feature D & H: Dynamic status color on completion or WFH
+                if (isCompleted) {
+                    views.setTextColor(R.id.widget_status_text, 0xFF10B981.toInt()) // Emerald green
+                } else if (isWfh) {
+                    views.setTextColor(R.id.widget_status_text, 0xFFFBBF24.toInt()) // Warm amber for WFH
+                } else {
+                    views.setTextColor(R.id.widget_status_text, 0xFF9E9EB2.toInt())
+                }
+
                 // Layout-specific bindings
                 if (layoutId == R.layout.attendance_widget_small) {
-                    views.setTextViewText(R.id.widget_status_text, "Exit: $exitTime")
+                    val smallStatus = if (isWfh && (exitTime == "--:--" || exitTime == "Completed")) "WFH Mode" else "Exit: $exitTime"
+                    views.setTextViewText(R.id.widget_status_text, smallStatus)
                     views.setProgressBar(R.id.widget_progress_bar, 100, progressPercent, false)
                 } else if (layoutId == R.layout.attendance_widget_medium) {
                     views.setTextViewText(R.id.widget_exit_time_value, exitTime)
                     views.setTextViewText(R.id.widget_last_updated, "Updated: " + getCurrentTime())
                     views.setTextViewText(R.id.widget_progress_percent, "$progressPercent%")
                 } else if (layoutId == R.layout.attendance_widget) {
-                    views.setTextViewText(R.id.widget_status_text, "$statusText • $progressPercent% Done")
+                    views.setTextViewText(R.id.widget_status_text, "$displayStatus • $progressPercent% Done")
                     views.setTextViewText(R.id.widget_exit_time_value, exitTime)
                     views.setTextViewText(R.id.widget_first_in_value, firstIn)
                     views.setTextViewText(R.id.widget_break_time_value, breakTime)
@@ -317,6 +334,41 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 lastUpdated
             )
         }
+
+        fun checkEmployeeWfhStatus(context: Context, accessToken: String, userId: String): Boolean? {
+            try {
+                val statusUrl = "https://apps.pal.tech/hrms-backend/api/Employee/GetEmployeeStatus?employeeIds=$userId"
+                val connection = TokenManager.openConnection(context, statusUrl)
+                connection.requestMethod = "GET"
+                connection.setRequestProperty("Authorization", "Bearer $accessToken")
+                connection.setRequestProperty("Accept", "application/json")
+                connection.connectTimeout = 6000
+                connection.readTimeout = 6000
+                connection.connect()
+
+                if (connection.responseCode == 200) {
+                    val reader = BufferedReader(InputStreamReader(connection.inputStream))
+                    val sb = StringBuilder()
+                    var line: String?
+                    while (reader.readLine().also { line = it } != null) {
+                        sb.append(line)
+                    }
+                    reader.close()
+                    val json = JSONObject(sb.toString())
+                    val dataObj = json.optJSONObject("data")
+                    if (dataObj != null) {
+                        val userObj = dataObj.optJSONObject(userId)
+                            ?: if (dataObj.keys().hasNext()) dataObj.optJSONObject(dataObj.keys().next()) else null
+                        if (userObj != null && userObj.has("WFH")) {
+                            return userObj.optInt("WFH", 0) == 1
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("HRMSWidget", "checkEmployeeWfhStatus failed: ${e.message}")
+            }
+            return null
+        }
     }
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
@@ -324,10 +376,17 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             for (appWidgetId in appWidgetIds) {
                 updateAppWidget(context, appWidgetManager, appWidgetId, defaultLayoutId)
             }
-            // Trigger fresh fetch automatically on update using applicationContext
+            // Use goAsync() to prevent Android from terminating broadcast receiver process during background network fetch
+            val pendingResult = goAsync()
             val appContext = context.applicationContext
             Thread {
-                fetchAndRefreshWidget(appContext)
+                try {
+                    fetchAndRefreshWidget(appContext)
+                } catch (e: Exception) {
+                    android.util.Log.e("HRMSWidget", "onUpdate fetch error: ${e.message}", e)
+                } finally {
+                    pendingResult.finish()
+                }
             }.start()
         } catch (e: Exception) {
             android.util.Log.e("HRMSWidget", "onUpdate crash: ${e.message}", e)
@@ -387,11 +446,26 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
         var accessToken = TokenManager.getValidAccessToken(context)
         val userId = sharedPrefs.getString("UserId", null)
         val targetHours = sharedPrefs.getFloat("TargetHours", 8.5f)
+        val isWfh = sharedPrefs.getBoolean("WfhMode", false)
         
         if (accessToken == null || userId == null) {
-            saveWidgetCache(context, "0h 00m", "--:--", "0h 00m", "--:--", "Please Login in App", 0, "--h --m left", "Last updated: " + getCurrentTime())
+            val defaultStatus = if (isWfh) "Working from Home" else "Please Login in App"
+            saveWidgetCache(context, "0h 00m", "--:--", "0h 00m", "--:--", defaultStatus, 0, "--h --m left", "Last updated: " + getCurrentTime())
             triggerWidgetUpdate(context)
             return
+        }
+
+        // Connectivity pre-check to distinguish true offline from process death
+        try {
+            val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            val activeNetwork = connectivityManager?.activeNetworkInfo
+            if (activeNetwork == null || !activeNetwork.isConnected) {
+                saveWidgetCacheError(context, "Offline (No Network)")
+                triggerWidgetUpdate(context)
+                return
+            }
+        } catch (e: Exception) {
+            // Ignore connectivity check failure and proceed to network call
         }
 
         // Fetch logs from API (Uses local device timezone for local date query)
@@ -448,6 +522,11 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 }
                 reader.close()
 
+                val remoteWfh = checkEmployeeWfhStatus(context, accessToken, userId)
+                if (remoteWfh != null) {
+                    sharedPrefs.edit().putBoolean("WfhMode", remoteWfh).apply()
+                }
+
                 val metrics = calculateMetrics(response.toString(), targetHours)
                 if (metrics != null) {
                     saveWidgetCache(
@@ -464,7 +543,9 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     // Check and trigger Completed notification if complete
                     checkAndSendNotification(context, response.toString(), targetHours)
                 } else {
-                    saveWidgetCache(context, "0h 00m", "--:--", "0h 00m", "--:--", "No logs today", 0, "--h --m left", "Last updated: " + getCurrentTime())
+                    val isWfh = sharedPrefs.getBoolean("WfhMode", false)
+                    val noLogsStatus = if (isWfh) "Working from Home" else "No logs today"
+                    saveWidgetCache(context, "0h 00m", "--:--", "0h 00m", "--:--", noLogsStatus, 0, "--h --m left", "Last updated: " + getCurrentTime())
                 }
             } else {
                 saveWidgetCacheError(context, "Sync Error (${connection.responseCode})")

@@ -10,6 +10,7 @@ A premium, glassmorphic attendance dashboard and insights utility designed for `
 *   **Real-time Swipes Sync**: Automatically fetches your biometric logs from the backend and calculates your stats on the fly.
 *   **Dual Modes**: Can be collapsed into a compact floating badge or expanded into a rich stats card.
 *   **Full Draggability**: Drag the widget anywhere on your screen. Positions are remembered across browser sessions using `localStorage` and `PointerEvents`.
+*   **Automatic Work From Home (WFH) Detection**: Automatically queries `GetEmployeeStatus` to check for official WFH approval (`WFH: 1`). Displays a sleek `🏡 WFH` badge in both the floating card and collapsed pill.
 *   **Smart Target Settings**: Enter your shift goals using hours/minutes selectors or a custom text field supporting raw values, formulas (e.g. `8*60+30`), and patterns like `5 * 10 * 60`.
 *   **Premium Themes**: Glassmorphic styling with switchable Dark and Light modes.
 
@@ -17,7 +18,7 @@ A premium, glassmorphic attendance dashboard and insights utility designed for `
 *   **Desktop Site Mode Toggle**: Switch between responsive mobile view and full 1280px desktop site layout to access exclusive desktop features (attendance punch regularization, detailed swipe tables, approval grids, and report exports) with smooth pinch-to-zoom.
 *   **Quick HRMS Shortcuts**: Direct one-tap jump shortcuts to Timesheet & Swipes, Leave Portal, Payslips & Compensation, Regularization, and Shift Target Hours configuration.
 *   **Smart Shift Alerts**: Push notifications for both completed shifts and pre-shift "Pack-Up" warnings (~15-20 minutes remaining).
-*   **Fullscreen High-Resolution Image Viewer**: Tap any image on the portal (company notices, holiday calendars, event circulars, proof captures, employee badges) to view in an immersive fullscreen modal with multi-touch pinch-to-zoom (up to 5x), smooth panning, double-tap zoom, and direct download to your phone's gallery.
+*   **Fullscreen High-Resolution Image Viewer**: Tap any image on the portal to view in an immersive fullscreen modal with multi-touch pinch-to-zoom (up to 5x), smooth panning, double-tap zoom, single tap to toggle top/bottom controls for edge-to-edge viewing, original high-resolution photo ID resolution, and direct download to your phone's gallery.
 *   **Smart Link Dispatching**: Intelligently opens external links and company documents in your system browser without disrupting your portal session. Device action protocols (`mailto:`, `tel:`, `whatsapp:`) dispatch directly to native dialers and apps.
 *   **Built-in Download Manager**: Seamlessly download salary payslips, Form 16, and attendance reports directly to Android's `Downloads` folder.
 *   **Hardware & On-Screen Back Navigation**: Smooth in-portal web history navigation without accidental app exits.
@@ -26,6 +27,9 @@ A premium, glassmorphic attendance dashboard and insights utility designed for `
 *   **Automatic 24/7 Session Token Rotation**: Native background token manager proactively and reactively rotates JWT tokens via SSO before expiration, keeping shift alerts and home-screen widgets alive without manual app launches.
 *   **Minimalist Home-Screen Widgets**:
     *   **Multiple Responsive Sizes (Large 4x2 Dashboard, Medium 4x1 Row, Small 2x1 Badge)**: Automatically adapts layout and fills the widget space completely with zero text-wrapping.
+    *   **Automatic WFH Status Synchronization**: Automatically queries the employee status API during background widget sync and displays the `🏡 WFH` badge and warm amber accents when working from home.
+    *   **Immediate Asynchronous Placement**: Uses `goAsync()` to reliably fetch and show real-time stats immediately when placing the widget on the homescreen without falling into offline mode.
+    *   **Dynamic Status Feedback**: Emerald green highlights when the shift is completed, warm amber when working from home, and clean graphite styling for standard office hours.
     *   **1-Tap Home-Screen Refresh**: Dedicated minimal circular button `[🔄]` to trigger biometric background sync without opening the app.
     *   **Clean Minimal Aesthetic**: Crisp white typography, slate gray labels, and subtle dark graphite containers—no neon or visual noise.
     *   **Real-Time Shift Tracking**: First In, Work Time, Break Time, and Estimated Exit Time.
@@ -64,7 +68,7 @@ A premium, glassmorphic attendance dashboard and insights utility designed for `
 
 ### 1. Install the APK
 Download the compiled APK directly:
-* **Direct Download**: Download [`builds/hrms-insights-v3.1.apk`](builds/hrms-insights-v3.1.apk) (or [`builds/hrms-tracker-latest.apk`](builds/hrms-tracker-latest.apk))
+* **Direct Download**: Download [`builds/hrms-insights-v3.2.apk`](builds/hrms-insights-v3.2.apk) (or [`builds/hrms-tracker-latest.apk`](builds/hrms-tracker-latest.apk))
 * Or download from the **Actions** tab in GitHub: Click the latest **Build Android APK** workflow run > Download `hrms-insights-apk`.
 * Install the APK on your Android device (ensure "Install from Unknown Sources" is enabled in settings).
 

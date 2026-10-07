@@ -82,6 +82,12 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                 }
                 reader.close()
 
+                // Refresh WFH status from official API
+                val remoteWfh = AttendanceAppWidgetProvider.checkEmployeeWfhStatus(applicationContext, accessToken, userId)
+                if (remoteWfh != null) {
+                    sharedPrefs.edit().putBoolean("WfhMode", remoteWfh).apply()
+                }
+
                 // 3. Calculate and sync widget in the background
                 val metrics = AttendanceAppWidgetProvider.calculateMetrics(response.toString(), targetHours)
                 if (metrics != null) {
@@ -122,6 +128,21 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                             sharedPrefs.edit().putString("LastPreNotificationDate", todayStr).apply()
                         }
                     }
+                } else {
+                    val isWfh = sharedPrefs.getBoolean("WfhMode", false)
+                    val noLogsStatus = if (isWfh) "Working from Home" else "No logs today"
+                    AttendanceAppWidgetProvider.saveWidgetCache(
+                        applicationContext,
+                        "0h 00m",
+                        "--:--",
+                        "0h 00m",
+                        "--:--",
+                        noLogsStatus,
+                        0,
+                        "--h --m left",
+                        "Last updated: " + AttendanceAppWidgetProvider.getCurrentTime()
+                    )
+                    AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
                 }
             }
         } catch (e: Exception) {

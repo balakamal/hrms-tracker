@@ -980,6 +980,29 @@ class MainActivity : AppCompatActivity() {
         }
 
         @JavascriptInterface
+        fun getWfhMode(): Boolean {
+            return sharedPrefs.getBoolean(KEY_WFH_MODE, false)
+        }
+
+        @JavascriptInterface
+        fun setWfhMode(active: Boolean) {
+            sharedPrefs.edit().putBoolean(KEY_WFH_MODE, active).apply()
+            isWfhMode = active
+            runOnUiThread {
+                layoutWfhBanner.visibility = if (active) View.VISIBLE else View.GONE
+                updateCountdown()
+                triggerWidgetRefresh()
+            }
+        }
+
+        @JavascriptInterface
+        fun saveImageMapping(optimizedId: String, originalId: String) {
+            if (optimizedId.isNotBlank() && originalId.isNotBlank()) {
+                sharedPrefs.edit().putString("IMG_MAP_$optimizedId", originalId).apply()
+            }
+        }
+
+        @JavascriptInterface
         fun openImageFullscreen(imageUrl: String, previewUrl: String?, title: String?) {
             openImageViewer(imageUrl, previewUrl, title)
         }
@@ -1085,6 +1108,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showImageContextMenu(imageUrl: String) {
+        val cleanId = if (imageUrl.contains("/images/")) {
+            imageUrl.substringAfter("/images/").substringBefore("?").substringBefore("/")
+        } else ""
+        val mappedOriginalId = if (cleanId.isNotBlank()) sharedPrefs.getString("IMG_MAP_$cleanId", null) else null
+        val targetOriginalUrl = if (!mappedOriginalId.isNullOrBlank()) {
+            imageUrl.replace("/images/$cleanId", "/images/$mappedOriginalId")
+        } else {
+            imageUrl
+        }
+        val previewUrl = if (targetOriginalUrl != imageUrl) imageUrl else null
+
         val options = arrayOf(
             "🔍 View in Fullscreen (Zoom & Pan)",
             "⬇️ Download Image",
@@ -1096,22 +1130,22 @@ class MainActivity : AppCompatActivity() {
             .setTitle("Image Options")
             .setItems(options) { _, which ->
                 when (which) {
-                    0 -> openImageViewer(imageUrl)
+                    0 -> openImageViewer(targetOriginalUrl, previewUrl, null)
                     1 -> {
-                        openImageViewer(imageUrl)
+                        openImageViewer(targetOriginalUrl, previewUrl, null)
                         Toast.makeText(this, "Tap the Download button (⬇) at top right", Toast.LENGTH_SHORT).show()
                     }
                     2 -> {
-                        openImageViewer(imageUrl)
+                        openImageViewer(targetOriginalUrl, previewUrl, null)
                         Toast.makeText(this, "Tap the Share button (↗) at top right", Toast.LENGTH_SHORT).show()
                     }
                     3 -> {
                         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        clipboard.setPrimaryClip(ClipData.newPlainText("Image Link", imageUrl))
+                        clipboard.setPrimaryClip(ClipData.newPlainText("Image Link", targetOriginalUrl))
                         Toast.makeText(this, "Image link copied to clipboard", Toast.LENGTH_SHORT).show()
                     }
                     4 -> {
-                        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(imageUrl)))
+                        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(targetOriginalUrl)))
                     }
                 }
             }
