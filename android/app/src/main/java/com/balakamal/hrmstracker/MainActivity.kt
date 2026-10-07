@@ -18,6 +18,9 @@ import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.text.InputType
+import android.os.SystemClock
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.View
 import android.webkit.*
 import android.widget.*
@@ -41,6 +44,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var swipeRefresh: SwipeRefreshLayout
     private lateinit var bottomNav: BottomNavigationView
+    private lateinit var layoutTopBar: View
     private lateinit var btnDesktopMode: ImageButton
     private lateinit var btnRefresh: ImageButton
     private lateinit var appTitle: TextView
@@ -57,6 +61,8 @@ class MainActivity : AppCompatActivity() {
 
     private var isDesktopMode = false
     private var isWfhMode = false
+    private var areBarsVisible = true
+    private var lastBarToggleTime = 0L
 
     private val countdownHandler = Handler(Looper.getMainLooper())
     private val countdownRunnable = object : Runnable {
@@ -106,6 +112,7 @@ class MainActivity : AppCompatActivity() {
         progressBar = findViewById(R.id.progressBar)
         swipeRefresh = findViewById(R.id.swipe_refresh)
         bottomNav = findViewById(R.id.bottom_navigation)
+        layoutTopBar = findViewById(R.id.layout_top_bar)
         btnDesktopMode = findViewById(R.id.btn_desktop_mode)
         btnRefresh = findViewById(R.id.btn_refresh)
         appTitle = findViewById(R.id.app_title)
@@ -338,6 +345,42 @@ class MainActivity : AppCompatActivity() {
         webView.setDownloadListener { url, userAgent, contentDisposition, mimetype, _ ->
             handleFileDownload(url, userAgent, contentDisposition, mimetype)
         }
+
+        // Gesture detector to toggle fullscreen bars when tapping on empty content / middle of app
+        val gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+                val hitResult = webView.hitTestResult
+                val type = hitResult?.type ?: WebView.HitTestResult.UNKNOWN_TYPE
+                if (type == WebView.HitTestResult.UNKNOWN_TYPE) {
+                    toggleFullscreenBars()
+                }
+                return false
+            }
+        })
+
+        webView.setOnTouchListener { _, event ->
+            gestureDetector.onTouchEvent(event)
+            false
+        }
+    }
+
+    fun toggleFullscreenBars() {
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastBarToggleTime < 400) return
+        lastBarToggleTime = now
+        runOnUiThread {
+            setBarsVisibility(!areBarsVisible)
+        }
+    }
+
+    private fun setBarsVisibility(visible: Boolean) {
+        areBarsVisible = visible
+        if (!::layoutTopBar.isInitialized || !::bottomNav.isInitialized) return
+        layoutTopBar.visibility = if (visible) View.VISIBLE else View.GONE
+        if (isWfhMode) {
+            layoutWfhBanner.visibility = if (visible) View.VISIBLE else View.GONE
+        }
+        bottomNav.visibility = if (visible) View.VISIBLE else View.GONE
     }
 
     private fun setupTopBarListeners() {
@@ -515,6 +558,10 @@ class MainActivity : AppCompatActivity() {
             override fun handleOnBackPressed() {
                 if (layoutSummaryCard.visibility == View.VISIBLE) {
                     dismissSummaryCard()
+                    return
+                }
+                if (!areBarsVisible) {
+                    setBarsVisibility(true)
                     return
                 }
                 if (webView.canGoBack()) {
@@ -989,7 +1036,7 @@ class MainActivity : AppCompatActivity() {
             sharedPrefs.edit().putBoolean(KEY_WFH_MODE, active).apply()
             isWfhMode = active
             runOnUiThread {
-                layoutWfhBanner.visibility = if (active) View.VISIBLE else View.GONE
+                layoutWfhBanner.visibility = if (active && areBarsVisible) View.VISIBLE else View.GONE
                 updateCountdown()
                 triggerWidgetRefresh()
             }
@@ -1022,6 +1069,11 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread {
                 handleLinkDispatch(url)
             }
+        }
+
+        @JavascriptInterface
+        fun toggleFullscreenBars() {
+            this@MainActivity.toggleFullscreenBars()
         }
     }
 

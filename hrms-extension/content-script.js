@@ -1767,33 +1767,63 @@
 
     function resolveImageSources(target) {
       if (!target) return null;
-      if (target.closest("#at-widget-container") || target.classList.contains("at-lightbox-img")) return null;
+
+      // Ignore clicks inside our own tracker UI widgets, settings modal, or lightbox
+      if (target.closest("#at-widget-container, .at-lightbox-overlay, .at-settings-overlay")) {
+        return null;
+      }
+
+      // Ignore clicks on standard form and interactive controls
+      if (target.closest("button, input, select, textarea, [role='button'], label, summary, [contenteditable='true']")) {
+        return null;
+      }
 
       let originalUrl = null;
       let previewUrl = null;
       let title = "";
 
-      // 1. Check if target or parent is an anchor tag linking to an image or file/attachment
+      // 1. Target MUST be an <img>, or a <picture>/<figure> wrapper
+      let imgEl = null;
+      if (target.tagName === "IMG") {
+        imgEl = target;
+      } else if (target.tagName === "PICTURE" || target.tagName === "FIGURE") {
+        imgEl = target.querySelector("img");
+      }
+
+      // 2. Check if parent anchor links directly to an image file or backend image endpoint
       const parentLink = target.closest("a");
       if (parentLink && parentLink.href) {
         const href = parentLink.getAttribute("href") || "";
-        const isImgHref = /\.(jpe?g|png|webp|gif|svg|bmp)(\?.*)?$/i.test(href);
-        const isDocOrAttHref = /(attachment|view|download|notice|circular|document|file|showimage|getimage)/i.test(href);
-        if (isImgHref || isDocOrAttHref) {
+        const isImgHref = /\.(jpe?g|png|webp|gif|bmp)(\?.*)?$/i.test(href);
+        const isBackendImgHref = /\/images\/[a-zA-Z0-9_-]+/i.test(href);
+        if (isImgHref || isBackendImgHref) {
           originalUrl = parentLink.href;
-          title = parentLink.innerText?.trim() || parentLink.getAttribute("title") || "";
+          title = parentLink.getAttribute("title") || parentLink.innerText?.trim() || "";
         }
       }
 
-      // 2. If target is an <img> or has an <img> inside
-      const imgEl = target.tagName === "IMG" ? target : (target.querySelector ? target.querySelector("img") : null);
+      // If neither an actual image element nor an explicit image link was clicked, DO NOT open image viewer!
+      if (!imgEl && !originalUrl) {
+        return null;
+      }
+
       if (imgEl) {
+        // Filter out UI icons, tiny badges, decorative icons, status dots (<= 32px)
+        const rect = imgEl.getBoundingClientRect();
+        if ((rect.width > 0 && rect.width <= 32) || (rect.height > 0 && rect.height <= 32)) {
+          return null;
+        }
+
         previewUrl = imgEl.currentSrc || imgEl.src;
+        if (!previewUrl || previewUrl.startsWith("data:image/svg") || previewUrl.includes("blank.gif") || previewUrl.length < 12) {
+          return null;
+        }
+
         if (!title) {
           title = imgEl.alt || imgEl.title || imgEl.getAttribute("aria-label") || "";
         }
 
-        // Check if element or parent has explicit original photo/image ID
+        // Check if element has explicit original photo/image ID
         const explicitOrigId = imgEl.getAttribute("data-original-id") ||
                                imgEl.getAttribute("data-original-photo-id") ||
                                imgEl.getAttribute("data-original-image-id") ||
@@ -1875,23 +1905,37 @@
     }
 
     document.addEventListener("click", function (e) {
-      const resolved = resolveImageSources(e.target);
-      if (!resolved) return;
-
-      const { originalUrl, previewUrl, title } = resolved;
-
-      // Native Android App wrapper: use native high-res pinch-to-zoom viewer with two-stage load
-      if (window.AndroidApp && typeof window.AndroidApp.openImageFullscreen === "function") {
-        e.preventDefault();
-        e.stopPropagation();
-        window.AndroidApp.openImageFullscreen(originalUrl, previewUrl, title);
+      // 1. Ignore clicks inside our own tracker UI widgets, settings modal, or lightbox
+      if (e.target.closest("#at-widget-container, .at-lightbox-overlay, .at-settings-overlay")) {
         return;
       }
 
-      // Desktop browser (extension or Tampermonkey): use glassmorphic modal
-      e.preventDefault();
-      e.stopPropagation();
-      openDesktopLightbox(originalUrl, title);
+      // 2. Check if user clicked an actual image
+      const resolved = resolveImageSources(e.target);
+      if (resolved) {
+        const { originalUrl, previewUrl, title } = resolved;
+        if (window.AndroidApp && typeof window.AndroidApp.openImageFullscreen === "function") {
+          e.preventDefault();
+          e.stopPropagation();
+          window.AndroidApp.openImageFullscreen(originalUrl, previewUrl, title);
+          return;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        openDesktopLightbox(originalUrl, title);
+        return;
+      }
+
+      // 3. Ignore clicks on interactive web controls (buttons, links, inputs, dropdowns)
+      if (e.target.closest("a, button, input, select, textarea, [role='button'], label, summary, [contenteditable='true']")) {
+        return;
+      }
+
+      // 4. Click was on content / empty area / middle part of the screen!
+      // In Android App, toggle top bar and bottom navbar for full screen app view
+      if (window.AndroidApp && typeof window.AndroidApp.toggleFullscreenBars === "function") {
+        window.AndroidApp.toggleFullscreenBars();
+      }
     }, true);
   }
 
