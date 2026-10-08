@@ -346,6 +346,9 @@ class MainActivity : AppCompatActivity() {
     private fun setupTopBarListeners() {
         // Desktop Site Toggle
         btnDesktopMode.setOnClickListener {
+            btnDesktopMode.animate().scaleX(0.85f).scaleY(0.85f).setDuration(100).withEndAction {
+                btnDesktopMode.animate().scaleX(1f).scaleY(1f).setDuration(100).start()
+            }.start()
             val newMode = !isDesktopMode
             sharedPrefs.edit().putBoolean(KEY_DESKTOP_MODE, newMode).apply()
             applyDesktopMode(newMode, reload = true)
@@ -356,6 +359,7 @@ class MainActivity : AppCompatActivity() {
 
         // Refresh Page
         btnRefresh.setOnClickListener {
+            btnRefresh.animate().rotationBy(360f).setDuration(500).start()
             Toast.makeText(this, "Refreshing page...", Toast.LENGTH_SHORT).show()
             layoutError.visibility = View.GONE
             webView.visibility = View.VISIBLE
@@ -434,6 +438,14 @@ class MainActivity : AppCompatActivity() {
         txtSummaryExitTime.text = exitTime
         txtSummaryStatus.text = status
 
+        val statusColor = when {
+            status.contains("Complete", ignoreCase = true) -> ContextCompat.getColor(this, R.color.accent_cyan)
+            status.contains("WFH", ignoreCase = true) -> ContextCompat.getColor(this, R.color.accent_amber)
+            status.contains("Clocked In", ignoreCase = true) || status.contains("Work", ignoreCase = true) -> ContextCompat.getColor(this, R.color.accent_emerald)
+            else -> ContextCompat.getColor(this, R.color.accent_cyan)
+        }
+        txtSummaryStatus.setTextColor(statusColor)
+
         layoutSummaryCard.alpha = 0f
         layoutSummaryCard.translationY = 120f
         layoutSummaryCard.visibility = View.VISIBLE
@@ -466,6 +478,7 @@ class MainActivity : AppCompatActivity() {
         if (!::txtCountdown.isInitialized) return
         if (isWfhMode) {
             txtCountdown.text = "⏳ WFH Mode"
+            txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.accent_amber))
             return
         }
 
@@ -474,11 +487,13 @@ class MainActivity : AppCompatActivity() {
 
         if (exitTime == "Completed" || progressPercent >= 100) {
             txtCountdown.text = "⏳ Shift Complete! 🎉"
+            txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.accent_cyan))
             return
         }
 
         if (exitTime == "--:--" || exitTime.isBlank()) {
             txtCountdown.text = "⏳ --"
+            txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.text_muted))
             return
         }
 
@@ -497,18 +512,22 @@ class MainActivity : AppCompatActivity() {
                 val diffMs = exitCal.timeInMillis - now.timeInMillis
                 if (diffMs <= 0) {
                     txtCountdown.text = "⏳ Shift Complete! 🎉"
+                    txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.accent_cyan))
                 } else {
                     val totalMinutes = (diffMs / 60000).toInt()
                     val h = totalMinutes / 60
                     val m = totalMinutes % 60
                     txtCountdown.text = if (h > 0) "⏳ ${h}h ${m}m left" else "⏳ ${m}m left"
+                    txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.accent_emerald))
                 }
             } else {
                 txtCountdown.text = "⏳ $exitTime"
+                txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.accent_emerald))
             }
         } catch (e: Exception) {
             val remaining = sharedPrefs.getString("WidgetProgressRemaining", "--") ?: "--"
             txtCountdown.text = "⏳ $remaining"
+            txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
         }
     }
 
@@ -550,7 +569,7 @@ class MainActivity : AppCompatActivity() {
             webSettings.userAgentString = null // Reverts to system default mobile UA
             webSettings.useWideViewPort = true
             webSettings.loadWithOverviewMode = true
-            btnDesktopMode.setBackgroundResource(android.R.color.transparent)
+            btnDesktopMode.setBackgroundResource(R.drawable.bg_header_action_btn)
         }
 
         if (reload) {
@@ -628,7 +647,7 @@ class MainActivity : AppCompatActivity() {
             "ℹ️ About HRMS"
         )
 
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.Theme_HRMS_Dialog)
             .setTitle("⚙️ HRMS Settings & Preferences")
             .setItems(options) { _, which ->
                 when (which) {
@@ -705,7 +724,7 @@ class MainActivity : AppCompatActivity() {
         val sick = sharedPrefs.getString(KEY_LEAVE_SICK, "—")
         val earned = sharedPrefs.getString(KEY_LEAVE_EARNED, "—")
 
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.Theme_HRMS_Dialog)
             .setTitle("🏖️ Leave Balances")
             .setMessage("• Casual Leave: $casual days\n• Sick / Medical Leave: $sick days\n• Earned / Privilege Leave: $earned days\n\n(Balances update automatically when you visit the Leave section)")
             .setPositiveButton("Open Leave Tab") { _, _ ->
@@ -717,11 +736,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun showAboutDialog() {
         val verName = try {
-            packageManager.getPackageInfo(packageName, 0).versionName ?: "2.2"
+            packageManager.getPackageInfo(packageName, 0).versionName ?: "4.0"
         } catch (e: Exception) {
-            "2.2"
+            "4.0"
         }
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.Theme_HRMS_Dialog)
             .setTitle("HRMS App")
             .setMessage("Version $verName\n\n• Desktop & Mobile Viewports\n• Real-time Biometric Tracking\n• Home-Screen Widgets (Small, Medium, Large)\n• Pull-to-Refresh & Bottom Navigation\n• Shift Countdown Timer & Daily Summary\n• WFH Mode & Smart Shift Alerts\n• App Shortcuts & Leave Balance Quick View\n• Secure Local Token Storage")
             .setPositiveButton("OK", null)
@@ -740,7 +759,7 @@ class MainActivity : AppCompatActivity() {
             "Custom Value..."
         )
 
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.Theme_HRMS_Dialog)
             .setTitle("Daily Target Hours (Current: ${currentTarget}h)")
             .setItems(options) { _, which ->
                 when (which) {
@@ -755,15 +774,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun promptCustomTargetHours(current: Float) {
+        val container = FrameLayout(this).apply {
+            setPadding(50, 24, 50, 12)
+        }
         val input = EditText(this).apply {
             inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
             setText(current.toString())
             setSelection(text.length)
+            setTextColor(ContextCompat.getColor(this@MainActivity, R.color.text_primary))
+            setHintTextColor(ContextCompat.getColor(this@MainActivity, R.color.text_muted))
+            background = ContextCompat.getDrawable(this@MainActivity, R.drawable.bg_countdown_pill)
+            setPadding(32, 20, 32, 20)
         }
+        container.addView(input)
 
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.Theme_HRMS_Dialog)
             .setTitle("Enter Target Hours (e.g. 8.5)")
-            .setView(input)
+            .setView(container)
             .setPositiveButton("Save") { _, _ ->
                 val entered = input.text.toString().toFloatOrNull()
                 if (entered != null && entered > 0) {

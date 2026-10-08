@@ -1,4 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Backgrounds & Surfaces (Obsidian Glass) -->
     <color name="ic_launcher_background">#161822</color>
+    <color name="bg_app">#0A0D14</color>
+    <color name="bg_top_bar">#0D111A</color>
+    <color name="bg_surface_card">#131724</color>
+    <color name="stroke_card">#20273A</color>
+
+    <!-- Brand & Accent Colors -->
+    <color name="primary_accent">#3B82F6</color>
+    <color name="accent_emerald">#10B981</color>
+    <color name="accent_cyan">#06B6D4</color>
+    <color name="accent_amber">#F59E0B</color>
+    <color name="accent_violet">#8B5CF6</color>
+    <color name="accent_rose">#F43F5E</color>
+
+    <!-- Typography -->
+    <color name="text_primary">#F8FAFC</color>
+    <color name="text_secondary">#94A3B8</color>
+    <color name="text_muted">#64748B</color>
+
+    <!-- Bottom Nav -->
+    <color name="nav_active">#38BDF8</color>
+    <color name="nav_inactive">#64748B</color>
 </resources>

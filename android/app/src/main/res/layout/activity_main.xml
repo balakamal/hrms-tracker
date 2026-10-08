@@ -4,19 +4,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#0F0F14">
+    android:background="@color/bg_app">
 
-    <!-- Top App Bar -->
+    <!-- Top App Bar (Obsidian Glass Header) -->
     <RelativeLayout
         android:id="@+id/layout_top_bar"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="#0F0F14"
+        android:layout_height="58dp"
+        android:background="@color/bg_top_bar"
         android:paddingStart="16dp"
         android:paddingEnd="12dp"
         android:elevation="4dp">
 
-        <!-- App Title and Shift Countdown Subtitle -->
+        <!-- App Brand & Dynamic Shift Countdown Badge -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -28,21 +28,31 @@
                 android:id="@+id/app_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/app_name"
-                android:textColor="#FFFFFF"
-                android:textSize="18sp"
+                android:letterSpacing="0.02"
+                android:text="HRMS Attendance"
+                android:textColor="@color/text_primary"
+                android:textSize="17sp"
                 android:textStyle="bold" />
 
+            <!-- Sleek Shift Countdown Pill -->
             <TextView
                 android:id="@+id/txt_countdown"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:background="@drawable/bg_countdown_pill"
+                android:letterSpacing="0.03"
+                android:paddingStart="7dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
                 android:text="⏳ --"
-                android:textColor="#9CA3AF"
-                android:textSize="11sp" />
+                android:textColor="@color/text_secondary"
+                android:textSize="10sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Header Actions: Desktop Mode & Refresh -->
+        <!-- Header Actions: Desktop Mode & 1-Tap Refresh -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
@@ -50,12 +60,13 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <!-- Desktop Mode Toggle Button -->
+            <!-- Desktop Mode Toggle Button (Active Pill on Toggle) -->
             <ImageButton
                 android:id="@+id/btn_desktop_mode"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_header_action_btn"
                 android:contentDescription="Desktop Site Mode"
                 android:padding="8dp"
                 android:scaleType="fitCenter"
@@ -64,9 +75,9 @@
             <!-- Refresh Button -->
             <ImageButton
                 android:id="@+id/btn_refresh"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:background="@drawable/bg_header_action_btn"
                 android:contentDescription="Refresh Page"
                 android:padding="8dp"
                 android:scaleType="fitCenter"
@@ -132,7 +143,7 @@
                 android:layout_height="match_parent" />
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-        <!-- Daily Summary Card Overlay (App Open) -->
+        <!-- Daily Summary Card Overlay (Obsidian Glass Floating Sheet) -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/layout_summary_card"
             android:layout_width="match_parent"
@@ -141,10 +152,10 @@
             android:layout_marginStart="14dp"
             android:layout_marginEnd="14dp"
             android:layout_marginBottom="14dp"
-            app:cardBackgroundColor="#1A1A26"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="10dp"
-            app:strokeColor="#2E2E3E"
+            app:cardBackgroundColor="@color/bg_surface_card"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="12dp"
+            app:strokeColor="@color/stroke_card"
             app:strokeWidth="1dp"
             android:visibility="gone">
 
@@ -159,57 +170,73 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentStart="true"
                         android:layout_centerVertical="true"
-                        android:text="⚡ Daily Attendance Summary"
-                        android:textColor="#FFFFFF"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:letterSpacing="0.05"
+                            android:text="⚡ DAILY ATTENDANCE SUMMARY"
+                            android:textColor="@color/text_primary"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
 
                     <ImageButton
                         android:id="@+id/btn_close_summary"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
                         android:background="?android:attr/selectableItemBackgroundBorderless"
-                        android:src="@drawable/ic_close_white"
                         android:contentDescription="Close summary"
-                        app:tint="#9CA3AF" />
+                        android:padding="5dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_close_white"
+                        app:tint="@color/text_muted" />
                 </RelativeLayout>
 
-                <!-- Metrics Grid -->
+                <!-- Metrics Grid (4-Column Glass Shelf) -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
                     android:layout_marginTop="12dp"
+                    android:orientation="horizontal"
                     android:weightSum="4">
 
                     <!-- First In -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_marginEnd="4dp"
                         android:layout_weight="1"
+                        android:background="@drawable/bg_widget_stat_cell"
                         android:gravity="center"
-                        android:orientation="vertical">
+                        android:orientation="vertical"
+                        android:padding="6dp">
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:letterSpacing="0.05"
                             android:text="FIRST IN"
-                            android:textColor="#9CA3AF"
-                            android:textSize="9sp"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="8sp"
                             android:textStyle="bold" />
+
                         <TextView
                             android:id="@+id/txt_summary_first_in"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
+                            android:layout_marginTop="2dp"
                             android:text="--:--"
-                            android:textColor="#34D399"
+                            android:textColor="@color/accent_emerald"
                             android:textSize="13sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -218,23 +245,29 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_marginEnd="4dp"
                         android:layout_weight="1"
+                        android:background="@drawable/bg_widget_stat_cell"
                         android:gravity="center"
-                        android:orientation="vertical">
+                        android:orientation="vertical"
+                        android:padding="6dp">
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:letterSpacing="0.05"
                             android:text="WORK"
-                            android:textColor="#9CA3AF"
-                            android:textSize="9sp"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="8sp"
                             android:textStyle="bold" />
+
                         <TextView
                             android:id="@+id/txt_summary_work_time"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
+                            android:layout_marginTop="2dp"
                             android:text="--:--"
-                            android:textColor="#60A5FA"
+                            android:textColor="#38BDF8"
                             android:textSize="13sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -243,23 +276,29 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_marginEnd="4dp"
                         android:layout_weight="1"
+                        android:background="@drawable/bg_widget_stat_cell"
                         android:gravity="center"
-                        android:orientation="vertical">
+                        android:orientation="vertical"
+                        android:padding="6dp">
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:letterSpacing="0.05"
                             android:text="EST. EXIT"
-                            android:textColor="#9CA3AF"
-                            android:textSize="9sp"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="8sp"
                             android:textStyle="bold" />
+
                         <TextView
                             android:id="@+id/txt_summary_exit_time"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
+                            android:layout_marginTop="2dp"
                             android:text="--:--"
-                            android:textColor="#FBBF24"
+                            android:textColor="@color/accent_amber"
                             android:textSize="13sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -269,54 +308,59 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:background="@drawable/bg_widget_stat_cell"
                         android:gravity="center"
-                        android:orientation="vertical">
+                        android:orientation="vertical"
+                        android:padding="6dp">
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:letterSpacing="0.05"
                             android:text="STATUS"
-                            android:textColor="#9CA3AF"
-                            android:textSize="9sp"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="8sp"
                             android:textStyle="bold" />
+
                         <TextView
                             android:id="@+id/txt_summary_status"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="--"
-                            android:textColor="#A78BFA"
-                            android:textSize="12sp"
-                            android:textStyle="bold"
+                            android:layout_marginTop="2dp"
+                            android:ellipsize="end"
                             android:maxLines="1"
-                            android:ellipsize="end" />
+                            android:text="--"
+                            android:textColor="@color/accent_violet"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Offline / Network Error View -->
+        <!-- Offline / Network Error View (Modern Glassmorphic State) -->
         <LinearLayout
             android:id="@+id/layout_error"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#0F0F14"
+            android:background="@color/bg_app"
             android:gravity="center"
             android:orientation="vertical"
             android:padding="32dp"
             android:visibility="gone">
 
             <ImageView
-                android:layout_width="64dp"
-                android:layout_height="64dp"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
                 android:src="@drawable/ic_refresh"
-                app:tint="#EF4444" />
+                app:tint="#60A5FA" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="Portal Connection Failed"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/text_primary"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
@@ -326,8 +370,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:gravity="center"
-                android:text="Unable to reach apps.pal.tech. Please check your internet or VPN connection."
-                android:textColor="#9CA3AF"
+                android:text="Unable to reach apps.pal.tech.\nPlease verify your internet or corporate VPN connection."
+                android:textColor="@color/text_secondary"
                 android:textSize="13sp" />
 
             <Button
@@ -335,25 +379,26 @@
                 android:layout_width="wrap_content"
                 android:layout_height="44dp"
                 android:layout_marginTop="24dp"
-                android:backgroundTint="#2563EB"
-                android:paddingStart="24dp"
-                android:paddingEnd="24dp"
+                android:background="@drawable/bg_retry_button"
+                android:paddingStart="28dp"
+                android:paddingEnd="28dp"
                 android:text="Retry Connection"
                 android:textColor="#FFFFFF"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                android:textStyle="bold" />
         </LinearLayout>
     </FrameLayout>
 
-    <!-- Pinned Bottom Navigation Bar -->
+    <!-- Pinned Bottom Navigation Bar (Obsidian Glass Dock) -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#0F0F14"
+        android:background="@color/bg_top_bar"
+        app:elevation="8dp"
         app:itemIconTint="@color/bottom_nav_color"
         app:itemTextColor="@color/bottom_nav_color"
         app:labelVisibilityMode="labeled"
-        app:elevation="8dp"
         app:menu="@menu/bottom_nav_menu" />
 
 </LinearLayout>
