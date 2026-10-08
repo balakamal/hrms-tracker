@@ -5,36 +5,64 @@
     android:layout_height="match_parent"
     android:background="@drawable/widget_m3_bg"
     android:orientation="vertical"
-    android:padding="10dp">
+    android:padding="11dp">
 
-    <!-- Header: Mini Label & Refresh Button -->
+    <!-- Header: Mini Label, WFH Capsule & Refresh Button -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <TextView
-            android:id="@+id/widget_title"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
-            android:letterSpacing="0.08"
-            android:text="HRMS"
-            android:textColor="#9E9EB2"
-            android:textSize="9sp"
-            android:textStyle="bold" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/widget_wfh_badge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_toEndOf="@id/widget_title"
-            android:layout_centerVertical="true"
-            android:layout_marginStart="4dp"
-            android:text="🏡"
-            android:textColor="#FBBF24"
-            android:textSize="9sp"
-            android:visibility="gone" />
+            <TextView
+                android:id="@+id/widget_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:letterSpacing="0.08"
+                android:text="HRMS"
+                android:textColor="#94A3B8"
+                android:textSize="9sp"
+                android:textStyle="bold" />
+
+            <!-- Sleek WFH Pill for Small Widget -->
+            <LinearLayout
+                android:id="@+id/widget_wfh_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:background="@drawable/bg_widget_wfh_badge"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="5dp"
+                android:paddingEnd="6dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:layout_marginEnd="2dp"
+                    android:contentDescription="WFH Active"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_wfh_home" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.04"
+                    android:text="WFH"
+                    android:textColor="#FBBF24"
+                    android:textSize="8sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
 
         <ImageButton
             android:id="@+id/widget_btn_refresh"
@@ -46,10 +74,10 @@
             android:contentDescription="Refresh attendance stats"
             android:padding="4dp"
             android:scaleType="fitCenter"
-            android:src="@drawable/ic_refresh_white" />
+            android:src="@drawable/ic_refresh" />
     </RelativeLayout>
 
-    <!-- Main Content Pod (M3 Mint Tonal Pod) -->
+    <!-- Main Content Pod (Elevated Obsidian Pod) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -65,7 +93,7 @@
             android:layout_height="wrap_content"
             android:letterSpacing="0.05"
             android:text="TIME AT DESK"
-            android:textColor="#7DE8B3"
+            android:textColor="#64748B"
             android:textSize="8sp"
             android:textStyle="bold" />
 
@@ -87,18 +115,18 @@
             android:ellipsize="end"
             android:singleLine="true"
             android:text="Exit: --:--"
-            android:textColor="#A3F2C5"
+            android:textColor="#34D399"
             android:textSize="10sp"
             android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- M3 Progress Capsule -->
+    <!-- Progress Capsule -->
     <ProgressBar
         android:id="@+id/widget_progress_bar"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
         android:layout_height="5dp"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="5dp"
         android:max="100"
         android:progress="0"
         android:progressDrawable="@drawable/widget_m3_progress_drawable" />

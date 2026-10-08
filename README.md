@@ -10,7 +10,7 @@ A premium, glassmorphic attendance dashboard and insights utility designed for `
 *   **Real-time Swipes Sync**: Automatically fetches your biometric logs from the backend and calculates your stats on the fly.
 *   **Dual Modes**: Can be collapsed into a compact floating badge or expanded into a rich stats card.
 *   **Full Draggability**: Drag the widget anywhere on your screen. Positions are remembered across browser sessions using `localStorage` and `PointerEvents`.
-*   **Automatic Work From Home (WFH) Detection**: Automatically queries `GetEmployeeStatus` to check for official WFH approval (`WFH: 1`). Displays a sleek `🏡 WFH` badge in both the floating card and collapsed pill.
+*   **Automatic Work From Home (WFH) Detection**: Automatically queries `GetEmployeeStatus` to check for official WFH approval (`WFH: 1`). Displays a sleek WFH status capsule with a vector home glyph in both the floating card and collapsed pill.
 *   **Smart Target Settings**: Enter your shift goals using hours/minutes selectors or a custom text field supporting raw values, formulas (e.g. `8*60+30`), and patterns like `5 * 10 * 60`.
 *   **Premium Themes**: Glassmorphic styling with switchable Dark and Light modes.
 
@@ -26,13 +26,13 @@ A premium, glassmorphic attendance dashboard and insights utility designed for `
 *   **Self-Contained Login**: Opens the official login screen securely. Once logged in, it automatically captures authentication tokens for background work.
 *   **Automatic 24/7 Session Token Rotation**: Native background token manager proactively and reactively rotates JWT tokens via SSO before expiration, keeping shift alerts and home-screen widgets alive without manual app launches.
 *   **Minimalist Home-Screen Widgets**:
-    *   **Multiple Responsive Sizes (Large 4x2 Dashboard, Medium 4x1 Row, Small 2x1 Badge)**: Automatically adapts layout and fills the widget space completely with zero text-wrapping.
-    *   **Automatic WFH Status Synchronization**: Automatically queries the employee status API during background widget sync and displays the `🏡 WFH` badge and warm amber accents when working from home.
+    *   **Multiple Responsive Sizes (Large 4x2 Command Center, Medium 4x1 Split Pane, Small 2x1 Badge)**: Automatically adapts layout and fills the widget space with crisp tabular typography and zero awkward truncation.
+    *   **Bespoke WFH Status Capsule**: Dedicated vector home icon and warm amber glass capsule (`bg_widget_wfh_badge.xml`) replacing unstyled emojis, with automatic background sync against employee status API.
+    *   **Obsidian Glass & Material 3 Expressive System**: Deep dark glass surfaces (`#0D1117`), elevated hero pods (`#161B27`), hairline glass borders, and luminous emerald-to-cyan gradient progress capsules (`#10B981` → `#06B6D4`).
+    *   **Unified Metrics Shelf**: High-legibility First In, Total Break, and Estimated Exit tiles paired with subtle micro-icons (`ic_login`, `ic_coffee`, `ic_exit`).
     *   **Immediate Asynchronous Placement**: Uses `goAsync()` to reliably fetch and show real-time stats immediately when placing the widget on the homescreen without falling into offline mode.
-    *   **Dynamic Status Feedback**: Emerald green highlights when the shift is completed, warm amber when working from home, and clean graphite styling for standard office hours.
-    *   **1-Tap Home-Screen Refresh**: Dedicated minimal circular button `[🔄]` to trigger biometric background sync without opening the app.
-    *   **Clean Minimal Aesthetic**: Crisp white typography, slate gray labels, and subtle dark graphite containers—no neon or visual noise.
-    *   **Real-Time Shift Tracking**: First In, Work Time, Break Time, and Estimated Exit Time.
+    *   **Dynamic Status Feedback**: Sky cyan celebration highlights on shift completion (`#38BDF8`), warm honey amber during breaks & WFH (`#FBBF24`), vibrant emerald when clocked in (`#34D399`), and clean slate gray when synced.
+    *   **1-Tap Home-Screen Refresh**: Tactile frosted circular button with clean white vector icon (`@drawable/ic_refresh`) to trigger biometric background sync without opening the app.
     *   **State synchronization**: Auto-updates on device boot, app launch, home-screen refresh, login/logout, and background work checks.
 
 ---

@@ -98,18 +98,20 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 views.setTextViewText(R.id.widget_work_time_value, workTime)
                 views.setViewVisibility(R.id.widget_wfh_badge, if (isWfh) android.view.View.VISIBLE else android.view.View.GONE)
                 
-                // Feature D & H: Dynamic status color on completion or WFH
-                if (isCompleted) {
-                    views.setTextColor(R.id.widget_status_text, 0xFF10B981.toInt()) // Emerald green
-                } else if (isWfh) {
-                    views.setTextColor(R.id.widget_status_text, 0xFFFBBF24.toInt()) // Warm amber for WFH
-                } else {
-                    views.setTextColor(R.id.widget_status_text, 0xFF9E9EB2.toInt())
+                // Dynamic status color & chip styling
+                val statusColor = when {
+                    isCompleted -> 0xFF38BDF8.toInt() // Luminous sky cyan
+                    isWfh -> 0xFFFBBF24.toInt() // Warm amber
+                    displayStatus.contains("Break", ignoreCase = true) -> 0xFFF59E0B.toInt() // Warm amber
+                    displayStatus.contains("Clocked In", ignoreCase = true) -> 0xFF34D399.toInt() // Vibrant emerald
+                    displayStatus.contains("Sync", ignoreCase = true) -> 0xFF60A5FA.toInt() // Soft blue
+                    else -> 0xFF94A3B8.toInt() // Slate grey
                 }
+                views.setTextColor(R.id.widget_status_text, statusColor)
 
                 // Layout-specific bindings
                 if (layoutId == R.layout.attendance_widget_small) {
-                    val smallStatus = if (isWfh && (exitTime == "--:--" || exitTime == "Completed")) "WFH Mode" else "Exit: $exitTime"
+                    val smallStatus = if (isWfh && (exitTime == "--:--" || exitTime == "Completed")) "WFH Active" else "Exit: $exitTime"
                     views.setTextViewText(R.id.widget_status_text, smallStatus)
                     views.setProgressBar(R.id.widget_progress_bar, 100, progressPercent, false)
                 } else if (layoutId == R.layout.attendance_widget_medium) {
@@ -117,7 +119,14 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     views.setTextViewText(R.id.widget_last_updated, "Updated: " + getCurrentTime())
                     views.setTextViewText(R.id.widget_progress_percent, "$progressPercent%")
                 } else if (layoutId == R.layout.attendance_widget) {
-                    views.setTextViewText(R.id.widget_status_text, "$displayStatus • $progressPercent% Done")
+                    val formattedStatus = if (isCompleted) {
+                        "Shift Complete • 100%"
+                    } else if (isWfh && (displayStatus == "Working from Home" || displayStatus == "WFH Active")) {
+                        "Remote Workday"
+                    } else {
+                        "$displayStatus • $progressPercent%"
+                    }
+                    views.setTextViewText(R.id.widget_status_text, formattedStatus)
                     views.setTextViewText(R.id.widget_exit_time_value, exitTime)
                     views.setTextViewText(R.id.widget_first_in_value, firstIn)
                     views.setTextViewText(R.id.widget_break_time_value, breakTime)
@@ -649,4 +658,12 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
 
         notificationManager.notify(1, notification)
     }
+}
+
+class AttendanceAppWidgetProviderMedium : AttendanceAppWidgetProvider() {
+    override val defaultLayoutId: Int = R.layout.attendance_widget_medium
+}
+
+class AttendanceAppWidgetProviderSmall : AttendanceAppWidgetProvider() {
+    override val defaultLayoutId: Int = R.layout.attendance_widget_small
 }

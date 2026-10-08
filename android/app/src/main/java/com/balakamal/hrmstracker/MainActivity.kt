@@ -231,25 +231,7 @@ class MainActivity : AppCompatActivity() {
                     handleLinkDispatch(targetUrl)
                     return true
                 }
-
-                // Fallback: create temporary WebView to catch targetUrl
-                val tempWebView = WebView(this@MainActivity)
-                tempWebView.webViewClient = object : WebViewClient() {
-                    override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-                        val url = request?.url?.toString() ?: return false
-                        handleLinkDispatch(url)
-                        return true
-                    }
-                    @Deprecated("Deprecated in Java")
-                    override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                        if (url != null) handleLinkDispatch(url)
-                        return true
-                    }
-                }
-                val transport = resultMsg?.obj as? WebView.WebViewTransport
-                transport?.webView = tempWebView
-                resultMsg?.sendToTarget()
-                return true
+                return false
             }
         }
 
@@ -317,28 +299,6 @@ class MainActivity : AppCompatActivity() {
                     swipeRefresh.isRefreshing = false
                 }
             }
-        }
-
-        // Long click listener on WebView to inspect and view images or links
-        webView.setOnLongClickListener {
-            val result = webView.hitTestResult
-            val extra = result.extra
-            when (result.type) {
-                WebView.HitTestResult.IMAGE_TYPE,
-                WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE -> {
-                    if (!extra.isNullOrBlank()) {
-                        showImageContextMenu(extra)
-                        return@setOnLongClickListener true
-                    }
-                }
-                WebView.HitTestResult.SRC_ANCHOR_TYPE -> {
-                    if (!extra.isNullOrBlank()) {
-                        showLinkContextMenu(extra)
-                        return@setOnLongClickListener true
-                    }
-                }
-            }
-            false
         }
 
         // Download Listener to handle Payslips, Tax forms, and Attendance Reports
@@ -1157,80 +1117,5 @@ class MainActivity : AppCompatActivity() {
 
     fun openImageViewer(url: String, title: String?) {
         openImageViewer(url, null, title)
-    }
-
-    private fun showImageContextMenu(imageUrl: String) {
-        val cleanId = if (imageUrl.contains("/images/")) {
-            imageUrl.substringAfter("/images/").substringBefore("?").substringBefore("/")
-        } else ""
-        val mappedOriginalId = if (cleanId.isNotBlank()) sharedPrefs.getString("IMG_MAP_$cleanId", null) else null
-        val targetOriginalUrl = if (!mappedOriginalId.isNullOrBlank()) {
-            imageUrl.replace("/images/$cleanId", "/images/$mappedOriginalId")
-        } else {
-            imageUrl
-        }
-        val previewUrl = if (targetOriginalUrl != imageUrl) imageUrl else null
-
-        val options = arrayOf(
-            "🔍 View in Fullscreen (Zoom & Pan)",
-            "⬇️ Download Image",
-            "↗️ Share Image",
-            "📋 Copy Image Link",
-            "🌐 Open Image in Browser"
-        )
-        AlertDialog.Builder(this)
-            .setTitle("Image Options")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> openImageViewer(targetOriginalUrl, previewUrl, null)
-                    1 -> {
-                        openImageViewer(targetOriginalUrl, previewUrl, null)
-                        Toast.makeText(this, "Tap the Download button (⬇) at top right", Toast.LENGTH_SHORT).show()
-                    }
-                    2 -> {
-                        openImageViewer(targetOriginalUrl, previewUrl, null)
-                        Toast.makeText(this, "Tap the Share button (↗) at top right", Toast.LENGTH_SHORT).show()
-                    }
-                    3 -> {
-                        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        clipboard.setPrimaryClip(ClipData.newPlainText("Image Link", targetOriginalUrl))
-                        Toast.makeText(this, "Image link copied to clipboard", Toast.LENGTH_SHORT).show()
-                    }
-                    4 -> {
-                        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(targetOriginalUrl)))
-                    }
-                }
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
-    }
-
-    private fun showLinkContextMenu(linkUrl: String) {
-        val options = arrayOf(
-            "🌐 Open Link in Browser",
-            "📋 Copy Link URL",
-            "↗️ Share Link"
-        )
-        AlertDialog.Builder(this)
-            .setTitle("Link Options")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(linkUrl)))
-                    1 -> {
-                        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        clipboard.setPrimaryClip(ClipData.newPlainText("Link", linkUrl))
-                        Toast.makeText(this, "Link copied to clipboard", Toast.LENGTH_SHORT).show()
-                    }
-                    2 -> {
-                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                            type = "text/plain"
-                            putExtra(Intent.EXTRA_TEXT, linkUrl)
-                        }
-                        startActivity(Intent.createChooser(shareIntent, "Share Link via"))
-                    }
-                }
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
     }
 }

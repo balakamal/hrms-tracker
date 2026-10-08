@@ -406,68 +406,6 @@
       opacity: 0.9;
     }
 
-    /* Sync Panel */
-    .at-sync {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: var(--at-bg-panels);
-      border-radius: 20px;
-      padding: 16px;
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      z-index: 12;
-      transition: all 0.3s ease;
-      transform: translateY(100%);
-      overflow-y: auto;
-      color: var(--at-text-primary);
-    }
-    .at-sync.active {
-      transform: translateY(0);
-    }
-    .at-sync-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid var(--at-panel-border);
-      padding-bottom: 6px;
-    }
-    .at-sync-title {
-      font-weight: 700;
-      font-size: 14px;
-      color: var(--at-title-color);
-    }
-    .at-qr-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #ffffff;
-      padding: 6px;
-      border-radius: 10px;
-      width: 112px;
-      height: 112px;
-      margin: 0 auto;
-    }
-    .at-qr-container img {
-      width: 100px;
-      height: 100px;
-    }
-    .at-sync-link-row {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-    }
-    .at-sync-text {
-      font-size: 11px;
-      color: var(--at-text-secondary);
-      text-align: center;
-      line-height: 1.3;
-    }
-
     /* Loading Overlay */
     .at-loading-overlay {
       position: absolute;
@@ -531,6 +469,7 @@
 
   // --- SVG ICONS ---
   const ICONS = {
+    home: `<svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>`,
     clock: `<svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm1 10.586l-2.793-2.793a1 1 0 0 1 1.414-1.414L13 9.586l4.207-4.207a1 1 0 0 1 1.414 1.414L13 12.586z"/></svg>`,
     login: `<svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 11.586l3.293-3.293a1 1 0 0 0 0-1.414L11 6.586 9.586 8l2.293 2.293H3v2h8.879L9.586 14.586 11 16z"/></svg>`,
     work: `<svg viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>`,
@@ -542,24 +481,12 @@
     drag: `<svg viewBox="0 0 24 24"><path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>`,
   };
 
-  // Migration for old PWA URL cache
-  const cachedPwaUrl = localStorage.getItem("at_pwa_url");
-  if (!cachedPwaUrl || cachedPwaUrl.includes("kamal-thiruveedhula")) {
-    localStorage.setItem(
-      "at_pwa_url",
-      "https://balakamal.github.io/hrms-tracker/hrms-pwa/",
-    );
-  }
-
   // --- STATE MANAGEMENT ---
   let state = {
     userId: localStorage.getItem("at_user_id") || null,
     userName: localStorage.getItem("at_user_name") || "User",
     targetHours: parseFloat(localStorage.getItem("at_target_hours") || "8.5"),
     notifyEnabled: localStorage.getItem("at_notify_enabled") !== "false",
-    pwaUrl:
-      localStorage.getItem("at_pwa_url") ||
-      "https://balakamal.github.io/hrms-tracker/hrms-pwa/",
     isMinimized: localStorage.getItem("at_is_minimized") === "true",
     theme: localStorage.getItem("at_theme") || "dark",
     userAvatar: localStorage.getItem("at_user_avatar") || null,
@@ -1019,7 +946,7 @@
     // 1. Badge View (Collapsed)
     const badge = document.createElement("div");
     badge.className = "at-badge";
-    badge.innerHTML = `<span style="font-weight: 800; font-size: 10px; letter-spacing: 0.05em; color: #FFFFFF; background: rgba(255,255,255,0.15); padding: 2px 6px; border-radius: 4px; margin-right: 6px;">HRMS</span><span id="at-badge-wfh" style="display:${state.isWfh ? "inline" : "none"}; font-size:10px; margin-right:4px;">🏡</span><span class="at-badge-text" id="at-badge-work-time">--h --m</span>`;
+    badge.innerHTML = `<span style="font-weight: 800; font-size: 10px; letter-spacing: 0.05em; color: #FFFFFF; background: rgba(255,255,255,0.15); padding: 2px 6px; border-radius: 4px; margin-right: 6px;">HRMS</span><span id="at-badge-wfh" style="display:${state.isWfh ? "inline-flex" : "none"}; align-items:center; margin-right:5px;"><span style="display:inline-block; width:12px; height:12px; fill:#FBBF24;">${ICONS.home}</span></span><span class="at-badge-text" id="at-badge-work-time">--h --m</span>`;
     // Click is handled manually in dragEnd to prevent WebView touch scrolling bugs
     container.appendChild(badge);
     elements.badge = badge;
@@ -1050,7 +977,7 @@
       <div class="at-status-banner">
         <span class="at-status-indicator at-status-out" id="at-status-indicator"></span>
         <span id="at-status-text">Determining status...</span>
-        <span id="at-wfh-badge" style="display:${state.isWfh ? "inline-flex" : "none"}; margin-left:auto; font-size:10px; font-weight:700; color:#FBBF24; background:rgba(251,191,36,0.15); border:1px solid rgba(251,191,36,0.3); padding:2px 8px; border-radius:20px; vertical-align:middle;">🏡 WFH</span>
+        <span id="at-wfh-badge" style="display:${state.isWfh ? "inline-flex" : "none"}; align-items:center; gap:4px; margin-left:auto; font-size:10px; font-weight:700; color:#FBBF24; background:#2A1F10; border:1px solid #85531B; padding:2px 8px; border-radius:12px; vertical-align:middle;"><span style="display:inline-block; width:11px; height:11px; fill:#FBBF24;">${ICONS.home}</span> WFH</span>
       </div>
 
       <div class="at-grid">
@@ -1104,7 +1031,7 @@
           <input type="text" class="at-input" id="at-setting-minutes-input" value="${Math.round(state.targetHours * 60)}" placeholder="e.g. 510 or 8*60+30">
         </div>
         <div class="at-form-group row">
-          <label>Work From Home (WFH) 🏡</label>
+          <label>Work From Home (WFH)</label>
           <label class="at-toggle">
             <input type="checkbox" id="at-setting-wfh" ${state.isWfh ? "checked" : ""}>
             <span class="at-slider"></span>
@@ -1388,56 +1315,6 @@
     elements.card
       .querySelector("#at-settings-panel")
       .classList.remove("active");
-  }
-
-  function openSync() {
-    const token = localStorage.getItem("AccessToken") || "";
-    const refreshToken = localStorage.getItem("RefreshToken") || "";
-
-    // Construct sync URL
-    const pwaBase = state.pwaUrl.endsWith("/")
-      ? state.pwaUrl
-      : state.pwaUrl + "/";
-    const syncUrl = `${pwaBase}?token=${encodeURIComponent(token)}&refresh=${encodeURIComponent(refreshToken)}`;
-
-    // Update inputs
-    const linkInput = elements.card.querySelector("#at-sync-link-input");
-    if (linkInput) linkInput.value = syncUrl;
-
-    // Generate QR code using public api.qrserver.com
-    const qrImg = elements.card.querySelector("#at-sync-qr-img");
-    if (qrImg) {
-      qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(syncUrl)}`;
-    }
-
-    elements.card.querySelector("#at-sync-panel").classList.add("active");
-  }
-
-  function closeSync() {
-    elements.card.querySelector("#at-sync-panel").classList.remove("active");
-  }
-
-  function copySyncLink() {
-    const linkInput = elements.card.querySelector("#at-sync-link-input");
-    if (linkInput) {
-      linkInput.select();
-      linkInput.setSelectionRange(0, 99999);
-      navigator.clipboard
-        .writeText(linkInput.value)
-        .then(() => {
-          const copyBtn = elements.card.querySelector("#at-btn-copy-sync-link");
-          if (copyBtn) {
-            const oldText = copyBtn.innerText;
-            copyBtn.innerText = "Copied!";
-            setTimeout(() => {
-              copyBtn.innerText = oldText;
-            }, 1500);
-          }
-        })
-        .catch((err) => {
-          console.error("Failed to copy text: ", err);
-        });
-    }
   }
 
   function parseWorkTimeInput(inputStr) {

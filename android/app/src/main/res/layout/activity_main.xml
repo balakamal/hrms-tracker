@@ -79,16 +79,26 @@
         android:id="@+id/layout_wfh_banner"
         android:layout_width="match_parent"
         android:layout_height="32dp"
-        android:background="#D97706"
+        android:background="#B45309"
         android:gravity="center"
         android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
         android:visibility="gone">
+
+        <ImageView
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:layout_marginEnd="6dp"
+            android:contentDescription="WFH Active"
+            android:src="@drawable/ic_wfh_home" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🏡  WFH Mode Active — Biometric tracking paused"
-            android:textColor="#FFFFFF"
+            android:letterSpacing="0.02"
+            android:text="WFH Mode Active — Biometric tracking paused"
+            android:textColor="#FEF3C7"
             android:textSize="12sp"
             android:textStyle="bold" />
     </LinearLayout>
