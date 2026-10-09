@@ -151,27 +151,35 @@ class MainActivity : AppCompatActivity() {
         layoutError = findViewById(R.id.layout_error)
         btnRetry = findViewById(R.id.btn_retry)
 
-        // Dynamic System Window Insets: Pad header below cutouts & float summary card safely
-        ViewCompat.setOnApplyWindowInsetsListener(layoutTopBar) { v, insets ->
+        // Dynamic System Window Insets: Attach to root layout to guarantee dispatch
+        val rootLayout = findViewById<View>(R.id.root_layout)
+        ViewCompat.setOnApplyWindowInsetsListener(rootLayout) { _, insets ->
             val statusBarInsets = insets.getInsets(
                 WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.displayCutout()
             )
-            v.setPadding(
-                v.paddingLeft,
-                statusBarInsets.top,
-                v.paddingRight,
-                v.paddingBottom
-            )
-            insets
-        }
-
-        ViewCompat.setOnApplyWindowInsetsListener(layoutSummaryCard) { v, insets ->
             val navInsets = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
-            val lp = v.layoutParams as ViewGroup.MarginLayoutParams
-            lp.bottomMargin = (16 * resources.displayMetrics.density).toInt() + navInsets.bottom
-            v.layoutParams = lp
+
+            val defaultStatusBarHeight = (28 * resources.displayMetrics.density).toInt()
+            val topInset = if (statusBarInsets.top > 0) statusBarInsets.top else defaultStatusBarHeight
+            val extraSpacing = (6 * resources.displayMetrics.density).toInt()
+
+            layoutTopBar.setPadding(
+                layoutTopBar.paddingLeft,
+                topInset + extraSpacing,
+                layoutTopBar.paddingRight,
+                (8 * resources.displayMetrics.density).toInt()
+            )
+
+            if (::layoutSummaryCard.isInitialized) {
+                val lp = layoutSummaryCard.layoutParams as? ViewGroup.MarginLayoutParams
+                if (lp != null) {
+                    lp.bottomMargin = (16 * resources.displayMetrics.density).toInt() + navInsets.bottom
+                    layoutSummaryCard.layoutParams = lp
+                }
+            }
             insets
         }
+        ViewCompat.requestApplyInsets(rootLayout)
 
         updateWfhHubState(animate = false)
 

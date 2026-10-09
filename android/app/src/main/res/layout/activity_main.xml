@@ -8,15 +8,22 @@
     android:orientation="vertical">
 
     <!-- Top App Bar (Transparent One UI Frosted Glass Header) -->
-    <RelativeLayout
+    <LinearLayout
         android:id="@+id/layout_top_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/bg_top_bar_glass"
-        android:minHeight="58dp"
+        android:orientation="vertical"
         android:paddingStart="16dp"
         android:paddingEnd="12dp"
+        android:paddingTop="36dp"
         android:paddingBottom="8dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:minHeight="48dp">
 
         <!-- App Brand & Dynamic "Now Bar" Live Activity Capsule -->
         <LinearLayout
@@ -119,7 +126,8 @@
                 android:src="@drawable/ic_settings"
                 app:tint="@color/text_primary" />
         </LinearLayout>
-    </RelativeLayout>
+        </RelativeLayout>
+    </LinearLayout>
 
     <!-- Page Loading Progress Bar -->
     <ProgressBar

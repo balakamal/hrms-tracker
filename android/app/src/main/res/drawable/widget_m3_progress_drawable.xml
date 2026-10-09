@@ -3,15 +3,18 @@
     <!-- Background Track -->
     <item android:id="@android:id/background">
         <shape>
-            <corners android:radius="12dp" />
-            <solid android:color="#121726" />
+            <corners android:radius="14dp" />
+            <solid android:color="#0F1422" />
+            <stroke
+                android:width="0.8dp"
+                android:color="#232D42" />
         </shape>
     </item>
     <!-- Progress Fill -->
     <item android:id="@android:id/progress">
         <clip>
             <shape>
-                <corners android:radius="12dp" />
+                <corners android:radius="14dp" />
                 <gradient
                     android:startColor="#00D09C"
                     android:endColor="#38BDF8"

@@ -142,8 +142,8 @@
             android:id="@+id/widget_progress_bar"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
-            android:layout_height="6dp"
-            android:layout_marginTop="7dp"
+            android:layout_height="7dp"
+            android:layout_marginTop="8dp"
             android:max="100"
             android:progress="0"
             android:progressDrawable="@drawable/widget_m3_progress_drawable" />
