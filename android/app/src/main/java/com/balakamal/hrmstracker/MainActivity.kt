@@ -818,7 +818,7 @@ class MainActivity : AppCompatActivity() {
             "4.0"
         }
         AlertDialog.Builder(this, R.style.Theme_HRMS_Dialog)
-            .setTitle("HRMS App")
+            .setTitle("HRMS")
             .setMessage("Version $verName\n\n• Samsung One UI Edge-to-Edge Design\n• Real-time Biometric Tracking\n• Now Bar Live Activity Capsule\n• Home-Screen Widgets (Small, Medium, Large)\n• Desktop & Mobile Viewports\n• Shift Countdown Timer & Daily Summary\n• WFH Mode & Smart Shift Alerts\n• App Shortcuts & Leave Balance Quick View\n• Secure Local Token Storage")
             .setPositiveButton("OK", null)
             .show()
