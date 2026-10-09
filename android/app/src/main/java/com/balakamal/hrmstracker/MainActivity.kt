@@ -1100,7 +1100,7 @@ class MainActivity : AppCompatActivity() {
             sharedPrefs.edit().putBoolean(KEY_WFH_MODE, active).apply()
             isWfhMode = active
             runOnUiThread {
-                layoutWfhBanner.visibility = if (active && areBarsVisible) View.VISIBLE else View.GONE
+                updateWfhHubState(animate = true)
                 updateCountdown()
                 triggerWidgetRefresh()
             }
