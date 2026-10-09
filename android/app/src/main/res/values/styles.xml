@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Base Application Theme using MaterialComponents -->
+    <!-- Base Application Theme using MaterialComponents with Edge-to-Edge immersion -->
     <style name="Theme.HRMS" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/primary_accent</item>
         <item name="colorPrimaryVariant">#1D4ED8</item>
         <item name="colorOnPrimary">#FFFFFF</item>
         <item name="colorSecondary">@color/accent_emerald</item>
-        <item name="android:statusBarColor">@color/bg_app</item>
-        <item name="android:navigationBarColor">@color/bg_app</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowBackground">@color/bg_app</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="alertDialogTheme">@style/Theme.HRMS.Dialog</item>
     </style>
 
-    <!-- Sleek Obsidian Dark Alert Dialog Theme -->
+    <!-- Sleek One UI Obsidian Glass Alert Dialog Theme -->
     <style name="Theme.HRMS.Dialog" parent="Theme.MaterialComponents.DayNight.Dialog.Alert">
         <item name="colorSurface">@color/bg_surface_card</item>
         <item name="android:background">@color/bg_surface_card</item>
@@ -24,13 +25,8 @@
 
     <!-- Splash Screen theme -->
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
-        <!-- Background color of the splash screen -->
         <item name="windowSplashScreenBackground">@color/bg_app</item>
-        
-        <!-- Icon of the splash screen -->
         <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
-        
-        <!-- Theme to transition to after the splash screen finishes -->
         <item name="postSplashScreenTheme">@style/Theme.HRMS</item>
     </style>
 </resources>

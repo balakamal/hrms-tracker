@@ -1803,16 +1803,8 @@
         return;
       }
 
-      // 3. Ignore clicks on interactive web controls (buttons, links, inputs, dropdowns)
-      if (e.target.closest("a, button, input, select, textarea, [role='button'], label, summary, [contenteditable='true']")) {
-        return;
-      }
-
-      // 4. Click was on content / empty area / middle part of the screen!
-      // In Android App, toggle top bar and bottom navbar for full screen app view
-      if (window.AndroidApp && typeof window.AndroidApp.toggleFullscreenBars === "function") {
-        window.AndroidApp.toggleFullscreenBars();
-      }
+      // 3. Interactive web controls or page content clicks
+      // Bars stay stable in modern One UI design without flicker
     }, true);
   }
 

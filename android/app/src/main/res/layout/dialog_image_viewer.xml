@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/viewer_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_app"
-    android:fitsSystemWindows="true">
+    android:background="@color/bg_app">
 
-    <!-- Interactive Hardware-Accelerated Zoomable Image View -->
+    <!-- Interactive Hardware-Accelerated Zoomable Image View (Full Bleed Edge-to-Edge) -->
     <com.balakamal.hrmstracker.ZoomableImageView
         android:id="@+id/viewer_image"
         android:layout_width="match_parent"
@@ -37,15 +37,17 @@
         android:fontFamily="sans-serif-medium"
         android:visibility="gone" />
 
-    <!-- Floating Top Bar with Obsidian Glass Styling -->
+    <!-- Floating Top Bar with Frosted Glass Styling & Safe Insets -->
     <RelativeLayout
         android:id="@+id/viewer_top_bar"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="wrap_content"
+        android:minHeight="60dp"
         android:layout_alignParentTop="true"
-        android:background="@color/bg_top_bar"
+        android:background="@drawable/bg_top_bar_glass"
         android:paddingStart="12dp"
-        android:paddingEnd="12dp">
+        android:paddingEnd="12dp"
+        android:paddingBottom="8dp">
 
         <ImageButton
             android:id="@+id/viewer_btn_close"
@@ -57,7 +59,8 @@
             android:contentDescription="Close viewer"
             android:padding="9dp"
             android:scaleType="fitCenter"
-            android:src="@drawable/ic_close_white" />
+            android:src="@drawable/ic_close_white"
+            app:tint="@color/text_primary" />
 
         <LinearLayout
             android:id="@+id/viewer_title_container"
@@ -126,7 +129,8 @@
                 android:contentDescription="Share image"
                 android:padding="9dp"
                 android:scaleType="fitCenter"
-                android:src="@drawable/ic_share" />
+                android:src="@drawable/ic_share"
+                app:tint="@color/text_primary" />
 
             <ImageButton
                 android:id="@+id/viewer_btn_download"
@@ -136,7 +140,8 @@
                 android:contentDescription="Download full-resolution image"
                 android:padding="9dp"
                 android:scaleType="fitCenter"
-                android:src="@drawable/ic_download" />
+                android:src="@drawable/ic_download"
+                app:tint="@color/text_primary" />
         </LinearLayout>
     </RelativeLayout>
 
@@ -148,7 +153,7 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="24dp"
-        android:background="@drawable/bg_countdown_pill"
+        android:background="@drawable/bg_now_bar_capsule"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:paddingTop="7dp"

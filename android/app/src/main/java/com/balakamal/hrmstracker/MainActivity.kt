@@ -19,9 +19,9 @@ import android.os.Handler
 import android.os.Looper
 import android.text.InputType
 import android.os.SystemClock
-import android.view.GestureDetector
-import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
+import android.view.WindowManager
 import android.webkit.*
 import android.widget.*
 import androidx.activity.OnBackPressedCallback
@@ -30,9 +30,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.work.*
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -43,13 +45,17 @@ class MainActivity : AppCompatActivity() {
     private lateinit var sharedPrefs: SharedPreferences
     private lateinit var progressBar: ProgressBar
     private lateinit var swipeRefresh: SwipeRefreshLayout
-    private lateinit var bottomNav: BottomNavigationView
     private lateinit var layoutTopBar: View
     private lateinit var btnDesktopMode: ImageButton
     private lateinit var btnRefresh: ImageButton
+    private lateinit var btnSettings: ImageButton
     private lateinit var appTitle: TextView
+    private lateinit var layoutNowBar: View
+    private lateinit var imgNowBarIcon: ImageView
     private lateinit var txtCountdown: TextView
-    private lateinit var layoutWfhBanner: View
+    private lateinit var layoutWfhHub: View
+    private lateinit var btnSwitchToOffice: Button
+    private lateinit var btnDismissWfhCard: ImageButton
     private lateinit var layoutSummaryCard: View
     private lateinit var btnCloseSummary: ImageButton
     private lateinit var txtSummaryFirstIn: TextView
@@ -61,8 +67,6 @@ class MainActivity : AppCompatActivity() {
 
     private var isDesktopMode = false
     private var isWfhMode = false
-    private var areBarsVisible = true
-    private var lastBarToggleTime = 0L
 
     private val countdownHandler = Handler(Looper.getMainLooper())
     private val countdownRunnable = object : Runnable {
@@ -100,9 +104,25 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
-        
+
+        // Full Edge-to-Edge window immersion with display cutout support
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            window.attributes.layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+        }
+        window.statusBarColor = Color.TRANSPARENT
+        window.navigationBarColor = Color.TRANSPARENT
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isStatusBarContrastEnforced = false
+            window.isNavigationBarContrastEnforced = false
+        }
+        val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+        insetsController.isAppearanceLightStatusBars = false
+        insetsController.isAppearanceLightNavigationBars = false
+
         setContentView(R.layout.activity_main)
-        
+
         sharedPrefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         isDesktopMode = sharedPrefs.getBoolean(KEY_DESKTOP_MODE, false)
         isWfhMode = sharedPrefs.getBoolean(KEY_WFH_MODE, false)
@@ -111,13 +131,17 @@ class MainActivity : AppCompatActivity() {
         webView = findViewById(R.id.webView)
         progressBar = findViewById(R.id.progressBar)
         swipeRefresh = findViewById(R.id.swipe_refresh)
-        bottomNav = findViewById(R.id.bottom_navigation)
         layoutTopBar = findViewById(R.id.layout_top_bar)
         btnDesktopMode = findViewById(R.id.btn_desktop_mode)
         btnRefresh = findViewById(R.id.btn_refresh)
+        btnSettings = findViewById(R.id.btn_settings)
         appTitle = findViewById(R.id.app_title)
+        layoutNowBar = findViewById(R.id.layout_now_bar)
+        imgNowBarIcon = findViewById(R.id.img_now_bar_icon)
         txtCountdown = findViewById(R.id.txt_countdown)
-        layoutWfhBanner = findViewById(R.id.layout_wfh_banner)
+        layoutWfhHub = findViewById(R.id.layout_wfh_hub)
+        btnSwitchToOffice = findViewById(R.id.btn_switch_to_office)
+        btnDismissWfhCard = findViewById(R.id.btn_dismiss_wfh_card)
         layoutSummaryCard = findViewById(R.id.layout_summary_card)
         btnCloseSummary = findViewById(R.id.btn_close_summary)
         txtSummaryFirstIn = findViewById(R.id.txt_summary_first_in)
@@ -127,12 +151,33 @@ class MainActivity : AppCompatActivity() {
         layoutError = findViewById(R.id.layout_error)
         btnRetry = findViewById(R.id.btn_retry)
 
-        // Set initial WFH banner state
-        layoutWfhBanner.visibility = if (isWfhMode) View.VISIBLE else View.GONE
+        // Dynamic System Window Insets: Pad header below cutouts & float summary card safely
+        ViewCompat.setOnApplyWindowInsetsListener(layoutTopBar) { v, insets ->
+            val statusBarInsets = insets.getInsets(
+                WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            v.setPadding(
+                v.paddingLeft,
+                statusBarInsets.top,
+                v.paddingRight,
+                v.paddingBottom
+            )
+            insets
+        }
+
+        ViewCompat.setOnApplyWindowInsetsListener(layoutSummaryCard) { v, insets ->
+            val navInsets = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            val lp = v.layoutParams as ViewGroup.MarginLayoutParams
+            lp.bottomMargin = (16 * resources.displayMetrics.density).toInt() + navInsets.bottom
+            v.layoutParams = lp
+            insets
+        }
+
+        updateWfhHubState(animate = false)
 
         setupWebView()
         setupTopBarListeners()
-        setupBottomNav()
+        setupWfhHubListeners()
         setupSummaryCard()
         setupBackNavigation()
 
@@ -286,8 +331,6 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                // Sync Bottom Navigation selected item to match current URL
-                syncBottomNavSelection(url)
             }
 
             override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
@@ -305,65 +348,54 @@ class MainActivity : AppCompatActivity() {
         webView.setDownloadListener { url, userAgent, contentDisposition, mimetype, _ ->
             handleFileDownload(url, userAgent, contentDisposition, mimetype)
         }
-
-        // Gesture detector to toggle fullscreen bars when tapping on empty content / middle of app
-        val gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
-            override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-                val hitResult = webView.hitTestResult
-                val type = hitResult?.type ?: WebView.HitTestResult.UNKNOWN_TYPE
-                if (type == WebView.HitTestResult.UNKNOWN_TYPE) {
-                    toggleFullscreenBars()
-                }
-                return false
-            }
-        })
-
-        webView.setOnTouchListener { _, event ->
-            gestureDetector.onTouchEvent(event)
-            false
-        }
     }
 
+    /**
+     * Legacy JS interface stub to ensure existing injected scripts don't fail,
+     * while permanently stopping accidental icon fading/flickering.
+     */
     fun toggleFullscreenBars() {
-        val now = SystemClock.elapsedRealtime()
-        if (now - lastBarToggleTime < 400) return
-        lastBarToggleTime = now
-        runOnUiThread {
-            setBarsVisibility(!areBarsVisible)
-        }
-    }
-
-    private fun setBarsVisibility(visible: Boolean) {
-        areBarsVisible = visible
-        if (!::layoutTopBar.isInitialized || !::bottomNav.isInitialized) return
-        layoutTopBar.visibility = if (visible) View.VISIBLE else View.GONE
-        if (isWfhMode) {
-            layoutWfhBanner.visibility = if (visible) View.VISIBLE else View.GONE
-        }
-        bottomNav.visibility = if (visible) View.VISIBLE else View.GONE
+        // Safe no-op: Top bar remains stable without flickering
     }
 
     private fun setupTopBarListeners() {
-        // Desktop Site Toggle
+        // Desktop Site Toggle with One UI spring micro-animation
         btnDesktopMode.setOnClickListener {
-            btnDesktopMode.animate().scaleX(0.85f).scaleY(0.85f).setDuration(100).withEndAction {
-                btnDesktopMode.animate().scaleX(1f).scaleY(1f).setDuration(100).start()
+            btnDesktopMode.animate().scaleX(0.88f).scaleY(0.88f).setDuration(120).withEndAction {
+                btnDesktopMode.animate().scaleX(1f).scaleY(1f).setDuration(120).start()
             }.start()
             val newMode = !isDesktopMode
             sharedPrefs.edit().putBoolean(KEY_DESKTOP_MODE, newMode).apply()
             applyDesktopMode(newMode, reload = true)
 
-            val statusMsg = if (newMode) "Desktop Site Mode Enabled (1280px)" else "Mobile Site Mode Enabled"
+            val statusMsg = if (newMode) "Desktop Site Mode Enabled" else "Mobile Site Mode Enabled"
             Toast.makeText(this, statusMsg, Toast.LENGTH_SHORT).show()
         }
 
-        // Refresh Page
+        // Refresh Page with smooth 360-degree rotation animation
         btnRefresh.setOnClickListener {
-            btnRefresh.animate().rotationBy(360f).setDuration(500).start()
-            Toast.makeText(this, "Refreshing page...", Toast.LENGTH_SHORT).show()
+            btnRefresh.animate()
+                .rotationBy(360f)
+                .setDuration(500)
+                .setInterpolator(android.view.animation.DecelerateInterpolator())
+                .start()
+            Toast.makeText(this, "Refreshing...", Toast.LENGTH_SHORT).show()
             layoutError.visibility = View.GONE
             webView.visibility = View.VISIBLE
             webView.reload()
+        }
+
+        // Dedicated Settings & Preferences button with One UI micro-rotation
+        btnSettings.setOnClickListener {
+            btnSettings.animate()
+                .scaleX(0.88f).scaleY(0.88f)
+                .rotationBy(45f)
+                .setDuration(120)
+                .withEndAction {
+                    btnSettings.animate().scaleX(1f).scaleY(1f).setDuration(120).start()
+                }
+                .start()
+            showSettingsDialog()
         }
 
         // Long click on Title opens Settings & Preferences Dialog
@@ -380,42 +412,77 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupBottomNav() {
-        bottomNav.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_home -> {
-                    webView.loadUrl(HOME_URL)
-                    true
-                }
-                R.id.nav_timesheet -> {
-                    webView.loadUrl("https://apps.pal.tech/hrms/me/timesheet")
-                    true
-                }
-                R.id.nav_leave -> {
-                    webView.loadUrl("https://apps.pal.tech/hrms/leave")
-                    true
-                }
-                R.id.nav_payslips -> {
-                    webView.loadUrl("https://apps.pal.tech/hrms/payroll")
-                    true
-                }
-                else -> false
+    private fun setupWfhHubListeners() {
+        // 1-Tap Switch to Office Mode Button
+        btnSwitchToOffice.setOnClickListener {
+            btnSwitchToOffice.animate().scaleX(0.92f).scaleY(0.92f).setDuration(100).withEndAction {
+                btnSwitchToOffice.animate().scaleX(1f).scaleY(1f).setDuration(100).start()
+            }.start()
+            toggleWfhMode()
+        }
+
+        // Dismiss / Minimize WFH Card
+        btnDismissWfhCard.setOnClickListener {
+            layoutWfhHub.animate()
+                .alpha(0f)
+                .translationY(-30f)
+                .setDuration(250)
+                .withEndAction { layoutWfhHub.visibility = View.GONE }
+                .start()
+        }
+
+        // Tap on Now Bar Live Activity Capsule opens Workspace Mode Switcher
+        layoutNowBar.setOnClickListener {
+            showWorkspaceModeSheet()
+        }
+    }
+
+    private fun updateWfhHubState(animate: Boolean) {
+        if (!::layoutWfhHub.isInitialized) return
+        if (isWfhMode) {
+            layoutWfhHub.visibility = View.VISIBLE
+            if (animate) {
+                layoutWfhHub.alpha = 0f
+                layoutWfhHub.translationY = -40f
+                layoutWfhHub.animate()
+                    .alpha(1f)
+                    .translationY(0f)
+                    .setDuration(350)
+                    .setInterpolator(android.view.animation.OvershootInterpolator(1.1f))
+                    .start()
+            } else {
+                layoutWfhHub.alpha = 1f
+                layoutWfhHub.translationY = 0f
+            }
+        } else {
+            if (animate && layoutWfhHub.visibility == View.VISIBLE) {
+                layoutWfhHub.animate()
+                    .alpha(0f)
+                    .translationY(-40f)
+                    .setDuration(250)
+                    .withEndAction { layoutWfhHub.visibility = View.GONE }
+                    .start()
+            } else {
+                layoutWfhHub.visibility = View.GONE
             }
         }
     }
 
-    private fun syncBottomNavSelection(url: String?) {
-        if (url == null || !::bottomNav.isInitialized) return
-        val targetId = when {
-            url.contains("me/timesheet") || url.contains("time-sheet") -> R.id.nav_timesheet
-            url.contains("leave") -> R.id.nav_leave
-            url.contains("payroll") || url.contains("payslip") -> R.id.nav_payslips
-            url.contains("dashboard") || url == HOME_URL -> R.id.nav_home
-            else -> null
-        }
-        if (targetId != null && bottomNav.selectedItemId != targetId) {
-            bottomNav.menu.findItem(targetId)?.isChecked = true
-        }
+    private fun showWorkspaceModeSheet() {
+        val options = arrayOf(
+            if (isWfhMode) "Switch to In-Office Mode (Biometrics Active)" else "Switch to Remote Workspace (WFH Active)",
+            "View Settings and Preferences"
+        )
+        AlertDialog.Builder(this, R.style.Theme_HRMS_Dialog)
+            .setTitle("Workspace Mode")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> toggleWfhMode()
+                    1 -> showSettingsDialog()
+                }
+            }
+            .setNegativeButton("Close", null)
+            .show()
     }
 
     private fun setupSummaryCard() {
@@ -477,8 +544,10 @@ class MainActivity : AppCompatActivity() {
     private fun updateCountdown() {
         if (!::txtCountdown.isInitialized) return
         if (isWfhMode) {
-            txtCountdown.text = "⏳ WFH Mode"
-            txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.accent_amber))
+            imgNowBarIcon.setImageResource(R.drawable.ic_wfh_home)
+            imgNowBarIcon.setColorFilter(ContextCompat.getColor(this, R.color.accent_amber_gold))
+            txtCountdown.text = "Remote Workspace"
+            txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.accent_amber_gold))
             return
         }
 
@@ -486,13 +555,17 @@ class MainActivity : AppCompatActivity() {
         val progressPercent = sharedPrefs.getInt("WidgetProgressPercent", 0)
 
         if (exitTime == "Completed" || progressPercent >= 100) {
-            txtCountdown.text = "⏳ Shift Complete! 🎉"
-            txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.accent_cyan))
+            imgNowBarIcon.setImageResource(R.drawable.ic_check_circle)
+            imgNowBarIcon.setColorFilter(ContextCompat.getColor(this, R.color.accent_emerald))
+            txtCountdown.text = "Shift Goal Met"
+            txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.accent_emerald))
             return
         }
 
         if (exitTime == "--:--" || exitTime.isBlank()) {
-            txtCountdown.text = "⏳ --"
+            imgNowBarIcon.setImageResource(R.drawable.ic_timer)
+            imgNowBarIcon.setColorFilter(ContextCompat.getColor(this, R.color.text_muted))
+            txtCountdown.text = "--"
             txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.text_muted))
             return
         }
@@ -511,22 +584,30 @@ class MainActivity : AppCompatActivity() {
 
                 val diffMs = exitCal.timeInMillis - now.timeInMillis
                 if (diffMs <= 0) {
-                    txtCountdown.text = "⏳ Shift Complete! 🎉"
-                    txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.accent_cyan))
+                    imgNowBarIcon.setImageResource(R.drawable.ic_check_circle)
+                    imgNowBarIcon.setColorFilter(ContextCompat.getColor(this, R.color.accent_emerald))
+                    txtCountdown.text = "Shift Goal Met"
+                    txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.accent_emerald))
                 } else {
                     val totalMinutes = (diffMs / 60000).toInt()
                     val h = totalMinutes / 60
                     val m = totalMinutes % 60
-                    txtCountdown.text = if (h > 0) "⏳ ${h}h ${m}m left" else "⏳ ${m}m left"
-                    txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.accent_emerald))
+                    imgNowBarIcon.setImageResource(R.drawable.ic_timer)
+                    imgNowBarIcon.setColorFilter(ContextCompat.getColor(this, R.color.accent_cyan))
+                    txtCountdown.text = if (h > 0) "${h}h ${m}m left" else "${m}m left"
+                    txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.accent_cyan))
                 }
             } else {
-                txtCountdown.text = "⏳ $exitTime"
-                txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.accent_emerald))
+                imgNowBarIcon.setImageResource(R.drawable.ic_timer)
+                imgNowBarIcon.setColorFilter(ContextCompat.getColor(this, R.color.accent_cyan))
+                txtCountdown.text = exitTime
+                txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.accent_cyan))
             }
         } catch (e: Exception) {
             val remaining = sharedPrefs.getString("WidgetProgressRemaining", "--") ?: "--"
-            txtCountdown.text = "⏳ $remaining"
+            imgNowBarIcon.setImageResource(R.drawable.ic_timer)
+            imgNowBarIcon.setColorFilter(ContextCompat.getColor(this, R.color.text_secondary))
+            txtCountdown.text = remaining
             txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
         }
     }
@@ -537,10 +618,6 @@ class MainActivity : AppCompatActivity() {
             override fun handleOnBackPressed() {
                 if (layoutSummaryCard.visibility == View.VISIBLE) {
                     dismissSummaryCard()
-                    return
-                }
-                if (!areBarsVisible) {
-                    setBarsVisibility(true)
                     return
                 }
                 if (webView.canGoBack()) {
@@ -628,7 +705,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Unified Settings & Preferences dialog (Long press on HRMS title)
+     * Unified Settings & Preferences dialog (Accessible via header Settings button or Title)
      */
     private fun showSettingsDialog() {
         val targetHours = sharedPrefs.getFloat(KEY_TARGET_HOURS, 8.5f)
@@ -637,18 +714,18 @@ class MainActivity : AppCompatActivity() {
         val wfh = sharedPrefs.getBoolean(KEY_WFH_MODE, false)
 
         val options = arrayOf(
-            "🎯 Shift Target Hours (Current: ${targetHours}h)",
-            if (notifComplete) "🔔 Shift Complete Alerts: ON" else "🔕 Shift Complete Alerts: OFF",
-            if (notifPre) "⏰ 15-Min Pre-Exit Alerts: ON" else "🔕 Pre-Exit Alerts: OFF",
-            if (wfh) "🏡 WFH Mode: ACTIVE (Tap to turn OFF)" else "🏢 Office Mode: ACTIVE (Tap to turn ON WFH)",
-            "🏖️ View Leave Balances",
-            "🔄 Re-inject Insights Widget",
-            "🚪 Clear Cache & Relogin",
-            "ℹ️ About HRMS"
+            "Shift Target Hours (Current: ${targetHours}h)",
+            if (notifComplete) "Shift Complete Alerts: Enabled" else "Shift Complete Alerts: Disabled",
+            if (notifPre) "15-Min Pre-Exit Alerts: Enabled" else "15-Min Pre-Exit Alerts: Disabled",
+            if (wfh) "Workspace Mode: Remote (Tap for In-Office)" else "Workspace Mode: In-Office (Tap for Remote)",
+            "View Leave Balances",
+            "Re-inject Insights Widget",
+            "Clear Cache & Relogin",
+            "About HRMS"
         )
 
         AlertDialog.Builder(this, R.style.Theme_HRMS_Dialog)
-            .setTitle("⚙️ HRMS Settings & Preferences")
+            .setTitle("Settings and Preferences")
             .setItems(options) { _, which ->
                 when (which) {
                     0 -> showTargetHoursDialog()
@@ -687,11 +764,11 @@ class MainActivity : AppCompatActivity() {
     private fun toggleWfhMode() {
         isWfhMode = !isWfhMode
         sharedPrefs.edit().putBoolean(KEY_WFH_MODE, isWfhMode).apply()
-        layoutWfhBanner.visibility = if (isWfhMode) View.VISIBLE else View.GONE
+        updateWfhHubState(animate = true)
         triggerWidgetRefresh()
         updateCountdown()
-        val msg = if (isWfhMode) "🏡 WFH Mode activated. Biometric widgets paused." else "🏢 Office Mode activated. Biometric widgets active."
-        Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+        val msg = if (isWfhMode) "Remote Workspace activated. Biometrics paused." else "In-Office Mode activated. Biometrics active."
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
     }
 
     private fun injectLeaveBalanceExtractor() {
@@ -725,7 +802,7 @@ class MainActivity : AppCompatActivity() {
         val earned = sharedPrefs.getString(KEY_LEAVE_EARNED, "—")
 
         AlertDialog.Builder(this, R.style.Theme_HRMS_Dialog)
-            .setTitle("🏖️ Leave Balances")
+            .setTitle("Leave Balances")
             .setMessage("• Casual Leave: $casual days\n• Sick / Medical Leave: $sick days\n• Earned / Privilege Leave: $earned days\n\n(Balances update automatically when you visit the Leave section)")
             .setPositiveButton("Open Leave Tab") { _, _ ->
                 webView.loadUrl("https://apps.pal.tech/hrms/leave")
@@ -742,7 +819,7 @@ class MainActivity : AppCompatActivity() {
         }
         AlertDialog.Builder(this, R.style.Theme_HRMS_Dialog)
             .setTitle("HRMS App")
-            .setMessage("Version $verName\n\n• Desktop & Mobile Viewports\n• Real-time Biometric Tracking\n• Home-Screen Widgets (Small, Medium, Large)\n• Pull-to-Refresh & Bottom Navigation\n• Shift Countdown Timer & Daily Summary\n• WFH Mode & Smart Shift Alerts\n• App Shortcuts & Leave Balance Quick View\n• Secure Local Token Storage")
+            .setMessage("Version $verName\n\n• Samsung One UI Edge-to-Edge Design\n• Real-time Biometric Tracking\n• Now Bar Live Activity Capsule\n• Home-Screen Widgets (Small, Medium, Large)\n• Desktop & Mobile Viewports\n• Shift Countdown Timer & Daily Summary\n• WFH Mode & Smart Shift Alerts\n• App Shortcuts & Leave Balance Quick View\n• Secure Local Token Storage")
             .setPositiveButton("OK", null)
             .show()
     }

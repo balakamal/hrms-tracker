@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -17,6 +18,7 @@ import android.util.Base64
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
+import android.view.WindowManager
 import android.webkit.CookieManager
 import android.widget.Button
 import android.widget.ImageButton
@@ -24,6 +26,9 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.FileProvider
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -61,8 +66,26 @@ class ImageViewerDialog(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestWindowFeature(Window.FEATURE_NO_TITLE)
-        setContentView(R.layout.dialog_image_viewer)
 
+        // True Edge-to-Edge window setup with camera cutout extension (Zero Black Bars)
+        window?.let { win ->
+            WindowCompat.setDecorFitsSystemWindows(win, false)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                win.attributes.layoutInDisplayCutoutMode =
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            }
+            win.statusBarColor = Color.TRANSPARENT
+            win.navigationBarColor = Color.TRANSPARENT
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                win.isStatusBarContrastEnforced = false
+                win.isNavigationBarContrastEnforced = false
+            }
+            val insetsController = WindowCompat.getInsetsController(win, win.decorView)
+            insetsController.isAppearanceLightStatusBars = false
+            insetsController.isAppearanceLightNavigationBars = false
+        }
+
+        setContentView(R.layout.dialog_image_viewer)
         window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
 
         zoomImageView = findViewById(R.id.viewer_image)
@@ -75,6 +98,28 @@ class ImageViewerDialog(
         btnShare = findViewById(R.id.viewer_btn_share)
         btnDownload = findViewById(R.id.viewer_btn_download)
         hintView = findViewById(R.id.viewer_hint)
+
+        val topBar = findViewById<View>(R.id.viewer_top_bar)
+        ViewCompat.setOnApplyWindowInsetsListener(topBar) { v, insets ->
+            val statusBarInsets = insets.getInsets(
+                WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            v.setPadding(
+                v.paddingLeft,
+                statusBarInsets.top,
+                v.paddingRight,
+                v.paddingBottom
+            )
+            insets
+        }
+
+        ViewCompat.setOnApplyWindowInsetsListener(hintView) { v, insets ->
+            val navInsets = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            val lp = v.layoutParams as ViewGroup.MarginLayoutParams
+            lp.bottomMargin = (24 * context.resources.displayMetrics.density).toInt() + navInsets.bottom
+            v.layoutParams = lp
+            insets
+        }
 
         // Title handling
         val cleanTitle = if (!displayTitle.isNullOrBlank() && displayTitle != "null") {

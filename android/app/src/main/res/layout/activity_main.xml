@@ -1,22 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/bg_app">
+    android:background="@color/bg_app"
+    android:orientation="vertical">
 
-    <!-- Top App Bar (Obsidian Glass Header) -->
+    <!-- Top App Bar (Transparent One UI Frosted Glass Header) -->
     <RelativeLayout
         android:id="@+id/layout_top_bar"
         android:layout_width="match_parent"
-        android:layout_height="58dp"
-        android:background="@color/bg_top_bar"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_top_bar_glass"
+        android:minHeight="58dp"
         android:paddingStart="16dp"
         android:paddingEnd="12dp"
-        android:elevation="4dp">
+        android:paddingBottom="8dp">
 
-        <!-- App Brand & Dynamic Shift Countdown Badge -->
+        <!-- App Brand & Dynamic "Now Bar" Live Activity Capsule -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -34,33 +36,52 @@
                 android:textSize="17sp"
                 android:textStyle="bold" />
 
-            <!-- Sleek Shift Countdown Pill -->
-            <TextView
-                android:id="@+id/txt_countdown"
+            <!-- Samsung One UI "Now Bar" Live Activity Capsule (No raw emojis) -->
+            <LinearLayout
+                android:id="@+id/layout_now_bar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:background="@drawable/bg_countdown_pill"
-                android:letterSpacing="0.03"
-                android:paddingStart="7dp"
-                android:paddingEnd="8dp"
-                android:paddingTop="2dp"
-                android:paddingBottom="2dp"
-                android:text="⏳ --"
-                android:textColor="@color/text_secondary"
-                android:textSize="10sp"
-                android:textStyle="bold" />
+                android:layout_marginTop="3dp"
+                android:background="@drawable/bg_now_bar_capsule"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="8dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp">
+
+                <ImageView
+                    android:id="@+id/img_now_bar_icon"
+                    android:layout_width="11dp"
+                    android:layout_height="11dp"
+                    android:layout_marginEnd="5dp"
+                    android:contentDescription="Status indicator"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_timer"
+                    app:tint="@color/text_secondary" />
+
+                <TextView
+                    android:id="@+id/txt_countdown"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.03"
+                    android:text="Syncing..."
+                    android:textColor="@color/text_secondary"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
         </LinearLayout>
 
-        <!-- Header Actions: Desktop Mode & 1-Tap Refresh -->
+        <!-- Header Actions: Desktop Mode, 1-Tap Refresh & Settings -->
         <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <!-- Desktop Mode Toggle Button (Active Pill on Toggle) -->
+            <!-- Desktop Mode Toggle Button -->
             <ImageButton
                 android:id="@+id/btn_desktop_mode"
                 android:layout_width="38dp"
@@ -70,49 +91,35 @@
                 android:contentDescription="Desktop Site Mode"
                 android:padding="8dp"
                 android:scaleType="fitCenter"
-                android:src="@drawable/ic_desktop" />
+                android:src="@drawable/ic_desktop"
+                app:tint="@color/text_primary" />
 
             <!-- Refresh Button -->
             <ImageButton
                 android:id="@+id/btn_refresh"
                 android:layout_width="38dp"
                 android:layout_height="38dp"
+                android:layout_marginEnd="6dp"
                 android:background="@drawable/bg_header_action_btn"
                 android:contentDescription="Refresh Page"
                 android:padding="8dp"
                 android:scaleType="fitCenter"
-                android:src="@drawable/ic_refresh" />
+                android:src="@drawable/ic_refresh"
+                app:tint="@color/text_primary" />
+
+            <!-- One UI Settings & Preferences Button -->
+            <ImageButton
+                android:id="@+id/btn_settings"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:background="@drawable/bg_header_action_btn"
+                android:contentDescription="Settings and Preferences"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_settings"
+                app:tint="@color/text_primary" />
         </LinearLayout>
     </RelativeLayout>
-
-    <!-- WFH Mode Amber Banner -->
-    <LinearLayout
-        android:id="@+id/layout_wfh_banner"
-        android:layout_width="match_parent"
-        android:layout_height="32dp"
-        android:background="#B45309"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
-        android:visibility="gone">
-
-        <ImageView
-            android:layout_width="14dp"
-            android:layout_height="14dp"
-            android:layout_marginEnd="6dp"
-            android:contentDescription="WFH Active"
-            android:src="@drawable/ic_wfh_home" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:letterSpacing="0.02"
-            android:text="WFH Mode Active — Biometric tracking paused"
-            android:textColor="#FEF3C7"
-            android:textSize="12sp"
-            android:textStyle="bold" />
-    </LinearLayout>
 
     <!-- Page Loading Progress Bar -->
     <ProgressBar
@@ -125,13 +132,14 @@
         android:progressDrawable="@drawable/loading_progress_bar"
         android:visibility="gone" />
 
-    <!-- Main Container -->
+    <!-- Main Container: Edge-to-Edge full viewport for web portal -->
     <FrameLayout
+        android:id="@+id/main_content_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <!-- Pull-to-Refresh Wrapper -->
+        <!-- Pull-to-Refresh Wrapper & WebView -->
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/swipe_refresh"
             android:layout_width="match_parent"
@@ -143,7 +151,84 @@
                 android:layout_height="match_parent" />
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-        <!-- Daily Summary Card Overlay (Obsidian Glass Floating Sheet) -->
+        <!-- One UI Floating WFH Workspace Hub Card (Replaces the static top pill) -->
+        <LinearLayout
+            android:id="@+id/layout_wfh_hub"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:layout_marginStart="14dp"
+            android:layout_marginEnd="14dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_wfh_hub_card"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="12dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_marginEnd="10dp"
+                android:contentDescription="Remote Workspace"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_wfh_home"
+                app:tint="#F59E0B" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.04"
+                    android:text="REMOTE WORKSPACE"
+                    android:textColor="#FBBF24"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:text="Biometric tracking paused for today"
+                    android:textColor="#94A3B8"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <!-- 1-Tap Switch to Office Mode Button -->
+            <Button
+                android:id="@+id/btn_switch_to_office"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_wfh_switch_btn"
+                android:minHeight="0dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:text="In-Office"
+                android:textColor="#FBBF24"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <!-- Dismiss / Minimize Button -->
+            <ImageButton
+                android:id="@+id/btn_dismiss_wfh_card"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Dismiss WFH card"
+                android:padding="5dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_close_white"
+                app:tint="#64748B" />
+        </LinearLayout>
+
+        <!-- Daily Summary Card Overlay (One UI 24dp Squircle Floating Sheet) -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/layout_summary_card"
             android:layout_width="match_parent"
@@ -151,12 +236,12 @@
             android:layout_gravity="bottom"
             android:layout_marginStart="14dp"
             android:layout_marginEnd="14dp"
-            android:layout_marginBottom="14dp"
+            android:layout_marginBottom="16dp"
             app:cardBackgroundColor="@color/bg_surface_card"
-            app:cardCornerRadius="20dp"
+            app:cardCornerRadius="24dp"
             app:cardElevation="12dp"
             app:strokeColor="@color/stroke_card"
-            app:strokeWidth="1dp"
+            app:strokeWidth="1.2dp"
             android:visibility="gone">
 
             <LinearLayout
@@ -165,7 +250,7 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <!-- Header -->
+                <!-- Header with Samsung Sparkle Icon -->
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
@@ -178,11 +263,20 @@
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
 
+                        <ImageView
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:layout_marginEnd="6dp"
+                            android:contentDescription="Summary"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/ic_sparkle"
+                            app:tint="@color/accent_cyan" />
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:letterSpacing="0.05"
-                            android:text="⚡ DAILY ATTENDANCE SUMMARY"
+                            android:text="DAILY ATTENDANCE SUMMARY"
                             android:textColor="@color/text_primary"
                             android:textSize="12sp"
                             android:textStyle="bold" />
@@ -202,7 +296,7 @@
                         app:tint="@color/text_muted" />
                 </RelativeLayout>
 
-                <!-- Metrics Grid (4-Column Glass Shelf) -->
+                <!-- Metrics Grid (4-Column One UI Squircle Shelf) -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -219,7 +313,7 @@
                         android:background="@drawable/bg_widget_stat_cell"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="6dp">
+                        android:padding="7dp">
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -250,7 +344,7 @@
                         android:background="@drawable/bg_widget_stat_cell"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="6dp">
+                        android:padding="7dp">
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -267,7 +361,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:text="--:--"
-                            android:textColor="#38BDF8"
+                            android:textColor="@color/accent_cyan"
                             android:textSize="13sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -281,7 +375,7 @@
                         android:background="@drawable/bg_widget_stat_cell"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="6dp">
+                        android:padding="7dp">
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -311,7 +405,7 @@
                         android:background="@drawable/bg_widget_stat_cell"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="6dp">
+                        android:padding="7dp">
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -338,7 +432,7 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Offline / Network Error View (Modern Glassmorphic State) -->
+        <!-- Offline / Network Error View (One UI Glassmorphic State) -->
         <LinearLayout
             android:id="@+id/layout_error"
             android:layout_width="match_parent"
@@ -352,6 +446,7 @@
             <ImageView
                 android:layout_width="56dp"
                 android:layout_height="56dp"
+                android:contentDescription="Connection error"
                 android:src="@drawable/ic_refresh"
                 app:tint="#60A5FA" />
 
@@ -388,17 +483,5 @@
                 android:textStyle="bold" />
         </LinearLayout>
     </FrameLayout>
-
-    <!-- Pinned Bottom Navigation Bar (Obsidian Glass Dock) -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/bg_top_bar"
-        app:elevation="8dp"
-        app:itemIconTint="@color/bottom_nav_color"
-        app:itemTextColor="@color/bottom_nav_color"
-        app:labelVisibilityMode="labeled"
-        app:menu="@menu/bottom_nav_menu" />
 
 </LinearLayout>

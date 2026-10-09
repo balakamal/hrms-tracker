@@ -1,9 +1,10 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="14dp"
-    android:height="14dp"
+    android:width="24dp"
+    android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
+  <!-- Professional rounded architectural house icon -->
   <path
       android:fillColor="#FBBF24"
-      android:pathData="M10,20v-6h4v6h5v-8h3L12,3 2,12h3v8z"/>
+      android:pathData="M11.29,3.29C11.68,2.9 12.32,2.9 12.71,3.29L20.71,11.29C21.1,11.68 20.82,12.35 20.27,12.35H19V19C19,20.1 18.1,21 17,21H7C5.9,21 5,20.1 5,19V12.35H3.73C3.18,12.35 2.9,11.68 3.29,11.29L11.29,3.29zM12,5.5L7,10.5V19H10V14C10,13.45 10.45,13 11,13H13C13.55,13 14,13.45 14,14V19H17V10.5L12,5.5z"/>
 </vector>

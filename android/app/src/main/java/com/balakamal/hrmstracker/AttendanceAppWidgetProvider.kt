@@ -101,9 +101,9 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 // Dynamic status color & chip styling
                 val statusColor = when {
                     isCompleted -> 0xFF38BDF8.toInt() // Luminous sky cyan
-                    isWfh -> 0xFFFBBF24.toInt() // Warm amber
+                    isWfh -> 0xFFFBBF24.toInt() // Warm golden amber
                     displayStatus.contains("Break", ignoreCase = true) -> 0xFFF59E0B.toInt() // Warm amber
-                    displayStatus.contains("Clocked In", ignoreCase = true) -> 0xFF34D399.toInt() // Vibrant emerald
+                    displayStatus.contains("Clocked In", ignoreCase = true) -> 0xFF00D09C.toInt() // Samsung One UI emerald mint
                     displayStatus.contains("Sync", ignoreCase = true) -> 0xFF60A5FA.toInt() // Soft blue
                     else -> 0xFF94A3B8.toInt() // Slate grey
                 }
@@ -111,7 +111,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
 
                 // Layout-specific bindings
                 if (layoutId == R.layout.attendance_widget_small) {
-                    val smallStatus = if (isWfh && (exitTime == "--:--" || exitTime == "Completed")) "WFH Active" else "Exit: $exitTime"
+                    val smallStatus = if (isWfh && (exitTime == "--:--" || exitTime == "Completed")) "Remote Day" else "Exit: $exitTime"
                     views.setTextViewText(R.id.widget_status_text, smallStatus)
                     views.setProgressBar(R.id.widget_progress_bar, 100, progressPercent, false)
                 } else if (layoutId == R.layout.attendance_widget_medium) {
@@ -119,10 +119,11 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     views.setTextViewText(R.id.widget_last_updated, "Updated: " + getCurrentTime())
                     views.setTextViewText(R.id.widget_progress_percent, "$progressPercent%")
                 } else if (layoutId == R.layout.attendance_widget) {
+                    views.setTextViewText(R.id.widget_work_subtitle, if (isWfh) "REMOTE WORKDAY" else "TIME AT DESK")
                     val formattedStatus = if (isCompleted) {
                         "Shift Complete • 100%"
-                    } else if (isWfh && (displayStatus == "Working from Home" || displayStatus == "WFH Active")) {
-                        "Remote Workday"
+                    } else if (isWfh) {
+                        "Remote Workspace"
                     } else {
                         "$displayStatus • $progressPercent%"
                     }
@@ -131,8 +132,8 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     views.setTextViewText(R.id.widget_first_in_value, firstIn)
                     views.setTextViewText(R.id.widget_break_time_value, breakTime)
                     views.setProgressBar(R.id.widget_progress_bar, 100, progressPercent, false)
-                    views.setTextViewText(R.id.widget_progress_percent, "$progressPercent% Completed")
-                    views.setTextViewText(R.id.widget_progress_remaining, progressRemaining)
+                    views.setTextViewText(R.id.widget_progress_percent, "$progressPercent% Goal")
+                    views.setTextViewText(R.id.widget_progress_remaining, if (isWfh) "Biometrics Paused" else progressRemaining)
                 }
                 
                 appWidgetManager.updateAppWidget(appWidgetId, views)
