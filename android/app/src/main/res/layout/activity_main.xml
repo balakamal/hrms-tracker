@@ -220,6 +220,111 @@
                 app:tint="#64748B" />
         </LinearLayout>
 
+        <!-- One UI Floating Shift Target Met / Leave Office Nudge Overlay -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/layout_shift_nudge_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:layout_marginStart="14dp"
+            android:layout_marginEnd="14dp"
+            android:layout_marginTop="10dp"
+            app:cardBackgroundColor="#F2141926"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="10dp"
+            app:strokeColor="#3310B981"
+            app:strokeWidth="1.5dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="14dp">
+
+                <!-- Header Row -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_marginEnd="8dp"
+                            android:contentDescription="Shift Complete"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/ic_exit"
+                            app:tint="#10B981" />
+
+                        <TextView
+                            android:id="@+id/txt_nudge_title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:letterSpacing="0.04"
+                            android:text="SHIFT COMPLETE • TIME TO LEAVE! 🚀"
+                            android:textColor="#34D399"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Dismiss / Minimize Button -->
+                    <ImageButton
+                        android:id="@+id/btn_dismiss_nudge_card"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Minimize alert card"
+                        android:padding="5dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_close_white"
+                        app:tint="#64748B" />
+                </RelativeLayout>
+
+                <!-- Subtitle / Overtime ticker info -->
+                <TextView
+                    android:id="@+id/txt_nudge_message"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="You've completed your daily shift. Step out of the office! Alerts repeat every 2 minutes until stopped."
+                    android:textColor="#E2E8F0"
+                    android:textSize="12sp"
+                    android:lineSpacingExtra="2dp" />
+
+                <!-- Action Button Row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <!-- Stop Reminding Button -->
+                    <Button
+                        android:id="@+id/btn_stop_nudge"
+                        android:layout_width="0dp"
+                        android:layout_height="38dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_btn_stop_nudge"
+                        android:text="I'm Leaving • Stop Reminding"
+                        android:textAllCaps="false"
+                        android:textColor="#FFFFFF"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- Daily Summary Card Overlay (One UI 24dp Squircle Floating Sheet) -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/layout_summary_card"

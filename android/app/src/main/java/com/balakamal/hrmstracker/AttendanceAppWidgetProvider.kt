@@ -734,8 +734,9 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
 
             if (completed) {
                 val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                val notifyShiftComplete = sharedPrefs.getBoolean("NotifShiftComplete", true)
                 val lastNotifiedDate = sharedPrefs.getString("LastNotificationDate", "")
-                if (lastNotifiedDate != todayStr) {
+                if (notifyShiftComplete && lastNotifiedDate != todayStr) {
                     sendNotification(
                         context,
                         "Shift Completed!",
@@ -743,6 +744,8 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     )
                     sharedPrefs.edit().putString("LastNotificationDate", todayStr).apply()
                 }
+                // Start 2-minute repeating leave office alerts if active & not dismissed
+                ShiftAlertManager.checkAndTriggerNudge(context, formatMinutes(totalWorkMinutes))
             }
         } catch (e: Exception) {
             android.util.Log.e("HRMSWidget", "checkAndSendNotification error: ${e.message}", e)

@@ -64,6 +64,21 @@ class MainActivity : AppCompatActivity() {
     private lateinit var txtSummaryStatus: TextView
     private lateinit var layoutError: View
     private lateinit var btnRetry: Button
+    private lateinit var layoutShiftNudgeOverlay: View
+    private lateinit var btnDismissNudgeCard: ImageButton
+    private lateinit var btnStopNudge: Button
+    private lateinit var txtNudgeTitle: TextView
+    private lateinit var txtNudgeMessage: TextView
+
+    private val nudgeStateReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == ShiftAlertManager.ACTION_NUDGE_STATE_CHANGED) {
+                runOnUiThread {
+                    updateNudgeOverlayState(animate = true)
+                }
+            }
+        }
+    }
 
     private var isDesktopMode = false
     private var isWfhMode = false
@@ -149,6 +164,11 @@ class MainActivity : AppCompatActivity() {
         txtSummaryStatus = findViewById(R.id.txt_summary_status)
         layoutError = findViewById(R.id.layout_error)
         btnRetry = findViewById(R.id.btn_retry)
+        layoutShiftNudgeOverlay = findViewById(R.id.layout_shift_nudge_overlay)
+        btnDismissNudgeCard = findViewById(R.id.btn_dismiss_nudge_card)
+        btnStopNudge = findViewById(R.id.btn_stop_nudge)
+        txtNudgeTitle = findViewById(R.id.txt_nudge_title)
+        txtNudgeMessage = findViewById(R.id.txt_nudge_message)
 
         // Dynamic System Window Insets: Attach to root layout to guarantee dispatch
         val rootLayout = findViewById<View>(R.id.root_layout)
@@ -181,10 +201,12 @@ class MainActivity : AppCompatActivity() {
         ViewCompat.requestApplyInsets(rootLayout)
 
         updateWfhHubState(animate = false)
+        updateNudgeOverlayState(animate = false)
 
         setupWebView()
         setupTopBarListeners()
         setupWfhHubListeners()
+        setupShiftNudgeListeners()
         setupSummaryCard()
         setupBackNavigation()
 
@@ -204,6 +226,7 @@ class MainActivity : AppCompatActivity() {
         if (!url.isNullOrBlank()) {
             webView.loadUrl(url)
         }
+        updateNudgeOverlayState(animate = true)
     }
 
     override fun onResume() {
@@ -213,11 +236,28 @@ class MainActivity : AppCompatActivity() {
         }
         countdownHandler.removeCallbacks(countdownRunnable)
         countdownHandler.post(countdownRunnable)
+
+        try {
+            val filter = android.content.IntentFilter(ShiftAlertManager.ACTION_NUDGE_STATE_CHANGED)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(nudgeStateReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                registerReceiver(nudgeStateReceiver, filter)
+            }
+        } catch (e: Exception) {
+            // Ignore
+        }
+        updateNudgeOverlayState(animate = false)
     }
 
     override fun onPause() {
         super.onPause()
         countdownHandler.removeCallbacks(countdownRunnable)
+        try {
+            unregisterReceiver(nudgeStateReceiver)
+        } catch (e: Exception) {
+            // Ignore
+        }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -470,6 +510,63 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupShiftNudgeListeners() {
+        btnStopNudge.setOnClickListener {
+            ShiftAlertManager.stopAlerts(this)
+            Toast.makeText(this, "Safe travels! Reminders stopped for today.", Toast.LENGTH_SHORT).show()
+            updateNudgeOverlayState(animate = true)
+        }
+
+        btnDismissNudgeCard.setOnClickListener {
+            layoutShiftNudgeOverlay.animate()
+                .alpha(0f)
+                .translationY(-40f)
+                .setDuration(250)
+                .withEndAction { layoutShiftNudgeOverlay.visibility = View.GONE }
+                .start()
+            Toast.makeText(this, "Alert minimized. Tap notification when leaving to stop reminders.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun updateNudgeOverlayState(animate: Boolean) {
+        if (!::layoutShiftNudgeOverlay.isInitialized) return
+        val isActive = ShiftAlertManager.isNudgeActive(this)
+        if (isActive) {
+            val overtimeMins = ShiftAlertManager.getOvertimeMinutes(this)
+            val overtimeStr = if (overtimeMins > 0) "+${overtimeMins}m Overtime" else "Shift Met"
+            txtNudgeTitle.text = "SHIFT COMPLETE • $overtimeStr 🚀"
+            txtNudgeMessage.text = "You've completed your daily shift! Step out and head home. Alerts repeat every 2 minutes until stopped."
+
+            if (layoutShiftNudgeOverlay.visibility != View.VISIBLE) {
+                layoutShiftNudgeOverlay.visibility = View.VISIBLE
+                if (animate) {
+                    layoutShiftNudgeOverlay.alpha = 0f
+                    layoutShiftNudgeOverlay.translationY = -40f
+                    layoutShiftNudgeOverlay.animate()
+                        .alpha(1f)
+                        .translationY(0f)
+                        .setDuration(350)
+                        .setInterpolator(android.view.animation.OvershootInterpolator(1.1f))
+                        .start()
+                } else {
+                    layoutShiftNudgeOverlay.alpha = 1f
+                    layoutShiftNudgeOverlay.translationY = 0f
+                }
+            }
+        } else {
+            if (animate && layoutShiftNudgeOverlay.visibility == View.VISIBLE) {
+                layoutShiftNudgeOverlay.animate()
+                    .alpha(0f)
+                    .translationY(-40f)
+                    .setDuration(250)
+                    .withEndAction { layoutShiftNudgeOverlay.visibility = View.GONE }
+                    .start()
+            } else {
+                layoutShiftNudgeOverlay.visibility = View.GONE
+            }
+        }
+    }
+
     private fun showWorkspaceModeSheet() {
         val calendar = Calendar.getInstance()
         val isWeekend = calendar.get(Calendar.DAY_OF_WEEK) in listOf(Calendar.SATURDAY, Calendar.SUNDAY)
@@ -577,6 +674,7 @@ class MainActivity : AppCompatActivity() {
             imgNowBarIcon.setColorFilter(ContextCompat.getColor(this, R.color.accent_emerald))
             txtCountdown.text = "Shift Goal Met"
             txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.accent_emerald))
+            updateNudgeOverlayState(animate = true)
             return
         }
 
@@ -634,6 +732,10 @@ class MainActivity : AppCompatActivity() {
         // Intercept Android hardware/gesture back to navigate web history
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
+                if (::layoutShiftNudgeOverlay.isInitialized && layoutShiftNudgeOverlay.visibility == View.VISIBLE) {
+                    layoutShiftNudgeOverlay.visibility = View.GONE
+                    return
+                }
                 if (layoutSummaryCard.visibility == View.VISIBLE) {
                     dismissSummaryCard()
                     return
@@ -730,6 +832,7 @@ class MainActivity : AppCompatActivity() {
         val notifComplete = sharedPrefs.getBoolean(KEY_NOTIF_SHIFT_COMPLETE, true)
         val notifPre = sharedPrefs.getBoolean(KEY_NOTIF_PRE_EXIT, true)
         val wfh = sharedPrefs.getBoolean(KEY_WFH_MODE, false)
+        val nudgeEnabled = ShiftAlertManager.isNudgeEnabled(this)
 
         val timesheetEnabled = sharedPrefs.getBoolean(TimesheetReminderWorker.KEY_REMINDER_ENABLED, true)
         val timesheetHour = sharedPrefs.getInt(TimesheetReminderWorker.KEY_REMINDER_HOUR, 21)
@@ -745,6 +848,7 @@ class MainActivity : AppCompatActivity() {
             "Shift Target Hours (Current: ${targetHours}h)",
             "Customize Home Screen Widgets (Theme & Transparency)",
             "Daily Timesheet Reminder: $timesheetStatus",
+            if (nudgeEnabled) "Leave Office Alerts: Every 2 Min (Enabled)" else "Leave Office Alerts: Every 2 Min (Disabled)",
             if (notifComplete) "Shift Complete Alerts: Enabled" else "Shift Complete Alerts: Disabled",
             if (notifPre) "15-Min Pre-Exit Alerts: Enabled" else "15-Min Pre-Exit Alerts: Disabled",
             if (wfh) "Workspace: Remote (Synced from HRMS)" else "Workspace: In-Office (Synced from HRMS)",
@@ -762,6 +866,15 @@ class MainActivity : AppCompatActivity() {
                     1 -> startActivity(Intent(this, WidgetConfigureActivity::class.java))
                     2 -> showTimesheetReminderDialog()
                     3 -> {
+                        val nextState = !nudgeEnabled
+                        ShiftAlertManager.setNudgeEnabled(this, nextState)
+                        Toast.makeText(
+                            this,
+                            if (nextState) "2-min Leave Office alerts enabled" else "Leave Office alerts disabled",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    4 -> {
                         val nextState = !notifComplete
                         sharedPrefs.edit().putBoolean(KEY_NOTIF_SHIFT_COMPLETE, nextState).apply()
                         Toast.makeText(
@@ -770,7 +883,7 @@ class MainActivity : AppCompatActivity() {
                             Toast.LENGTH_SHORT
                         ).show()
                     }
-                    4 -> {
+                    5 -> {
                         val nextState = !notifPre
                         sharedPrefs.edit().putBoolean(KEY_NOTIF_PRE_EXIT, nextState).apply()
                         Toast.makeText(
@@ -779,7 +892,7 @@ class MainActivity : AppCompatActivity() {
                             Toast.LENGTH_SHORT
                         ).show()
                     }
-                    5 -> {
+                    6 -> {
                         val msg = if (wfh) {
                             "Your workspace is set to Remote (WFH) according to official HRMS records."
                         } else {
@@ -787,13 +900,13 @@ class MainActivity : AppCompatActivity() {
                         }
                         Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
                     }
-                    6 -> showLeaveBalanceDialog()
-                    7 -> {
+                    7 -> showLeaveBalanceDialog()
+                    8 -> {
                         injectScriptFromAssets()
                         Toast.makeText(this, "Insights Widget re-injected!", Toast.LENGTH_SHORT).show()
                     }
-                    8 -> clearTokensAndShowLogin()
-                    9 -> showAboutDialog()
+                    9 -> clearTokensAndShowLogin()
+                    10 -> showAboutDialog()
                 }
             }
             .setNegativeButton("Close", null)

@@ -109,15 +109,19 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                     val notifyPreExit = sharedPrefs.getBoolean("NotifPreExit", true)
                     val isWfh = sharedPrefs.getBoolean("WfhMode", false)
 
-                    if (!isWfh && notifyShiftComplete && (metrics.statusText == "Completed shift!" || metrics.statusText.contains("CONQUERED") || metrics.progressPercent >= 100)) {
-                        val lastNotifiedDate = sharedPrefs.getString("LastNotificationDate", "")
-                        if (lastNotifiedDate != todayStr) {
-                            sendNotification(
-                                "Shift Completed!", 
-                                "You have completed ${metrics.workTime} of biometric office time. Time to head home!"
-                            )
-                            sharedPrefs.edit().putString("LastNotificationDate", todayStr).apply()
+                    if (!isWfh && (metrics.statusText == "Completed shift!" || metrics.statusText.contains("CONQUERED") || metrics.progressPercent >= 100)) {
+                        if (notifyShiftComplete) {
+                            val lastNotifiedDate = sharedPrefs.getString("LastNotificationDate", "")
+                            if (lastNotifiedDate != todayStr) {
+                                sendNotification(
+                                    "Shift Completed!", 
+                                    "You have completed ${metrics.workTime} of biometric office time. Time to head home!"
+                                )
+                                sharedPrefs.edit().putString("LastNotificationDate", todayStr).apply()
+                            }
                         }
+                        // Start 2-minute repeating leave office alerts if active & not dismissed
+                        ShiftAlertManager.checkAndTriggerNudge(applicationContext, metrics.workTime)
                     } else if (!isWfh && notifyPreExit && metrics.progressPercent in 92..99) {
                         val lastPreNotifiedDate = sharedPrefs.getString("LastPreNotificationDate", "")
                         if (lastPreNotifiedDate != todayStr) {
