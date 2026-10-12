@@ -82,7 +82,7 @@
 
             <meta-data
                 android:name="android.app.shortcuts"
-                android:resource="@ref/0x7f130004" />
+                android:resource="@ref/0x7f130007" />
         </activity-alias>
 
         <receiver
@@ -120,7 +120,7 @@
 
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@ref/0x7f130001" />
+                android:resource="@ref/0x7f130003" />
         </receiver>
 
         <receiver
@@ -139,8 +139,78 @@
 
             <meta-data
                 android:name="android.appwidget.provider"
+                android:resource="@ref/0x7f130004" />
+        </receiver>
+
+        <receiver
+            android:label="@ref/0x7f1000aa"
+            android:name="com.balakamal.hrmstracker.WidgetCountdownProvider"
+            android:exported="true">
+
+            <intent-filter>
+
+                <action
+                    android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+
+                <action
+                    android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@ref/0x7f130001" />
+        </receiver>
+
+        <receiver
+            android:label="@ref/0x7f1000ac"
+            android:name="com.balakamal.hrmstracker.WidgetTimesheetProvider"
+            android:exported="true">
+
+            <intent-filter>
+
+                <action
+                    android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+
+                <action
+                    android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@ref/0x7f130005" />
+        </receiver>
+
+        <receiver
+            android:label="@ref/0x7f1000ab"
+            android:name="com.balakamal.hrmstracker.WidgetDialProvider"
+            android:exported="true">
+
+            <intent-filter>
+
+                <action
+                    android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+
+                <action
+                    android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
                 android:resource="@ref/0x7f130002" />
         </receiver>
+
+        <activity
+            android:theme="@ref/0x7f110220"
+            android:label="@ref/0x7f1000a2"
+            android:name="com.balakamal.hrmstracker.WidgetConfigureActivity"
+            android:exported="true">
+
+            <intent-filter>
+
+                <action
+                    android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -150,7 +220,7 @@
 
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@ref/0x7f130003" />
+                android:resource="@ref/0x7f130006" />
         </provider>
 
         <provider
