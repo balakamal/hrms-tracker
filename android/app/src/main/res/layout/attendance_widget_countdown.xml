@@ -53,7 +53,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
             android:letterSpacing="-0.03"
-            android:text="--:--"
+            android:text="06:30 PM"
             android:textColor="#FFFFFF"
             android:textSize="23sp"
             android:textStyle="bold" />
@@ -65,7 +65,7 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:singleLine="true"
-            android:text="--h --m left"
+            android:text="1h 45m left"
             android:textColor="#38BDF8"
             android:textSize="11sp"
             android:textStyle="bold" />
@@ -87,7 +87,7 @@
             android:id="@+id/widget_progress_percent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0%"
+            android:text="80%"
             android:textColor="#00D09C"
             android:textSize="14sp"
             android:textStyle="bold" />
@@ -100,7 +100,7 @@
             android:layout_marginBottom="4dp"
             android:ellipsize="end"
             android:singleLine="true"
-            android:text="Status"
+            android:text="Clocked In"
             android:textColor="#94A3B8"
             android:textSize="9sp" />
 

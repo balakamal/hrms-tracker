@@ -52,7 +52,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
             android:letterSpacing="-0.02"
-            android:text="0h 00m"
+            android:text="8h 15m"
             android:textColor="#FFFFFF"
             android:textSize="21sp"
             android:textStyle="bold" />
@@ -63,7 +63,7 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:singleLine="true"
-            android:text="Daily Submission"
+            android:text="Ready for Submission"
             android:textColor="#34D399"
             android:textSize="10sp"
             android:textStyle="bold" />

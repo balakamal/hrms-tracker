@@ -102,7 +102,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:letterSpacing="-0.02"
-            android:text="0h 00m"
+            android:text="6h 45m"
             android:textColor="#FFFFFF"
             android:textSize="23sp"
             android:textStyle="bold" />
@@ -114,7 +114,7 @@
             android:layout_marginTop="2dp"
             android:ellipsize="end"
             android:singleLine="true"
-            android:text="Exit: --:--"
+            android:text="Exit: 06:30 PM"
             android:textColor="#34D399"
             android:textSize="10sp"
             android:textStyle="bold" />
@@ -128,7 +128,7 @@
         android:layout_height="6dp"
         android:layout_marginTop="6dp"
         android:max="100"
-        android:progress="0"
+        android:progress="80"
         android:progressDrawable="@drawable/widget_m3_progress_drawable" />
 
 </LinearLayout>

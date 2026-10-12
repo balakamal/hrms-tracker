@@ -67,7 +67,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:letterSpacing="-0.03"
-            android:text="0%"
+            android:text="85%"
             android:textColor="#00D09C"
             android:textSize="22sp"
             android:textStyle="bold" />
@@ -76,7 +76,7 @@
             android:id="@+id/widget_work_time_value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0h 00m"
+            android:text="7h 15m"
             android:textColor="#FFFFFF"
             android:textSize="10sp"
             android:textStyle="bold" />
@@ -89,7 +89,7 @@
         android:layout_height="wrap_content"
         android:ellipsize="end"
         android:singleLine="true"
-        android:text="Shift Goal"
+        android:text="1h 15m left"
         android:textColor="#38BDF8"
         android:textSize="10sp"
         android:textStyle="bold" />

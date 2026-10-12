@@ -1,0 +1,46 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="260dp"
+    android:height="80dp"
+    android:viewportWidth="260"
+    android:viewportHeight="80">
+    <!-- Outer Container Squircle -->
+    <path
+        android:fillColor="#0D121F"
+        android:strokeColor="#253248"
+        android:strokeWidth="1.5"
+        android:pathData="M22,2 L238,2 A20,20 0 0,1 258,22 L258,58 A20,20 0 0,1 238,78 L22,78 A20,20 0 0,1 2,58 L2,22 A20,20 0 0,1 22,2 Z" />
+
+    <!-- Left Main Countdown Pod -->
+    <path
+        android:fillColor="#131B2C"
+        android:strokeColor="#25334A"
+        android:strokeWidth="1"
+        android:pathData="M20,10 L174,10 A12,12 0 0,1 186,22 L186,58 A12,12 0 0,1 174,70 L20,70 A12,12 0 0,1 8,58 L8,22 A12,12 0 0,1 20,10 Z" />
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M18,18 H86 V23 H18 Z" />
+    <!-- Large Exit Clock: 06:30 PM -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M18,28 H134 V48 H18 Z" />
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M18,54 H96 V60 H18 Z" />
+
+    <!-- Right Stat & Sync Pod -->
+    <path
+        android:fillColor="#131B2C"
+        android:strokeColor="#25334A"
+        android:strokeWidth="1"
+        android:pathData="M204,10 L242,10 A12,12 0 0,1 254,22 L254,58 A12,12 0 0,1 242,70 L204,70 A12,12 0 0,1 192,58 L192,22 A12,12 0 0,1 204,10 Z" />
+    <!-- 80% Percent -->
+    <path
+        android:fillColor="#00D09C"
+        android:pathData="M208,18 H238 V28 H208 Z" />
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M204,33 H242 V38 H204 Z" />
+    <path
+        android:fillColor="#1E293B"
+        android:pathData="M213,44 A8,8 0 1,1 229,44 A8,8 0 1,1 213,44 Z" />
+</vector>

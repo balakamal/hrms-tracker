@@ -12,6 +12,10 @@ import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
+import android.content.ComponentName
+import android.os.Build
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 
 class WidgetConfigureActivity : AppCompatActivity() {
@@ -38,6 +42,7 @@ class WidgetConfigureActivity : AppCompatActivity() {
     private lateinit var chip75: TextView
     private lateinit var chip100: TextView
     private lateinit var btnApply: Button
+    private lateinit var btnPinWidget: Button
     private lateinit var btnBack: ImageButton
 
     private var selectedTheme = "DARK"
@@ -88,7 +93,10 @@ class WidgetConfigureActivity : AppCompatActivity() {
         chip75 = findViewById(R.id.chip_op_75)
         chip100 = findViewById(R.id.chip_op_100)
         btnApply = findViewById(R.id.btn_apply)
+        btnPinWidget = findViewById(R.id.btn_pin_widget)
         btnBack = findViewById(R.id.btn_back)
+
+        btnPinWidget.visibility = if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) View.GONE else View.VISIBLE
 
         seekbarOpacity.progress = selectedOpacity
         txtOpacityValue.text = "$selectedOpacity%"
@@ -161,6 +169,43 @@ class WidgetConfigureActivity : AppCompatActivity() {
 
         btnApply.setOnClickListener {
             applyAndSavePreferences()
+        }
+
+        btnPinWidget.setOnClickListener {
+            val widgetOptions = arrayOf(
+                "HRMS Dashboard (Large 4x2)",
+                "HRMS Row (Medium 4x1)",
+                "HRMS Pack-up Clock (3x1)",
+                "HRMS Timesheet Companion (4x1)",
+                "HRMS Badge (Small 2x2)",
+                "HRMS Wellbeing Dial (2x2)"
+            )
+            val providerClasses = arrayOf(
+                AttendanceAppWidgetProvider::class.java,
+                AttendanceAppWidgetProviderMedium::class.java,
+                WidgetCountdownProvider::class.java,
+                WidgetTimesheetProvider::class.java,
+                AttendanceAppWidgetProviderSmall::class.java,
+                WidgetDialProvider::class.java
+            )
+
+            AlertDialog.Builder(this, R.style.Theme_HRMS_Dialog)
+                .setTitle("Select Widget to Add")
+                .setItems(widgetOptions) { _, which ->
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        val appWidgetManager = AppWidgetManager.getInstance(this)
+                        if (appWidgetManager.isRequestPinAppWidgetSupported) {
+                            val provider = ComponentName(this, providerClasses[which])
+                            appWidgetManager.requestPinAppWidget(provider, null, null)
+                        } else {
+                            Toast.makeText(this, "Your launcher does not support direct widget pinning. Please add from home screen.", Toast.LENGTH_LONG).show()
+                        }
+                    } else {
+                        Toast.makeText(this, "Add widgets by long-pressing your home screen.", Toast.LENGTH_LONG).show()
+                    }
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
         }
     }
 

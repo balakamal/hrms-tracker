@@ -1,0 +1,95 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="300dp"
+    android:height="160dp"
+    android:viewportWidth="300"
+    android:viewportHeight="160">
+    <!-- Outer Container Squircle -->
+    <path
+        android:fillColor="#0D121F"
+        android:strokeColor="#253248"
+        android:strokeWidth="1.5"
+        android:pathData="M24,2 L276,2 A22,22 0 0,1 298,24 L298,136 A22,22 0 0,1 276,158 L24,158 A22,22 0 0,1 2,136 L2,24 A22,22 0 0,1 24,2 Z" />
+
+    <!-- Top Mini Header: Brand & Refresh -->
+    <path
+        android:fillColor="#64748B"
+        android:pathData="M16,12 H42 V18 H16 Z" />
+    <path
+        android:fillColor="#1E293B"
+        android:pathData="M272,8 A8,8 0 1,1 288,8 A8,8 0 1,1 272,8 Z" />
+
+    <!-- Main Hero Card Pod -->
+    <path
+        android:fillColor="#131B2C"
+        android:strokeColor="#25334A"
+        android:strokeWidth="1"
+        android:pathData="M30,26 L270,26 A14,14 0 0,1 284,40 L284,92 A14,14 0 0,1 270,106 L30,106 A14,14 0 0,1 16,92 L16,40 A14,14 0 0,1 30,26 Z" />
+
+    <!-- Subtitle: TIME AT DESK -->
+    <path
+        android:fillColor="#64748B"
+        android:pathData="M28,34 H72 V39 H28 Z" />
+
+    <!-- Status Chip -->
+    <path
+        android:fillColor="#064E3B"
+        android:pathData="M214,32 L266,32 A6,6 0 0,1 272,38 L272,42 A6,6 0 0,1 266,48 L214,48 A6,6 0 0,1 208,42 L208,38 A6,6 0 0,1 214,32 Z" />
+    <path
+        android:fillColor="#34D399"
+        android:pathData="M218,38 H262 V42 H218 Z" />
+
+    <!-- Work Time Metric: 6h 45m representation -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M28,48 H105 V66 H28 Z" />
+
+    <!-- Progress Bar Track -->
+    <path
+        android:fillColor="#0B0F19"
+        android:pathData="M32,74 L268,74 A3.5,3.5 0 0,1 271.5,77.5 A3.5,3.5 0 0,1 268,81 L32,81 A3.5,3.5 0 0,1 28.5,77.5 A3.5,3.5 0 0,1 32,74 Z" />
+    <!-- Progress Bar Fill (80%) -->
+    <path
+        android:fillColor="#00D09C"
+        android:pathData="M32,74 L224,74 A3.5,3.5 0 0,1 227.5,77.5 A3.5,3.5 0 0,1 224,81 L32,81 A3.5,3.5 0 0,1 28.5,77.5 A3.5,3.5 0 0,1 32,74 Z" />
+
+    <!-- Progress Percent & Remaining Footers -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M28,88 H82 V94 H28 Z" />
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M220,88 H272 V94 H220 Z" />
+
+    <!-- Bottom Stat 1: First In -->
+    <path
+        android:fillColor="#131B2C"
+        android:pathData="M24,114 L98,114 A10,10 0 0,1 108,124 L108,140 A10,10 0 0,1 98,150 L24,150 A10,10 0 0,1 14,140 L14,124 A10,10 0 0,1 24,114 Z" />
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M28,122 H54 V126 H28 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M28,132 H78 V142 H28 Z" />
+
+    <!-- Bottom Stat 2: Break -->
+    <path
+        android:fillColor="#131B2C"
+        android:pathData="M116,114 L188,114 A10,10 0 0,1 198,124 L198,140 A10,10 0 0,1 188,150 L116,150 A10,10 0 0,1 106,140 L106,124 A10,10 0 0,1 116,114 Z" />
+    <path
+        android:fillColor="#FBBF24"
+        android:pathData="M120,122 H146 V126 H120 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M120,132 H170 V142 H120 Z" />
+
+    <!-- Bottom Stat 3: Est. Exit -->
+    <path
+        android:fillColor="#131B2C"
+        android:pathData="M206,114 L278,114 A10,10 0 0,1 288,124 L288,140 A10,10 0 0,1 278,150 L206,150 A10,10 0 0,1 196,140 L196,124 A10,10 0 0,1 206,114 Z" />
+    <path
+        android:fillColor="#00D09C"
+        android:pathData="M210,122 H242 V126 H210 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M210,132 H262 V142 H210 Z" />
+</vector>

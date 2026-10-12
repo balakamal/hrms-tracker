@@ -1,0 +1,51 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="140dp"
+    android:height="140dp"
+    android:viewportWidth="140"
+    android:viewportHeight="140">
+    <!-- Outer Container Squircle -->
+    <path
+        android:fillColor="#0D121F"
+        android:strokeColor="#253248"
+        android:strokeWidth="1.5"
+        android:pathData="M22,2 L118,2 A20,20 0 0,1 138,22 L138,118 A20,20 0 0,1 118,138 L22,138 A20,20 0 0,1 2,118 L2,22 A20,20 0 0,1 22,2 Z" />
+
+    <!-- Top Mini Header: Brand & Refresh -->
+    <path
+        android:fillColor="#64748B"
+        android:pathData="M14,14 H40 V19 H14 Z" />
+    <path
+        android:fillColor="#1E293B"
+        android:pathData="M116,11 A7,7 0 1,1 130,11 A7,7 0 1,1 116,11 Z" />
+
+    <!-- Main Hero Card Pod -->
+    <path
+        android:fillColor="#131B2C"
+        android:strokeColor="#25334A"
+        android:strokeWidth="1"
+        android:pathData="M22,28 L118,28 A12,12 0 0,1 130,40 L130,102 A12,12 0 0,1 118,114 L22,114 A12,12 0 0,1 10,102 L10,40 A12,12 0 0,1 22,28 Z" />
+
+    <!-- Subtitle: TIME AT DESK -->
+    <path
+        android:fillColor="#64748B"
+        android:pathData="M38,38 H102 V44 H38 Z" />
+
+    <!-- Work Time: 6h 45m -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,52 H110 V74 H30 Z" />
+
+    <!-- Exit Status Pill -->
+    <path
+        android:fillColor="#34D399"
+        android:pathData="M34,84 H106 V92 H34 Z" />
+
+    <!-- Progress Bar Track -->
+    <path
+        android:fillColor="#0B0F19"
+        android:pathData="M16,122 L124,122 A3,3 0 0,1 127,125 A3,3 0 0,1 124,128 L16,128 A3,3 0 0,1 13,125 A3,3 0 0,1 16,122 Z" />
+    <!-- Progress Bar Fill -->
+    <path
+        android:fillColor="#00D09C"
+        android:pathData="M16,122 L102,122 A3,3 0 0,1 105,125 A3,3 0 0,1 102,128 L16,128 A3,3 0 0,1 13,125 A3,3 0 0,1 16,122 Z" />
+</vector>

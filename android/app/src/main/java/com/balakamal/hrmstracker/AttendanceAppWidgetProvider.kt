@@ -184,9 +184,15 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
             val category = options.getInt(AppWidgetManager.OPTION_APPWIDGET_HOST_CATEGORY, -1)
             
-            // If it is on Lockscreen/Keyguard, use the Medium layout by default
+            // If it is on Lockscreen/Keyguard:
+            // Large widget falls back to Medium layout to fit keyguard height;
+            // all other compact widgets use their own designated layouts.
             if (category == AppWidgetProviderInfo.WIDGET_CATEGORY_KEYGUARD) {
-                return R.layout.attendance_widget_medium
+                return if (defaultLayoutId == R.layout.attendance_widget) {
+                    R.layout.attendance_widget_medium
+                } else {
+                    defaultLayoutId
+                }
             }
             
             val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0)

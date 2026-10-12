@@ -1,0 +1,47 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="300dp"
+    android:height="80dp"
+    android:viewportWidth="300"
+    android:viewportHeight="80">
+    <!-- Outer Container Squircle -->
+    <path
+        android:fillColor="#0D121F"
+        android:strokeColor="#253248"
+        android:strokeWidth="1.5"
+        android:pathData="M24,2 L276,2 A20,20 0 0,1 298,22 L298,58 A20,20 0 0,1 276,78 L24,78 A20,20 0 0,1 2,58 L2,22 A20,20 0 0,1 24,2 Z" />
+
+    <!-- Left Main Work Log Pod -->
+    <path
+        android:fillColor="#131B2C"
+        android:strokeColor="#25334A"
+        android:strokeWidth="1"
+        android:pathData="M20,10 L180,10 A12,12 0 0,1 192,22 L192,58 A12,12 0 0,1 180,70 L20,70 A12,12 0 0,1 8,58 L8,22 A12,12 0 0,1 20,10 Z" />
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M18,18 H86 V23 H18 Z" />
+    <!-- 8h 15m Metric -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M18,28 H108 V48 H18 Z" />
+    <path
+        android:fillColor="#34D399"
+        android:pathData="M18,54 H112 V60 H18 Z" />
+
+    <!-- 1-Tap Action Button (Emerald to Cyan Gradient fill) -->
+    <path
+        android:fillColor="#00D09C"
+        android:pathData="M210,12 L258,12 A10,10 0 0,1 268,22 L268,58 A10,10 0 0,1 258,68 L210,68 A10,10 0 0,1 200,58 L200,22 A10,10 0 0,1 210,12 Z" />
+    <!-- Timesheet Document Icon -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M228,24 H240 V34 H228 Z" />
+    <!-- TIMESHEET Text -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M212,44 H256 V50 H212 Z" />
+
+    <!-- Refresh FAB -->
+    <path
+        android:fillColor="#1E293B"
+        android:pathData="M276,28 A9,9 0 1,1 294,28 A9,9 0 1,1 276,28 Z" />
+</vector>

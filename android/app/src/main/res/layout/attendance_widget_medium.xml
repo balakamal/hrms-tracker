@@ -82,7 +82,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentStart="true"
                 android:letterSpacing="-0.02"
-                android:text="0h 00m"
+                android:text="6h 45m"
                 android:textColor="#FFFFFF"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -93,7 +93,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
-                android:text="0%"
+                android:text="80%"
                 android:textColor="#38BDF8"
                 android:textSize="11sp"
                 android:textStyle="bold" />
@@ -159,7 +159,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="1dp"
-                android:text="--:--"
+                android:text="06:30 PM"
                 android:textColor="#F1F5F9"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -170,7 +170,7 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:singleLine="true"
-                android:text="Updated: --:--"
+                android:text="Updated: 03:45 PM"
                 android:textColor="#64748B"
                 android:textSize="8sp" />
         </LinearLayout>
