@@ -1054,11 +1054,10 @@
           <input type="text" class="at-input" id="at-setting-minutes-input" value="${Math.round(state.targetHours * 60)}" placeholder="e.g. 510 or 8*60+30">
         </div>
         <div class="at-form-group row">
-          <label>Work From Home (WFH)</label>
-          <label class="at-toggle">
-            <input type="checkbox" id="at-setting-wfh" ${state.isWfh ? "checked" : ""}>
-            <span class="at-slider"></span>
-          </label>
+          <label>Workspace Mode</label>
+          <span style="font-size:11px; font-weight:700; color:${state.isWfh ? "#FBBF24" : "var(--at-text-secondary)"};">
+            ${state.isWfh ? "Remote Workspace (Synced)" : "In-Office (Synced)"}
+          </span>
         </div>
         <div class="at-form-group row">
           <label>Enable Notifications</label>
@@ -1398,14 +1397,6 @@
       ? "light"
       : "dark";
 
-    const wfhCheck = elements.card.querySelector("#at-setting-wfh");
-    if (wfhCheck) {
-      state.isWfh = wfhCheck.checked;
-      localStorage.setItem("at_wfh_mode", state.isWfh ? "true" : "false");
-      if (window.AndroidApp && typeof window.AndroidApp.setWfhMode === "function") {
-        window.AndroidApp.setWfhMode(state.isWfh);
-      }
-    }
 
     localStorage.setItem("at_target_hours", state.targetHours);
     localStorage.setItem("at_notify_enabled", state.notifyEnabled);
@@ -1439,15 +1430,31 @@
     const metrics = calculateMetrics();
     if (!metrics) {
       // No logs yet today
+      const today = new Date();
+      const isWeekend = today.getDay() === 0 || today.getDay() === 6; // 0=Sun, 6=Sat
       const statusTextEl = elements.card.querySelector("#at-status-text");
-      if (statusTextEl) {
-        statusTextEl.innerText = state.isWfh ? "Working from Home" : "No attendance logs today";
-      }
       const indicator = elements.card.querySelector("#at-status-indicator");
-      if (indicator && state.isWfh) {
-        indicator.className = "at-status-indicator";
-        indicator.style.background = "#FBBF24";
-        indicator.style.boxShadow = "0 0 8px #FBBF24";
+      const badgeTimeEl = document.getElementById("at-badge-work-time");
+      const exitTimeEl = elements.card.querySelector("#at-val-exit-time");
+
+      if (state.isWfh) {
+        if (statusTextEl) statusTextEl.innerText = "Working from Home";
+        if (indicator) {
+          indicator.className = "at-status-indicator";
+          indicator.style.background = "#FBBF24";
+          indicator.style.boxShadow = "0 0 8px #FBBF24";
+        }
+      } else if (isWeekend) {
+        if (statusTextEl) statusTextEl.innerText = "Week Off";
+        if (indicator) {
+          indicator.className = "at-status-indicator";
+          indicator.style.background = "#A78BFA";
+          indicator.style.boxShadow = "0 0 8px #A78BFA";
+        }
+        if (badgeTimeEl) badgeTimeEl.innerText = "Week Off";
+        if (exitTimeEl) exitTimeEl.innerText = "Week Off";
+      } else {
+        if (statusTextEl) statusTextEl.innerText = "No attendance logs today";
       }
       return;
     }
@@ -1467,7 +1474,15 @@
         textNode.innerText = "Completed shift! Time to leave.";
       } else if (metrics.isClockedIn) {
         indicator.classList.add("at-status-in");
-        textNode.innerText = state.isWfh ? `Clocked In (${metrics.lastLocation}) • WFH` : `Clocked In (${metrics.lastLocation})`;
+        const today = new Date();
+        const isWeekend = today.getDay() === 0 || today.getDay() === 6;
+        if (state.isWfh) {
+          textNode.innerText = `Clocked In (${metrics.lastLocation}) • WFH`;
+        } else if (isWeekend) {
+          textNode.innerText = `Clocked In (${metrics.lastLocation}) • Weekend`;
+        } else {
+          textNode.innerText = `Clocked In (${metrics.lastLocation})`;
+        }
       } else {
         indicator.classList.add("at-status-out");
         textNode.innerText = state.isWfh ? "Working from Home (Break)" : "Clocked Out / Break";

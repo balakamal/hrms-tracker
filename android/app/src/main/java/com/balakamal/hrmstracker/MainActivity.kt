@@ -54,7 +54,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var imgNowBarIcon: ImageView
     private lateinit var txtCountdown: TextView
     private lateinit var layoutWfhHub: View
-    private lateinit var btnSwitchToOffice: Button
     private lateinit var btnDismissWfhCard: ImageButton
     private lateinit var layoutSummaryCard: View
     private lateinit var btnCloseSummary: ImageButton
@@ -140,7 +139,6 @@ class MainActivity : AppCompatActivity() {
         imgNowBarIcon = findViewById(R.id.img_now_bar_icon)
         txtCountdown = findViewById(R.id.txt_countdown)
         layoutWfhHub = findViewById(R.id.layout_wfh_hub)
-        btnSwitchToOffice = findViewById(R.id.btn_switch_to_office)
         btnDismissWfhCard = findViewById(R.id.btn_dismiss_wfh_card)
         layoutSummaryCard = findViewById(R.id.layout_summary_card)
         btnCloseSummary = findViewById(R.id.btn_close_summary)
@@ -421,14 +419,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupWfhHubListeners() {
-        // 1-Tap Switch to Office Mode Button
-        btnSwitchToOffice.setOnClickListener {
-            btnSwitchToOffice.animate().scaleX(0.92f).scaleY(0.92f).setDuration(100).withEndAction {
-                btnSwitchToOffice.animate().scaleX(1f).scaleY(1f).setDuration(100).start()
-            }.start()
-            toggleWfhMode()
-        }
-
         // Dismiss / Minimize WFH Card
         btnDismissWfhCard.setOnClickListener {
             layoutWfhHub.animate()
@@ -439,7 +429,7 @@ class MainActivity : AppCompatActivity() {
                 .start()
         }
 
-        // Tap on Now Bar Live Activity Capsule opens Workspace Mode Switcher
+        // Tap on Now Bar Live Activity Capsule opens Workspace Status Info
         layoutNowBar.setOnClickListener {
             showWorkspaceModeSheet()
         }
@@ -477,18 +467,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showWorkspaceModeSheet() {
-        val options = arrayOf(
-            if (isWfhMode) "Switch to In-Office Mode (Biometrics Active)" else "Switch to Remote Workspace (WFH Active)",
-            "View Settings and Preferences"
-        )
+        val calendar = Calendar.getInstance()
+        val isWeekend = calendar.get(Calendar.DAY_OF_WEEK) in listOf(Calendar.SATURDAY, Calendar.SUNDAY)
+        val modeTitle = when {
+            isWfhMode -> "Remote Workspace"
+            isWeekend -> "Week Off (Weekend)"
+            else -> "In-Office Biometric Mode"
+        }
+        val modeDesc = when {
+            isWfhMode -> "Remote status is automatically synced from your official HRMS profile. Biometric tracking is paused."
+            isWeekend -> "It's the weekend! Relax, recharge, and enjoy your time off."
+            else -> "In-office biometric tracking is active. Punch records are computed in real-time."
+        }
         AlertDialog.Builder(this, R.style.Theme_HRMS_Dialog)
-            .setTitle("Workspace Mode")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> toggleWfhMode()
-                    1 -> showSettingsDialog()
-                }
-            }
+            .setTitle(modeTitle)
+            .setMessage(modeDesc)
+            .setPositiveButton("Settings") { _, _ -> showSettingsDialog() }
             .setNegativeButton("Close", null)
             .show()
     }
@@ -551,6 +545,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateCountdown() {
         if (!::txtCountdown.isInitialized) return
+        val calendar = Calendar.getInstance()
+        val isWeekend = calendar.get(Calendar.DAY_OF_WEEK) in listOf(Calendar.SATURDAY, Calendar.SUNDAY)
+        val firstIn = sharedPrefs.getString("WidgetFirstIn", "--:--") ?: "--:--"
+        val exitTime = sharedPrefs.getString("WidgetExitTime", "--:--") ?: "--:--"
+        val progressPercent = sharedPrefs.getInt("WidgetProgressPercent", 0)
+
         if (isWfhMode) {
             imgNowBarIcon.setImageResource(R.drawable.ic_wfh_home)
             imgNowBarIcon.setColorFilter(ContextCompat.getColor(this, R.color.accent_amber_gold))
@@ -559,8 +559,14 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        val exitTime = sharedPrefs.getString("WidgetExitTime", "--:--") ?: "--:--"
-        val progressPercent = sharedPrefs.getInt("WidgetProgressPercent", 0)
+        // Weekend Week Off status when not actively clocked in
+        if (isWeekend && (firstIn == "--:--" || firstIn.isBlank() || exitTime.contains("Weekend", ignoreCase = true) || exitTime.contains("Week Off", ignoreCase = true))) {
+            imgNowBarIcon.setImageResource(R.drawable.ic_sparkle)
+            imgNowBarIcon.setColorFilter(ContextCompat.getColor(this, R.color.accent_lavender))
+            txtCountdown.text = "Week Off • Rest Day"
+            txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.accent_lavender))
+            return
+        }
 
         if (exitTime == "Completed" || progressPercent >= 100) {
             imgNowBarIcon.setImageResource(R.drawable.ic_check_circle)
@@ -725,7 +731,7 @@ class MainActivity : AppCompatActivity() {
             "Shift Target Hours (Current: ${targetHours}h)",
             if (notifComplete) "Shift Complete Alerts: Enabled" else "Shift Complete Alerts: Disabled",
             if (notifPre) "15-Min Pre-Exit Alerts: Enabled" else "15-Min Pre-Exit Alerts: Disabled",
-            if (wfh) "Workspace Mode: Remote (Tap for In-Office)" else "Workspace Mode: In-Office (Tap for Remote)",
+            if (wfh) "Workspace: Remote (Synced from HRMS)" else "Workspace: In-Office (Synced from HRMS)",
             "View Leave Balances",
             "Re-inject Insights Widget",
             "Clear Cache & Relogin",
@@ -755,7 +761,14 @@ class MainActivity : AppCompatActivity() {
                             Toast.LENGTH_SHORT
                         ).show()
                     }
-                    3 -> toggleWfhMode()
+                    3 -> {
+                        val msg = if (wfh) {
+                            "Your workspace is set to Remote (WFH) according to official HRMS records."
+                        } else {
+                            "Your workspace is set to In-Office according to official HRMS records."
+                        }
+                        Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+                    }
                     4 -> showLeaveBalanceDialog()
                     5 -> {
                         injectScriptFromAssets()
@@ -767,16 +780,6 @@ class MainActivity : AppCompatActivity() {
             }
             .setNegativeButton("Close", null)
             .show()
-    }
-
-    private fun toggleWfhMode() {
-        isWfhMode = !isWfhMode
-        sharedPrefs.edit().putBoolean(KEY_WFH_MODE, isWfhMode).apply()
-        updateWfhHubState(animate = true)
-        triggerWidgetRefresh()
-        updateCountdown()
-        val msg = if (isWfhMode) "Remote Workspace activated. Biometrics paused." else "In-Office Mode activated. Biometrics active."
-        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
     }
 
     private fun injectLeaveBalanceExtractor() {

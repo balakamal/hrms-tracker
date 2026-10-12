@@ -87,21 +87,23 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 val isWfh = sharedPrefs.getBoolean("WfhMode", false)
                 
                 val isCompleted = progressPercent >= 100 || statusText?.contains("Complete", ignoreCase = true) == true
-                val displayStatus = if (isWfh && (statusText == "Not Clocked In" || statusText == "No logs today" || statusText == "Not Synced")) {
-                    "Working from Home"
-                } else {
-                    statusText ?: "Not Synced"
+                val isWeekOff = statusText?.contains("Week Off", ignoreCase = true) == true || (isWeekend() && (statusText == "Not Clocked In" || statusText == "No logs today" || statusText == "Not Synced"))
+                val displayStatus = when {
+                    isWfh && (statusText == "Not Clocked In" || statusText == "No logs today" || statusText == "Not Synced") -> "Working from Home"
+                    isWeekOff -> "Week Off"
+                    else -> statusText ?: "Not Synced"
                 }
 
                 // Common view updates
                 views.setTextViewText(R.id.widget_status_text, displayStatus)
-                views.setTextViewText(R.id.widget_work_time_value, workTime)
+                views.setTextViewText(R.id.widget_work_time_value, if (isWeekOff && workTime == "0h 00m") "Week Off" else workTime)
                 views.setViewVisibility(R.id.widget_wfh_badge, if (isWfh) android.view.View.VISIBLE else android.view.View.GONE)
                 
                 // Dynamic status color & chip styling
                 val statusColor = when {
                     isCompleted -> 0xFF38BDF8.toInt() // Luminous sky cyan
                     isWfh -> 0xFFFBBF24.toInt() // Warm golden amber
+                    isWeekOff -> 0xFFA78BFA.toInt() // Samsung One UI lavender
                     displayStatus.contains("Break", ignoreCase = true) -> 0xFFF59E0B.toInt() // Warm amber
                     displayStatus.contains("Clocked In", ignoreCase = true) -> 0xFF00D09C.toInt() // Samsung One UI emerald mint
                     displayStatus.contains("Sync", ignoreCase = true) -> 0xFF60A5FA.toInt() // Soft blue
@@ -111,29 +113,37 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
 
                 // Layout-specific bindings
                 if (layoutId == R.layout.attendance_widget_small) {
-                    val smallStatus = if (isWfh && (exitTime == "--:--" || exitTime == "Completed")) "Remote Day" else "Exit: $exitTime"
+                    val smallStatus = when {
+                        isWfh && (exitTime == "--:--" || exitTime == "Completed") -> "Remote Day"
+                        isWeekOff -> "Week Off"
+                        else -> "Exit: $exitTime"
+                    }
                     views.setTextViewText(R.id.widget_status_text, smallStatus)
                     views.setProgressBar(R.id.widget_progress_bar, 100, progressPercent, false)
                 } else if (layoutId == R.layout.attendance_widget_medium) {
-                    views.setTextViewText(R.id.widget_exit_time_value, exitTime)
+                    views.setTextViewText(R.id.widget_exit_time_value, if (isWeekOff && exitTime == "--:--") "Enjoy Weekend" else exitTime)
                     views.setTextViewText(R.id.widget_last_updated, "Updated: " + getCurrentTime())
                     views.setTextViewText(R.id.widget_progress_percent, "$progressPercent%")
                 } else if (layoutId == R.layout.attendance_widget) {
-                    views.setTextViewText(R.id.widget_work_subtitle, if (isWfh) "REMOTE WORKDAY" else "TIME AT DESK")
-                    val formattedStatus = if (isCompleted) {
-                        "Shift Complete • 100%"
-                    } else if (isWfh) {
-                        "Remote Workspace"
-                    } else {
-                        "$displayStatus • $progressPercent%"
+                    val subtitle = when {
+                        isWfh -> "REMOTE WORKDAY"
+                        isWeekOff -> "WEEK OFF"
+                        else -> "TIME AT DESK"
+                    }
+                    views.setTextViewText(R.id.widget_work_subtitle, subtitle)
+                    val formattedStatus = when {
+                        isCompleted -> "Shift Complete • 100%"
+                        isWfh -> "Remote Workspace"
+                        isWeekOff -> "Week Off • Recharge"
+                        else -> "$displayStatus • $progressPercent%"
                     }
                     views.setTextViewText(R.id.widget_status_text, formattedStatus)
-                    views.setTextViewText(R.id.widget_exit_time_value, exitTime)
+                    views.setTextViewText(R.id.widget_exit_time_value, if (isWeekOff && exitTime == "--:--") "Enjoy Weekend" else exitTime)
                     views.setTextViewText(R.id.widget_first_in_value, firstIn)
                     views.setTextViewText(R.id.widget_break_time_value, breakTime)
                     views.setProgressBar(R.id.widget_progress_bar, 100, progressPercent, false)
                     views.setTextViewText(R.id.widget_progress_percent, "$progressPercent% Goal")
-                    views.setTextViewText(R.id.widget_progress_remaining, if (isWfh) "Biometrics Paused" else progressRemaining)
+                    views.setTextViewText(R.id.widget_progress_remaining, if (isWfh) "Biometrics Paused" else if (isWeekOff) "Rest & Recharge" else progressRemaining)
                 }
                 
                 appWidgetManager.updateAppWidget(appWidgetId, views)
@@ -379,6 +389,11 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             }
             return null
         }
+
+        fun isWeekend(): Boolean {
+            val day = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
+            return day == Calendar.SATURDAY || day == Calendar.SUNDAY
+        }
     }
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
@@ -459,8 +474,16 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
         val isWfh = sharedPrefs.getBoolean("WfhMode", false)
         
         if (accessToken == null || userId == null) {
-            val defaultStatus = if (isWfh) "Working from Home" else "Please Login in App"
-            saveWidgetCache(context, "0h 00m", "--:--", "0h 00m", "--:--", defaultStatus, 0, "--h --m left", "Last updated: " + getCurrentTime())
+            val isWeekendToday = isWeekend()
+            val defaultStatus = when {
+                isWfh -> "Working from Home"
+                isWeekendToday -> "Week Off"
+                else -> "Please Login in App"
+            }
+            val defaultWork = if (isWeekendToday) "Week Off" else "0h 00m"
+            val defaultExit = if (isWeekendToday) "Enjoy Weekend" else "--:--"
+            val defaultRem = if (isWeekendToday) "Rest & Recharge" else "--h --m left"
+            saveWidgetCache(context, defaultWork, "--:--", "0h 00m", defaultExit, defaultStatus, 0, defaultRem, "Last updated: " + getCurrentTime())
             triggerWidgetUpdate(context)
             return
         }
@@ -554,8 +577,16 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     checkAndSendNotification(context, response.toString(), targetHours)
                 } else {
                     val isWfh = sharedPrefs.getBoolean("WfhMode", false)
-                    val noLogsStatus = if (isWfh) "Working from Home" else "No logs today"
-                    saveWidgetCache(context, "0h 00m", "--:--", "0h 00m", "--:--", noLogsStatus, 0, "--h --m left", "Last updated: " + getCurrentTime())
+                    val isWeekendToday = isWeekend()
+                    val noLogsStatus = when {
+                        isWfh -> "Working from Home"
+                        isWeekendToday -> "Week Off"
+                        else -> "No logs today"
+                    }
+                    val defaultWorkTime = if (isWeekendToday) "Week Off" else "0h 00m"
+                    val defaultExitTime = if (isWeekendToday) "Enjoy Weekend" else "--:--"
+                    val defaultRemaining = if (isWeekendToday) "Rest & Recharge" else "--h --m left"
+                    saveWidgetCache(context, defaultWorkTime, "--:--", "0h 00m", defaultExitTime, noLogsStatus, 0, defaultRemaining, "Last updated: " + getCurrentTime())
                 }
             } else {
                 saveWidgetCacheError(context, "Sync Error (${connection.responseCode})")

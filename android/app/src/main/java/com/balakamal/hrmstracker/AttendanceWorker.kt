@@ -130,16 +130,24 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                     }
                 } else {
                     val isWfh = sharedPrefs.getBoolean("WfhMode", false)
-                    val noLogsStatus = if (isWfh) "Working from Home" else "No logs today"
+                    val isWeekendToday = AttendanceAppWidgetProvider.isWeekend()
+                    val noLogsStatus = when {
+                        isWfh -> "Working from Home"
+                        isWeekendToday -> "Week Off"
+                        else -> "No logs today"
+                    }
+                    val defaultWorkTime = if (isWeekendToday) "Week Off" else "0h 00m"
+                    val defaultExitTime = if (isWeekendToday) "Enjoy Weekend" else "--:--"
+                    val defaultRemaining = if (isWeekendToday) "Rest & Recharge" else "--h --m left"
                     AttendanceAppWidgetProvider.saveWidgetCache(
                         applicationContext,
-                        "0h 00m",
+                        defaultWorkTime,
                         "--:--",
                         "0h 00m",
-                        "--:--",
+                        defaultExitTime,
                         noLogsStatus,
                         0,
-                        "--h --m left",
+                        defaultRemaining,
                         "Last updated: " + AttendanceAppWidgetProvider.getCurrentTime()
                     )
                     AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)

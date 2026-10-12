@@ -202,26 +202,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="1dp"
-                    android:text="Biometric tracking paused for today"
+                    android:text="Synced from HRMS • Biometrics paused"
                     android:textColor="#94A3B8"
                     android:textSize="10sp" />
             </LinearLayout>
-
-            <!-- 1-Tap Switch to Office Mode Button -->
-            <Button
-                android:id="@+id/btn_switch_to_office"
-                style="?android:attr/borderlessButtonStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:layout_marginEnd="6dp"
-                android:background="@drawable/bg_wfh_switch_btn"
-                android:minHeight="0dp"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:text="In-Office"
-                android:textColor="#FBBF24"
-                android:textSize="11sp"
-                android:textStyle="bold" />
 
             <!-- Dismiss / Minimize Button -->
             <ImageButton
