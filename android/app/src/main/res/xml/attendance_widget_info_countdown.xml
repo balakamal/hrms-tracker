@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="180dp"
+    android:minHeight="55dp"
+    android:minResizeWidth="120dp"
+    android:minResizeHeight="50dp"
+    android:updatePeriodMillis="1800000"
+    android:initialLayout="@layout/attendance_widget_countdown"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen|keyguard"
+    android:configure="com.balakamal.hrmstracker.WidgetConfigureActivity"
+    android:description="@string/widget_description_countdown" />

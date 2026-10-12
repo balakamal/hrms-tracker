@@ -9,4 +9,14 @@
     <string name="shortcut_timesheet_long">Open Timesheet</string>
     <string name="shortcut_leave_short">Apply Leave</string>
     <string name="shortcut_leave_long">Apply / View Leave</string>
+    <string name="widget_description_countdown">Focused pack-up clock showing remaining work hours and exact departure time.</string>
+    <string name="widget_description_timesheet">Daily work logger with direct 1-tap quick submission to HRMS Timesheet.</string>
+    <string name="widget_description_dial">Circular digital wellbeing dial displaying your work shift goal completion.</string>
+    <string name="widget_title_countdown">HRMS Pack-up Clock</string>
+    <string name="widget_title_timesheet">HRMS Timesheet Companion</string>
+    <string name="widget_title_dial">HRMS Wellbeing Dial</string>
+    <string name="title_widget_configure">Widget Appearance</string>
+    <string name="timesheet_reminder_title">Daily Timesheet Reminder</string>
+    <string name="timesheet_reminder_channel_name">Timesheet Reminders</string>
+    <string name="timesheet_reminder_channel_desc">Daily reminders to submit your work timesheet</string>
 </resources>

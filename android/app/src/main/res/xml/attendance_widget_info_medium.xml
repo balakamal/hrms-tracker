@@ -8,4 +8,5 @@
     android:initialLayout="@layout/attendance_widget_medium"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen|keyguard"
+    android:configure="com.balakamal.hrmstracker.WidgetConfigureActivity"
     android:description="@string/widget_description_medium" />

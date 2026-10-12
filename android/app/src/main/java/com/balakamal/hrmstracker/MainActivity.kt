@@ -3,6 +3,7 @@ package com.balakamal.hrmstracker
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.DownloadManager
+import android.app.TimePickerDialog
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -188,6 +189,9 @@ class MainActivity : AppCompatActivity() {
         setupBackNavigation()
 
         requestNotificationPermissions()
+
+        // Initialize / schedule Daily Timesheet Submission Reminder (default 9:00 PM IST)
+        TimesheetReminderWorker.schedule(applicationContext)
 
         val shortcutUrl = intent?.getStringExtra("shortcut_url")
         startAppFlow(shortcutUrl)
@@ -727,8 +731,20 @@ class MainActivity : AppCompatActivity() {
         val notifPre = sharedPrefs.getBoolean(KEY_NOTIF_PRE_EXIT, true)
         val wfh = sharedPrefs.getBoolean(KEY_WFH_MODE, false)
 
+        val timesheetEnabled = sharedPrefs.getBoolean(TimesheetReminderWorker.KEY_REMINDER_ENABLED, true)
+        val timesheetHour = sharedPrefs.getInt(TimesheetReminderWorker.KEY_REMINDER_HOUR, 21)
+        val timesheetMinute = sharedPrefs.getInt(TimesheetReminderWorker.KEY_REMINDER_MINUTE, 0)
+        val timesheetCal = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, timesheetHour)
+            set(Calendar.MINUTE, timesheetMinute)
+        }
+        val timesheetFormatted = SimpleDateFormat("hh:mm a", Locale.US).format(timesheetCal.time)
+        val timesheetStatus = if (timesheetEnabled) "Daily ($timesheetFormatted)" else "Disabled"
+
         val options = arrayOf(
             "Shift Target Hours (Current: ${targetHours}h)",
+            "Customize Home Screen Widgets (Theme & Transparency)",
+            "Daily Timesheet Reminder: $timesheetStatus",
             if (notifComplete) "Shift Complete Alerts: Enabled" else "Shift Complete Alerts: Disabled",
             if (notifPre) "15-Min Pre-Exit Alerts: Enabled" else "15-Min Pre-Exit Alerts: Disabled",
             if (wfh) "Workspace: Remote (Synced from HRMS)" else "Workspace: In-Office (Synced from HRMS)",
@@ -743,7 +759,9 @@ class MainActivity : AppCompatActivity() {
             .setItems(options) { _, which ->
                 when (which) {
                     0 -> showTargetHoursDialog()
-                    1 -> {
+                    1 -> startActivity(Intent(this, WidgetConfigureActivity::class.java))
+                    2 -> showTimesheetReminderDialog()
+                    3 -> {
                         val nextState = !notifComplete
                         sharedPrefs.edit().putBoolean(KEY_NOTIF_SHIFT_COMPLETE, nextState).apply()
                         Toast.makeText(
@@ -752,7 +770,7 @@ class MainActivity : AppCompatActivity() {
                             Toast.LENGTH_SHORT
                         ).show()
                     }
-                    2 -> {
+                    4 -> {
                         val nextState = !notifPre
                         sharedPrefs.edit().putBoolean(KEY_NOTIF_PRE_EXIT, nextState).apply()
                         Toast.makeText(
@@ -761,7 +779,7 @@ class MainActivity : AppCompatActivity() {
                             Toast.LENGTH_SHORT
                         ).show()
                     }
-                    3 -> {
+                    5 -> {
                         val msg = if (wfh) {
                             "Your workspace is set to Remote (WFH) according to official HRMS records."
                         } else {
@@ -769,17 +787,103 @@ class MainActivity : AppCompatActivity() {
                         }
                         Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
                     }
-                    4 -> showLeaveBalanceDialog()
-                    5 -> {
+                    6 -> showLeaveBalanceDialog()
+                    7 -> {
                         injectScriptFromAssets()
                         Toast.makeText(this, "Insights Widget re-injected!", Toast.LENGTH_SHORT).show()
                     }
-                    6 -> clearTokensAndShowLogin()
-                    7 -> showAboutDialog()
+                    8 -> clearTokensAndShowLogin()
+                    9 -> showAboutDialog()
                 }
             }
             .setNegativeButton("Close", null)
             .show()
+    }
+
+    private fun showTimesheetReminderDialog() {
+        val isEnabled = sharedPrefs.getBoolean(TimesheetReminderWorker.KEY_REMINDER_ENABLED, true)
+        val hour = sharedPrefs.getInt(TimesheetReminderWorker.KEY_REMINDER_HOUR, 21)
+        val minute = sharedPrefs.getInt(TimesheetReminderWorker.KEY_REMINDER_MINUTE, 0)
+        val weekdaysOnly = sharedPrefs.getBoolean(TimesheetReminderWorker.KEY_WEEKDAYS_ONLY, true)
+
+        val cal = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, minute)
+        }
+        val formattedTime = SimpleDateFormat("hh:mm a", Locale.US).format(cal.time)
+
+        val options = arrayOf(
+            if (isEnabled) "Reminder Status: Enabled (Daily)" else "Reminder Status: Disabled",
+            "Set Reminder Time: $formattedTime (Tap to Change)",
+            "Quick Preset: 07:00 PM",
+            "Quick Preset: 08:00 PM",
+            "Quick Preset: 09:00 PM (Default IST)",
+            "Quick Preset: 10:00 PM",
+            if (weekdaysOnly) "Schedule: Weekdays Only (Mon–Fri)" else "Schedule: Every Day (Including Weekends)",
+            "Send Test Reminder Notification"
+        )
+
+        AlertDialog.Builder(this, R.style.Theme_HRMS_Dialog)
+            .setTitle("Daily Timesheet Reminder")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> {
+                        val nextState = !isEnabled
+                        sharedPrefs.edit().putBoolean(TimesheetReminderWorker.KEY_REMINDER_ENABLED, nextState).apply()
+                        TimesheetReminderWorker.schedule(applicationContext)
+                        Toast.makeText(this, if (nextState) "Timesheet reminder enabled for $formattedTime" else "Timesheet reminder disabled", Toast.LENGTH_SHORT).show()
+                        showTimesheetReminderDialog()
+                    }
+                    1 -> {
+                        TimePickerDialog(this, { _, selectedHour, selectedMinute ->
+                            sharedPrefs.edit()
+                                .putInt(TimesheetReminderWorker.KEY_REMINDER_HOUR, selectedHour)
+                                .putInt(TimesheetReminderWorker.KEY_REMINDER_MINUTE, selectedMinute)
+                                .putBoolean(TimesheetReminderWorker.KEY_REMINDER_ENABLED, true)
+                                .apply()
+                            TimesheetReminderWorker.schedule(applicationContext)
+                            val newCal = Calendar.getInstance().apply {
+                                set(Calendar.HOUR_OF_DAY, selectedHour)
+                                set(Calendar.MINUTE, selectedMinute)
+                            }
+                            val newTimeStr = SimpleDateFormat("hh:mm a", Locale.US).format(newCal.time)
+                            Toast.makeText(this, "Reminder scheduled daily at $newTimeStr", Toast.LENGTH_SHORT).show()
+                        }, hour, minute, false).show()
+                    }
+                    2 -> setTimesheetPreset(19, 0)
+                    3 -> setTimesheetPreset(20, 0)
+                    4 -> setTimesheetPreset(21, 0)
+                    5 -> setTimesheetPreset(22, 0)
+                    6 -> {
+                        val nextWeekdays = !weekdaysOnly
+                        sharedPrefs.edit().putBoolean(TimesheetReminderWorker.KEY_WEEKDAYS_ONLY, nextWeekdays).apply()
+                        TimesheetReminderWorker.schedule(applicationContext)
+                        Toast.makeText(this, if (nextWeekdays) "Reminders set to Weekdays only" else "Reminders set to all 7 days", Toast.LENGTH_SHORT).show()
+                        showTimesheetReminderDialog()
+                    }
+                    7 -> {
+                        TimesheetReminderWorker.sendTestReminder(applicationContext)
+                        Toast.makeText(this, "Test timesheet reminder sent!", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+            .setNegativeButton("Back", null)
+            .show()
+    }
+
+    private fun setTimesheetPreset(hour: Int, minute: Int) {
+        sharedPrefs.edit()
+            .putInt(TimesheetReminderWorker.KEY_REMINDER_HOUR, hour)
+            .putInt(TimesheetReminderWorker.KEY_REMINDER_MINUTE, minute)
+            .putBoolean(TimesheetReminderWorker.KEY_REMINDER_ENABLED, true)
+            .apply()
+        TimesheetReminderWorker.schedule(applicationContext)
+        val cal = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, minute)
+        }
+        val formatted = SimpleDateFormat("hh:mm a", Locale.US).format(cal.time)
+        Toast.makeText(this, "Timesheet reminder set to $formatted", Toast.LENGTH_SHORT).show()
     }
 
     private fun injectLeaveBalanceExtractor() {

@@ -94,6 +94,9 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     else -> statusText ?: "Not Synced"
                 }
 
+                // Apply User's Custom Background & Transparency
+                views.setInt(R.id.widget_root, "setBackgroundResource", getWidgetBackground(context))
+
                 // Common view updates
                 views.setTextViewText(R.id.widget_status_text, displayStatus)
                 views.setTextViewText(R.id.widget_work_time_value, if (isWeekOff && workTime == "0h 00m") "Week Off" else workTime)
@@ -124,6 +127,31 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     views.setTextViewText(R.id.widget_exit_time_value, if (isWeekOff && exitTime == "--:--") "Enjoy Weekend" else exitTime)
                     views.setTextViewText(R.id.widget_last_updated, "Updated: " + getCurrentTime())
                     views.setTextViewText(R.id.widget_progress_percent, "$progressPercent%")
+                } else if (layoutId == R.layout.attendance_widget_countdown) {
+                    views.setTextViewText(R.id.widget_exit_time_value, if (isWeekOff && exitTime == "--:--") "Week Off" else exitTime)
+                    views.setTextViewText(R.id.widget_progress_remaining, if (isWfh) "Remote Workspace" else if (isWeekOff) "Enjoy Weekend" else progressRemaining)
+                    views.setTextViewText(R.id.widget_progress_percent, "$progressPercent%")
+                    views.setTextViewText(R.id.widget_status_text, displayStatus)
+                } else if (layoutId == R.layout.attendance_widget_timesheet) {
+                    views.setTextViewText(R.id.widget_work_time_value, if (isWeekOff && workTime == "0h 00m") "Week Off" else workTime)
+                    views.setTextViewText(R.id.widget_status_text, if (isCompleted) "Goal Met • Submit" else if (isWeekOff) "Week Off" else "$displayStatus • $progressPercent%")
+
+                    // 1-Tap direct deep-link launcher to HRMS Timesheet
+                    val timesheetIntent = Intent(context, MainActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        putExtra("shortcut_url", "https://apps.pal.tech/hrms/me/timesheet")
+                    }
+                    val timesheetPendingIntent = PendingIntent.getActivity(
+                        context,
+                        appWidgetId * 10 + 1,
+                        timesheetIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    )
+                    views.setOnClickPendingIntent(R.id.widget_btn_timesheet, timesheetPendingIntent)
+                } else if (layoutId == R.layout.attendance_widget_dial) {
+                    views.setTextViewText(R.id.widget_progress_percent, "$progressPercent%")
+                    views.setTextViewText(R.id.widget_work_time_value, if (isWeekOff && workTime == "0h 00m") "Week Off" else workTime)
+                    views.setTextViewText(R.id.widget_status_text, if (isCompleted) "Shift Complete" else if (isWeekOff) "Week Off" else progressRemaining)
                 } else if (layoutId == R.layout.attendance_widget) {
                     val subtitle = when {
                         isWfh -> "REMOTE WORKDAY"
@@ -185,6 +213,12 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 return R.layout.attendance_widget_medium
             }
             
+            if (defaultLayoutId == R.layout.attendance_widget_countdown ||
+                defaultLayoutId == R.layout.attendance_widget_timesheet ||
+                defaultLayoutId == R.layout.attendance_widget_dial) {
+                return defaultLayoutId
+            }
+
             return defaultLayoutId
         }
 
@@ -234,6 +268,27 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             val smallIds = appWidgetManager.getAppWidgetIds(smallComponent)
             for (id in smallIds) {
                 updateAppWidget(context, appWidgetManager, id, R.layout.attendance_widget_small)
+            }
+
+            // Countdown Pack-up Clock
+            val countdownComponent = ComponentName(context, WidgetCountdownProvider::class.java)
+            val countdownIds = appWidgetManager.getAppWidgetIds(countdownComponent)
+            for (id in countdownIds) {
+                updateAppWidget(context, appWidgetManager, id, R.layout.attendance_widget_countdown)
+            }
+
+            // Timesheet Companion
+            val timesheetComponent = ComponentName(context, WidgetTimesheetProvider::class.java)
+            val timesheetIds = appWidgetManager.getAppWidgetIds(timesheetComponent)
+            for (id in timesheetIds) {
+                updateAppWidget(context, appWidgetManager, id, R.layout.attendance_widget_timesheet)
+            }
+
+            // Dial Widget
+            val dialComponent = ComponentName(context, WidgetDialProvider::class.java)
+            val dialIds = appWidgetManager.getAppWidgetIds(dialComponent)
+            for (id in dialIds) {
+                updateAppWidget(context, appWidgetManager, id, R.layout.attendance_widget_dial)
             }
         }
 
@@ -394,6 +449,31 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             val day = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
             return day == Calendar.SATURDAY || day == Calendar.SUNDAY
         }
+
+        fun getWidgetBackground(context: Context): Int {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val theme = prefs.getString("WidgetTheme", "DARK") ?: "DARK"
+            val opacity = prefs.getInt("WidgetOpacity", 100)
+
+            return when (theme) {
+                "AMOLED" -> R.drawable.widget_bg_amoled
+                "TRANSPARENT" -> R.drawable.widget_bg_transparent
+                "LIGHT" -> when {
+                    opacity >= 90 -> R.drawable.widget_bg_light_100
+                    opacity >= 65 -> R.drawable.widget_bg_light_75
+                    opacity >= 40 -> R.drawable.widget_bg_light_50
+                    opacity >= 15 -> R.drawable.widget_bg_light_25
+                    else -> R.drawable.widget_bg_transparent
+                }
+                else -> when { // DARK
+                    opacity >= 90 -> R.drawable.widget_bg_dark_100
+                    opacity >= 65 -> R.drawable.widget_bg_dark_75
+                    opacity >= 40 -> R.drawable.widget_bg_dark_50
+                    opacity >= 15 -> R.drawable.widget_bg_dark_25
+                    else -> R.drawable.widget_bg_transparent
+                }
+            }
+        }
     }
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
@@ -437,7 +517,10 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             val providers = listOf(
                 AttendanceAppWidgetProvider::class.java to R.layout.attendance_widget,
                 AttendanceAppWidgetProviderMedium::class.java to R.layout.attendance_widget_medium,
-                AttendanceAppWidgetProviderSmall::class.java to R.layout.attendance_widget_small
+                AttendanceAppWidgetProviderSmall::class.java to R.layout.attendance_widget_small,
+                WidgetCountdownProvider::class.java to R.layout.attendance_widget_countdown,
+                WidgetTimesheetProvider::class.java to R.layout.attendance_widget_timesheet,
+                WidgetDialProvider::class.java to R.layout.attendance_widget_dial
             )
 
             for ((providerClass, defaultLayout) in providers) {
@@ -698,4 +781,16 @@ class AttendanceAppWidgetProviderMedium : AttendanceAppWidgetProvider() {
 
 class AttendanceAppWidgetProviderSmall : AttendanceAppWidgetProvider() {
     override val defaultLayoutId: Int = R.layout.attendance_widget_small
+}
+
+class WidgetCountdownProvider : AttendanceAppWidgetProvider() {
+    override val defaultLayoutId: Int = R.layout.attendance_widget_countdown
+}
+
+class WidgetTimesheetProvider : AttendanceAppWidgetProvider() {
+    override val defaultLayoutId: Int = R.layout.attendance_widget_timesheet
+}
+
+class WidgetDialProvider : AttendanceAppWidgetProvider() {
+    override val defaultLayoutId: Int = R.layout.attendance_widget_dial
 }

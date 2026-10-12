@@ -78,6 +78,52 @@
                 android:resource="@xml/attendance_widget_info_small" />
         </receiver>
 
+        <receiver android:name=".WidgetCountdownProvider"
+            android:exported="true"
+            android:label="@string/widget_title_countdown">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/attendance_widget_info_countdown" />
+        </receiver>
+
+        <receiver android:name=".WidgetTimesheetProvider"
+            android:exported="true"
+            android:label="@string/widget_title_timesheet">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/attendance_widget_info_timesheet" />
+        </receiver>
+
+        <receiver android:name=".WidgetDialProvider"
+            android:exported="true"
+            android:label="@string/widget_title_dial">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/attendance_widget_info_dial" />
+        </receiver>
+
+        <activity
+            android:name=".WidgetConfigureActivity"
+            android:label="@string/title_widget_configure"
+            android:exported="true"
+            android:theme="@style/Theme.HRMS">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+
         <!-- FileProvider for secure image sharing and viewing -->
         <provider
             android:name="androidx.core.content.FileProvider"
