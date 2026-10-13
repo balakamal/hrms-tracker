@@ -177,8 +177,9 @@ class WidgetConfigureActivity : AppCompatActivity() {
                 "HRMS Row (Medium 4x1)",
                 "HRMS Pack-up Clock (3x1)",
                 "HRMS Timesheet Companion (4x1)",
-                "HRMS Badge (Small 2x2)",
-                "HRMS Wellbeing Dial (2x2)"
+                "HRMS Interactive Carousel (Small 2x2)",
+                "HRMS Wellbeing Dial (2x2)",
+                "HRMS Lockscreen Pill (2x1)"
             )
             val providerClasses = arrayOf(
                 AttendanceAppWidgetProvider::class.java,
@@ -186,7 +187,8 @@ class WidgetConfigureActivity : AppCompatActivity() {
                 WidgetCountdownProvider::class.java,
                 WidgetTimesheetProvider::class.java,
                 AttendanceAppWidgetProviderSmall::class.java,
-                WidgetDialProvider::class.java
+                WidgetDialProvider::class.java,
+                WidgetLockScreenProvider::class.java
             )
 
             AlertDialog.Builder(this, R.style.Theme_HRMS_Dialog)

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="90dp"
+    android:minHeight="40dp"
+    android:minResizeWidth="80dp"
+    android:minResizeHeight="35dp"
+    android:targetCellWidth="2"
+    android:targetCellHeight="1"
+    android:updatePeriodMillis="1800000"
+    android:initialLayout="@layout/attendance_widget_lockscreen"
+    android:initialKeyguardLayout="@layout/attendance_widget_lockscreen"
+    android:previewLayout="@layout/attendance_widget_lockscreen"
+    android:previewImage="@drawable/preview_widget_small"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="keyguard|home_screen"
+    android:widgetFeatures="reconfigurable|configuration_optional"
+    android:configure="com.balakamal.hrmstracker.WidgetConfigureActivity"
+    android:description="@string/widget_description_lockscreen" />

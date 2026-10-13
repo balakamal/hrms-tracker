@@ -100,7 +100,8 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                         metrics.statusText,
                         metrics.progressPercent,
                         metrics.progressRemaining,
-                        "Last updated: " + AttendanceAppWidgetProvider.getCurrentTime()
+                        "Last updated: " + AttendanceAppWidgetProvider.getCurrentTime(),
+                        metrics.breakCount
                     )
                     AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
 

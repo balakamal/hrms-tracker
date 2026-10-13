@@ -248,6 +248,7 @@ class MainActivity : AppCompatActivity() {
             // Ignore
         }
         updateNudgeOverlayState(animate = false)
+        LockScreenLiveCardManager.updateLiveCard(this)
     }
 
     override fun onPause() {
@@ -844,9 +845,13 @@ class MainActivity : AppCompatActivity() {
         val timesheetFormatted = SimpleDateFormat("hh:mm a", Locale.US).format(timesheetCal.time)
         val timesheetStatus = if (timesheetEnabled) "Daily ($timesheetFormatted)" else "Disabled"
 
+        val lockscreenLiveEnabled = LockScreenLiveCardManager.isLiveCardEnabled(this)
+
         val options = arrayOf(
             "Shift Target Hours (Current: ${targetHours}h)",
             "Customize Home Screen Widgets (Theme & Transparency)",
+            if (lockscreenLiveEnabled) "Lock Screen Live Activity: Enabled" else "Lock Screen Live Activity: Disabled",
+            "Lock Screen Setup & Help (Samsung & Android)",
             "Daily Timesheet Reminder: $timesheetStatus",
             if (nudgeEnabled) "Leave Office Alerts: Every 2 Min (Enabled)" else "Leave Office Alerts: Every 2 Min (Disabled)",
             if (notifComplete) "Shift Complete Alerts: Enabled" else "Shift Complete Alerts: Disabled",
@@ -864,8 +869,18 @@ class MainActivity : AppCompatActivity() {
                 when (which) {
                     0 -> showTargetHoursDialog()
                     1 -> startActivity(Intent(this, WidgetConfigureActivity::class.java))
-                    2 -> showTimesheetReminderDialog()
-                    3 -> {
+                    2 -> {
+                        val nextState = !lockscreenLiveEnabled
+                        LockScreenLiveCardManager.setLiveCardEnabled(this, nextState)
+                        Toast.makeText(
+                            this,
+                            if (nextState) "Lock Screen Live Activity enabled" else "Lock Screen Live Activity disabled",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    3 -> showLockScreenHelpDialog()
+                    4 -> showTimesheetReminderDialog()
+                    5 -> {
                         val nextState = !nudgeEnabled
                         ShiftAlertManager.setNudgeEnabled(this, nextState)
                         Toast.makeText(
@@ -874,7 +889,7 @@ class MainActivity : AppCompatActivity() {
                             Toast.LENGTH_SHORT
                         ).show()
                     }
-                    4 -> {
+                    6 -> {
                         val nextState = !notifComplete
                         sharedPrefs.edit().putBoolean(KEY_NOTIF_SHIFT_COMPLETE, nextState).apply()
                         Toast.makeText(
@@ -883,7 +898,7 @@ class MainActivity : AppCompatActivity() {
                             Toast.LENGTH_SHORT
                         ).show()
                     }
-                    5 -> {
+                    7 -> {
                         val nextState = !notifPre
                         sharedPrefs.edit().putBoolean(KEY_NOTIF_PRE_EXIT, nextState).apply()
                         Toast.makeText(
@@ -892,7 +907,7 @@ class MainActivity : AppCompatActivity() {
                             Toast.LENGTH_SHORT
                         ).show()
                     }
-                    6 -> {
+                    8 -> {
                         val msg = if (wfh) {
                             "Your workspace is set to Remote (WFH) according to official HRMS records."
                         } else {
@@ -900,14 +915,35 @@ class MainActivity : AppCompatActivity() {
                         }
                         Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
                     }
-                    7 -> showLeaveBalanceDialog()
-                    8 -> {
+                    9 -> showLeaveBalanceDialog()
+                    10 -> {
                         injectScriptFromAssets()
                         Toast.makeText(this, "Insights Widget re-injected!", Toast.LENGTH_SHORT).show()
                     }
-                    9 -> clearTokensAndShowLogin()
-                    10 -> showAboutDialog()
+                    11 -> clearTokensAndShowLogin()
+                    12 -> showAboutDialog()
                 }
+            }
+            .setNegativeButton("Close", null)
+            .show()
+    }
+
+    private fun showLockScreenHelpDialog() {
+        val message = "📱 Universal Lock Screen Live Activity:\n" +
+                "• Displays your real-time work duration, departure countdown, and progress bar directly on your Lock Screen and Always On Display (AOD).\n" +
+                "• Works natively out of the box on Samsung Galaxy, Google Pixel, OnePlus, Xiaomi, and all Android devices.\n" +
+                "• Includes 1-tap lockscreen shortcuts to Refresh and submit Timesheets.\n\n" +
+                "⭐ For Samsung Galaxy Users (Good Lock / LockStar):\n" +
+                "• Samsung's default lockscreen sub-clock widget selector only allows Samsung system apps.\n" +
+                "• To pin any HRMS AppWidget (such as our Lockscreen Pill, Pack-up Clock, or Dashboard) anywhere on your Galaxy lock screen, install 'Good Lock' from Galaxy Store, open 'LockStar', tap the lock screen preview, and tap '+' to add HRMS widgets!"
+
+        AlertDialog.Builder(this, R.style.Theme_HRMS_Dialog)
+            .setTitle("Lock Screen Setup & Help")
+            .setMessage(message)
+            .setPositiveButton("Test Live Card") { _, _ ->
+                LockScreenLiveCardManager.setLiveCardEnabled(this, true)
+                LockScreenLiveCardManager.updateLiveCard(this)
+                Toast.makeText(this, "Live lock screen card refreshed! Lock your phone to view.", Toast.LENGTH_LONG).show()
             }
             .setNegativeButton("Close", null)
             .show()

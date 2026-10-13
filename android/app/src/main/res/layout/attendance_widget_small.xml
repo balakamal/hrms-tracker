@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/widget_m3_bg"
     android:orientation="vertical"
-    android:padding="11dp">
+    android:padding="10dp">
 
     <!-- Header: Mini Label, WFH Capsule & Refresh Button -->
     <RelativeLayout
@@ -13,6 +13,7 @@
         android:layout_height="wrap_content">
 
         <LinearLayout
+            android:id="@+id/widget_header_bar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
@@ -77,18 +78,25 @@
             android:src="@drawable/ic_refresh" />
     </RelativeLayout>
 
-    <!-- Main Content Pod (Elevated Obsidian Pod) -->
+    <!-- Main Content Pod: Interactive 1-Tap Carousel Card -->
     <LinearLayout
+        android:id="@+id/widget_card_pod"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="5dp"
         android:layout_weight="1"
         android:background="@drawable/widget_m3_pill_mint"
+        android:clickable="true"
+        android:focusable="true"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="6dp">
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp">
 
         <TextView
+            android:id="@+id/widget_metric_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:letterSpacing="0.05"
@@ -104,14 +112,14 @@
             android:letterSpacing="-0.02"
             android:text="6h 45m"
             android:textColor="#FFFFFF"
-            android:textSize="23sp"
+            android:textSize="22sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/widget_status_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="1dp"
             android:ellipsize="end"
             android:singleLine="true"
             android:text="Exit: 06:30 PM"
@@ -120,13 +128,91 @@
             android:textStyle="bold" />
     </LinearLayout>
 
+    <!-- Carousel Controls: Prev, Indicators & Next -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/widget_btn_prev"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:background="@drawable/widget_carousel_btn"
+            android:contentDescription="Previous Metric"
+            android:padding="2dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_chevron_left" />
+
+        <!-- 4 Carousel Dots -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/dot_1"
+                android:layout_width="14dp"
+                android:layout_height="6dp"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
+                android:contentDescription="Page 1"
+                android:scaleType="centerInside"
+                android:src="@drawable/widget_dot_active" />
+
+            <ImageView
+                android:id="@+id/dot_2"
+                android:layout_width="14dp"
+                android:layout_height="6dp"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
+                android:contentDescription="Page 2"
+                android:scaleType="centerInside"
+                android:src="@drawable/widget_dot_inactive" />
+
+            <ImageView
+                android:id="@+id/dot_3"
+                android:layout_width="14dp"
+                android:layout_height="6dp"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
+                android:contentDescription="Page 3"
+                android:scaleType="centerInside"
+                android:src="@drawable/widget_dot_inactive" />
+
+            <ImageView
+                android:id="@+id/dot_4"
+                android:layout_width="14dp"
+                android:layout_height="6dp"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
+                android:contentDescription="Page 4"
+                android:scaleType="centerInside"
+                android:src="@drawable/widget_dot_inactive" />
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/widget_btn_next"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:background="@drawable/widget_carousel_btn"
+            android:contentDescription="Next Metric"
+            android:padding="2dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_chevron_right" />
+    </LinearLayout>
+
     <!-- Progress Capsule -->
     <ProgressBar
         android:id="@+id/widget_progress_bar"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
-        android:layout_height="6dp"
-        android:layout_marginTop="6dp"
+        android:layout_height="5dp"
+        android:layout_marginTop="4dp"
         android:max="100"
         android:progress="80"
         android:progressDrawable="@drawable/widget_m3_progress_drawable" />

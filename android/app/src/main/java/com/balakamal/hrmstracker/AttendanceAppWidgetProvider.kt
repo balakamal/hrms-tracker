@@ -30,6 +30,7 @@ data class WidgetMetrics(
     val workTime: String,
     val firstIn: String,
     val breakTime: String,
+    val breakCount: String,
     val exitTime: String,
     val statusText: String,
     val progressPercent: Int,
@@ -42,6 +43,10 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
 
     companion object {
         const val ACTION_REFRESH = "com.balakamal.hrmstracker.ACTION_REFRESH"
+        const val ACTION_CYCLE_PAGE = "com.balakamal.hrmstracker.ACTION_CYCLE_PAGE"
+        const val ACTION_NEXT_PAGE = "com.balakamal.hrmstracker.ACTION_NEXT_PAGE"
+        const val ACTION_PREV_PAGE = "com.balakamal.hrmstracker.ACTION_PREV_PAGE"
+        const val EXTRA_WIDGET_ID = "appWidgetId"
         private const val PREFS_NAME = "HRMS_PREFS"
 
         // Companion-level helper to update any widget instance with dynamic size checks
@@ -79,6 +84,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 val workTime = sharedPrefs.getString("WidgetWorkTime", "0h 00m")
                 val firstIn = sharedPrefs.getString("WidgetFirstIn", "--:--")
                 val breakTime = sharedPrefs.getString("WidgetBreakTime", "0h 00m")
+                val breakCount = sharedPrefs.getString("WidgetBreakCount", "0 Breaks Today") ?: "0 Breaks Today"
                 val exitTime = sharedPrefs.getString("WidgetExitTime", "--:--")
                 val statusText = sharedPrefs.getString("WidgetStatusText", "Not Synced")
                 val progressPercent = sharedPrefs.getInt("WidgetProgressPercent", 0)
@@ -116,12 +122,104 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
 
                 // Layout-specific bindings
                 if (layoutId == R.layout.attendance_widget_small) {
-                    val smallStatus = when {
-                        isWfh && (exitTime == "--:--" || exitTime == "Completed") -> "Remote Day"
-                        isWeekOff -> "Week Off"
-                        else -> "Exit: $exitTime"
+                    val page = sharedPrefs.getInt("WidgetPage_$appWidgetId", 0)
+
+                    // Bind header to open app
+                    views.setOnClickPendingIntent(R.id.widget_title, appPendingIntent)
+
+                    // Bind 1-Tap Pod to cycle forward
+                    val cycleIntent = Intent(context, AttendanceAppWidgetProvider::class.java).apply {
+                        action = ACTION_CYCLE_PAGE
+                        putExtra(EXTRA_WIDGET_ID, appWidgetId)
                     }
-                    views.setTextViewText(R.id.widget_status_text, smallStatus)
+                    val cyclePendingIntent = PendingIntent.getBroadcast(
+                        context,
+                        appWidgetId * 10 + 2,
+                        cycleIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    )
+                    views.setOnClickPendingIntent(R.id.widget_card_pod, cyclePendingIntent)
+
+                    // Bind Prev button
+                    val prevIntent = Intent(context, AttendanceAppWidgetProvider::class.java).apply {
+                        action = ACTION_PREV_PAGE
+                        putExtra(EXTRA_WIDGET_ID, appWidgetId)
+                    }
+                    val prevPendingIntent = PendingIntent.getBroadcast(
+                        context,
+                        appWidgetId * 10 + 3,
+                        prevIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    )
+                    views.setOnClickPendingIntent(R.id.widget_btn_prev, prevPendingIntent)
+
+                    // Bind Next button
+                    val nextIntent = Intent(context, AttendanceAppWidgetProvider::class.java).apply {
+                        action = ACTION_NEXT_PAGE
+                        putExtra(EXTRA_WIDGET_ID, appWidgetId)
+                    }
+                    val nextPendingIntent = PendingIntent.getBroadcast(
+                        context,
+                        appWidgetId * 10 + 4,
+                        nextIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    )
+                    views.setOnClickPendingIntent(R.id.widget_btn_next, nextPendingIntent)
+
+                    // Determine Slide Content based on page
+                    val metricLabel: String
+                    val metricValue: String
+                    val metricValueColor: Int
+                    val metricSubtext: String
+                    val metricSubtextColor: Int
+
+                    when (page) {
+                        1 -> {
+                            // Slide 1: Estimated Exit Time (When Can I Leave?)
+                            metricLabel = "ESTIMATED EXIT"
+                            metricValue = if (isWeekOff) "Enjoy Weekend" else if (isCompleted) "Ready to Leave" else exitTime ?: "--:--"
+                            metricValueColor = if (isCompleted) 0xFF38BDF8.toInt() else 0xFF34D399.toInt()
+                            metricSubtext = if (isWeekOff) "Week Off" else if (isWfh) "Flexible Exit" else if (isCompleted) "Shift Completed 🚀" else "$progressRemaining left"
+                            metricSubtextColor = metricValueColor
+                        }
+                        2 -> {
+                            // Slide 2: Total Breaks Taken & Count
+                            metricLabel = "BREAKS TAKEN"
+                            metricValue = if (isWeekOff) "0m" else breakTime ?: "0h 00m"
+                            metricValueColor = 0xFFF59E0B.toInt() // Warm amber
+                            metricSubtext = if (isWeekOff) "Enjoy Weekend" else if (isWfh) "Remote Breaks" else breakCount
+                            metricSubtextColor = 0xFFFBBF24.toInt()
+                        }
+                        3 -> {
+                            // Slide 3: First In & Daily Summary
+                            metricLabel = "FIRST CLOCK-IN"
+                            metricValue = if (isWeekOff) "--:--" else firstIn ?: "--:--"
+                            metricValueColor = 0xFFA78BFA.toInt() // Lavender
+                            metricSubtext = if (isWeekOff) "Week Off" else "Target: 8.5h • $progressPercent%"
+                            metricSubtextColor = 0xFF94A3B8.toInt()
+                        }
+                        else -> {
+                            // Slide 0: Time at Desk (Total Hours Spent)
+                            metricLabel = "TIME AT DESK"
+                            metricValue = if (isWeekOff && workTime == "0h 00m") "Week Off" else workTime ?: "0h 00m"
+                            metricValueColor = 0xFFFFFFFF.toInt()
+                            metricSubtext = if (isWeekOff) "Rest & Recharge" else if (isWfh) "Remote Workspace" else if (isCompleted) "Goal Met • 100%" else "$displayStatus • $progressPercent%"
+                            metricSubtextColor = statusColor
+                        }
+                    }
+
+                    views.setTextViewText(R.id.widget_metric_label, metricLabel)
+                    views.setTextViewText(R.id.widget_work_time_value, metricValue)
+                    views.setTextColor(R.id.widget_work_time_value, metricValueColor)
+                    views.setTextViewText(R.id.widget_status_text, metricSubtext)
+                    views.setTextColor(R.id.widget_status_text, metricSubtextColor)
+
+                    // 4 Indicator Dots
+                    views.setImageViewResource(R.id.dot_1, if (page == 0) R.drawable.widget_dot_active else R.drawable.widget_dot_inactive)
+                    views.setImageViewResource(R.id.dot_2, if (page == 1) R.drawable.widget_dot_active else R.drawable.widget_dot_inactive)
+                    views.setImageViewResource(R.id.dot_3, if (page == 2) R.drawable.widget_dot_active else R.drawable.widget_dot_inactive)
+                    views.setImageViewResource(R.id.dot_4, if (page == 3) R.drawable.widget_dot_active else R.drawable.widget_dot_inactive)
+
                     views.setProgressBar(R.id.widget_progress_bar, 100, progressPercent, false)
                 } else if (layoutId == R.layout.attendance_widget_medium) {
                     views.setTextViewText(R.id.widget_exit_time_value, if (isWeekOff && exitTime == "--:--") "Enjoy Weekend" else exitTime)
@@ -152,6 +250,10 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     views.setTextViewText(R.id.widget_progress_percent, "$progressPercent%")
                     views.setTextViewText(R.id.widget_work_time_value, if (isWeekOff && workTime == "0h 00m") "Week Off" else workTime)
                     views.setTextViewText(R.id.widget_status_text, if (isCompleted) "Shift Complete" else if (isWeekOff) "Week Off" else progressRemaining)
+                } else if (layoutId == R.layout.attendance_widget_lockscreen) {
+                    views.setTextViewText(R.id.txt_widget_work_time, if (isWeekOff && workTime == "0h 00m") "Week Off" else workTime)
+                    views.setTextViewText(R.id.txt_widget_exit_time, if (isWeekOff) "Enjoy Weekend" else "Exit: $exitTime")
+                    views.setTextViewText(R.id.txt_widget_status, if (isCompleted) "GOAL MET" else if (isWfh) "WFH" else if (isWeekOff) "WEEK OFF" else "IN-OFFICE")
                 } else if (layoutId == R.layout.attendance_widget) {
                     val subtitle = when {
                         isWfh -> "REMOTE WORKDAY"
@@ -221,7 +323,8 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             
             if (defaultLayoutId == R.layout.attendance_widget_countdown ||
                 defaultLayoutId == R.layout.attendance_widget_timesheet ||
-                defaultLayoutId == R.layout.attendance_widget_dial) {
+                defaultLayoutId == R.layout.attendance_widget_dial ||
+                defaultLayoutId == R.layout.attendance_widget_lockscreen) {
                 return defaultLayoutId
             }
 
@@ -237,19 +340,23 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             statusText: String,
             progressPercent: Int,
             progressRemaining: String,
-            lastUpdated: String
+            lastUpdated: String,
+            breakCount: String = "0 Breaks Today"
         ) {
             val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             sharedPrefs.edit()
                 .putString("WidgetWorkTime", workTime)
                 .putString("WidgetFirstIn", firstIn)
                 .putString("WidgetBreakTime", breakTime)
+                .putString("WidgetBreakCount", breakCount)
                 .putString("WidgetExitTime", exitTime)
                 .putString("WidgetStatusText", statusText)
                 .putInt("WidgetProgressPercent", progressPercent)
                 .putString("WidgetProgressRemaining", progressRemaining)
                 .putString("WidgetLastUpdated", lastUpdated)
                 .apply()
+
+            LockScreenLiveCardManager.updateLiveCard(context)
         }
 
         fun triggerWidgetUpdate(context: Context) {
@@ -296,6 +403,16 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             for (id in dialIds) {
                 updateAppWidget(context, appWidgetManager, id, R.layout.attendance_widget_dial)
             }
+
+            // Lock Screen Compact Widget
+            val lockscreenComponent = ComponentName(context, WidgetLockScreenProvider::class.java)
+            val lockscreenIds = appWidgetManager.getAppWidgetIds(lockscreenComponent)
+            for (id in lockscreenIds) {
+                updateAppWidget(context, appWidgetManager, id, R.layout.attendance_widget_lockscreen)
+            }
+
+            // Sync Universal Lock Screen Live Activity Card
+            LockScreenLiveCardManager.updateLiveCard(context)
         }
 
         fun getCurrentTime(): String {
@@ -333,14 +450,24 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 val firstClockIn = logs.firstOrNull { it.isIn == 0 }?.time ?: logs.first().time
 
                 var lastOutTime: Date? = null
+                var breakCount = 0
+                var inBreak = false
                 for (log in logs) {
                     if (log.isIn == 0) {
+                        if (inBreak) {
+                            breakCount++
+                            inBreak = false
+                        }
                         lastInTime = log.time
                     } else if (log.isIn == 1 && lastInTime != null) {
                         workDurationMs += (log.time.time - lastInTime.time)
                         lastOutTime = log.time
                         lastInTime = null
+                        inBreak = true
                     }
+                }
+                if (inBreak) {
+                    breakCount++
                 }
 
                 val isClockedIn = lastInTime != null
@@ -362,6 +489,11 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 val firstInStr = SimpleDateFormat("hh:mm a", Locale.US).format(firstClockIn)
                 val workTimeStr = formatMinutes(totalWorkMinutes)
                 val breakTimeStr = formatMinutes(totalBreakMinutes)
+                val breakCountStr = when (breakCount) {
+                    0 -> "No Breaks Today"
+                    1 -> "1 Break Today"
+                    else -> "$breakCount Breaks Today"
+                }
                 
                 var exitTimeStr = "Completed"
                 if (!completed) {
@@ -379,7 +511,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     else -> "Not Clocked In"
                 }
 
-                return WidgetMetrics(workTimeStr, firstInStr, breakTimeStr, exitTimeStr, statusText, progressPercent, progressRemaining)
+                return WidgetMetrics(workTimeStr, firstInStr, breakTimeStr, breakCountStr, exitTimeStr, statusText, progressPercent, progressRemaining)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -516,6 +648,23 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
+        if (intent.action == ACTION_CYCLE_PAGE || intent.action == ACTION_NEXT_PAGE || intent.action == ACTION_PREV_PAGE) {
+            val appWidgetId = intent.getIntExtra(EXTRA_WIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
+            if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                val pageKey = "WidgetPage_$appWidgetId"
+                val currentPage = sharedPrefs.getInt(pageKey, 0)
+                val newPage = when (intent.action) {
+                    ACTION_PREV_PAGE -> (currentPage + 3) % 4
+                    else -> (currentPage + 1) % 4
+                }
+                sharedPrefs.edit().putInt(pageKey, newPage).apply()
+                val appWidgetManager = AppWidgetManager.getInstance(context)
+                updateAppWidget(context, appWidgetManager, appWidgetId, defaultLayoutId)
+            }
+            return
+        }
+
         if (intent.action == ACTION_REFRESH) {
             val appWidgetManager = AppWidgetManager.getInstance(context)
             
@@ -526,7 +675,8 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 AttendanceAppWidgetProviderSmall::class.java to R.layout.attendance_widget_small,
                 WidgetCountdownProvider::class.java to R.layout.attendance_widget_countdown,
                 WidgetTimesheetProvider::class.java to R.layout.attendance_widget_timesheet,
-                WidgetDialProvider::class.java to R.layout.attendance_widget_dial
+                WidgetDialProvider::class.java to R.layout.attendance_widget_dial,
+                WidgetLockScreenProvider::class.java to R.layout.attendance_widget_lockscreen
             )
 
             for ((providerClass, defaultLayout) in providers) {
@@ -660,7 +810,8 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                         metrics.statusText,
                         metrics.progressPercent,
                         metrics.progressRemaining,
-                        "Last updated: " + getCurrentTime()
+                        "Last updated: " + getCurrentTime(),
+                        metrics.breakCount
                     )
                     // Check and trigger Completed notification if complete
                     checkAndSendNotification(context, response.toString(), targetHours)
@@ -803,3 +954,8 @@ class WidgetTimesheetProvider : AttendanceAppWidgetProvider() {
 class WidgetDialProvider : AttendanceAppWidgetProvider() {
     override val defaultLayoutId: Int = R.layout.attendance_widget_dial
 }
+
+class WidgetLockScreenProvider : AttendanceAppWidgetProvider() {
+    override val defaultLayoutId: Int = R.layout.attendance_widget_lockscreen
+}
+

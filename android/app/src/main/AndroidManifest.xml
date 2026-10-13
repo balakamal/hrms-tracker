@@ -42,17 +42,24 @@
                 android:resource="@xml/shortcuts" />
         </activity-alias>
 
-        <!-- Android Home Screen Widgets -->
+        <!-- Android Home Screen & Lock Screen Widgets -->
         <receiver android:name=".AttendanceAppWidgetProvider"
             android:exported="true"
             android:label="HRMS Dashboard (Large)">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
+                <action android:name="com.balakamal.hrmstracker.ACTION_CYCLE_PAGE" />
+                <action android:name="com.balakamal.hrmstracker.ACTION_NEXT_PAGE" />
+                <action android:name="com.balakamal.hrmstracker.ACTION_PREV_PAGE" />
+                <action android:name="com.samsung.android.intent.action.REQUEST_SERVICEBOX_REMOTEVIEWS" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/attendance_widget_info" />
+            <meta-data
+                android:name="com.samsung.systemui.facewidget.executable"
+                android:value="true" />
         </receiver>
 
         <receiver android:name=".AttendanceAppWidgetProviderMedium"
@@ -61,22 +68,33 @@
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
+                <action android:name="com.samsung.android.intent.action.REQUEST_SERVICEBOX_REMOTEVIEWS" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/attendance_widget_info_medium" />
+            <meta-data
+                android:name="com.samsung.systemui.facewidget.executable"
+                android:value="true" />
         </receiver>
 
         <receiver android:name=".AttendanceAppWidgetProviderSmall"
             android:exported="true"
-            android:label="HRMS Badge (Small)">
+            android:label="HRMS Interactive Carousel (Small)">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
+                <action android:name="com.balakamal.hrmstracker.ACTION_CYCLE_PAGE" />
+                <action android:name="com.balakamal.hrmstracker.ACTION_NEXT_PAGE" />
+                <action android:name="com.balakamal.hrmstracker.ACTION_PREV_PAGE" />
+                <action android:name="com.samsung.android.intent.action.REQUEST_SERVICEBOX_REMOTEVIEWS" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/attendance_widget_info_small" />
+            <meta-data
+                android:name="com.samsung.systemui.facewidget.executable"
+                android:value="true" />
         </receiver>
 
         <receiver android:name=".WidgetCountdownProvider"
@@ -85,10 +103,14 @@
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
+                <action android:name="com.samsung.android.intent.action.REQUEST_SERVICEBOX_REMOTEVIEWS" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/attendance_widget_info_countdown" />
+            <meta-data
+                android:name="com.samsung.systemui.facewidget.executable"
+                android:value="true" />
         </receiver>
 
         <receiver android:name=".WidgetTimesheetProvider"
@@ -97,10 +119,14 @@
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
+                <action android:name="com.samsung.android.intent.action.REQUEST_SERVICEBOX_REMOTEVIEWS" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/attendance_widget_info_timesheet" />
+            <meta-data
+                android:name="com.samsung.systemui.facewidget.executable"
+                android:value="true" />
         </receiver>
 
         <receiver android:name=".WidgetDialProvider"
@@ -109,16 +135,39 @@
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
+                <action android:name="com.samsung.android.intent.action.REQUEST_SERVICEBOX_REMOTEVIEWS" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/attendance_widget_info_dial" />
+            <meta-data
+                android:name="com.samsung.systemui.facewidget.executable"
+                android:value="true" />
+        </receiver>
+
+        <!-- Dedicated Lock Screen Pill Widget -->
+        <receiver android:name=".WidgetLockScreenProvider"
+            android:exported="true"
+            android:label="@string/widget_title_lockscreen">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
+                <action android:name="com.samsung.android.intent.action.REQUEST_SERVICEBOX_REMOTEVIEWS" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/attendance_widget_info_lockscreen" />
+            <meta-data
+                android:name="com.samsung.systemui.facewidget.executable"
+                android:value="true" />
         </receiver>
 
         <activity
             android:name=".WidgetConfigureActivity"
             android:label="@string/title_widget_configure"
             android:exported="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
             android:theme="@style/Theme.HRMS">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />

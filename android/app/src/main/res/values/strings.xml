@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">HRMS</string>
     <string name="widget_description">Shows your daily attendance - First In, Work Time, Break, and Estimated Exit time.</string>
-    <string name="widget_description_small">Compact badge showing your biometric office hours spent today.</string>
+    <string name="widget_description_small">Interactive carousel showing hours spent, departure time, and breaks taken.</string>
     <string name="widget_description_medium">Info card showing office hours spent and estimated exit time side-by-side.</string>
     <string name="widget_description_large">Full metrics dashboard showing shift progress, First In, Work Time, Break, and Est. Exit.</string>
     <string name="shortcut_timesheet_short">Timesheet</string>
@@ -16,6 +16,8 @@
     <string name="widget_title_timesheet">HRMS Timesheet Companion</string>
     <string name="widget_title_dial">HRMS Wellbeing Dial</string>
     <string name="title_widget_configure">Widget Appearance</string>
+    <string name="widget_title_lockscreen">HRMS Lockscreen Pill</string>
+    <string name="widget_description_lockscreen">Glanceable lock screen badge showing current work hours and departure time.</string>
     <string name="timesheet_reminder_title">Daily Timesheet Reminder</string>
     <string name="timesheet_reminder_channel_name">Timesheet Reminders</string>
     <string name="timesheet_reminder_channel_desc">Daily reminders to submit your work timesheet</string>

@@ -23,29 +23,59 @@
         android:fillColor="#131B2C"
         android:strokeColor="#25334A"
         android:strokeWidth="1"
-        android:pathData="M22,28 L118,28 A12,12 0 0,1 130,40 L130,102 A12,12 0 0,1 118,114 L22,114 A12,12 0 0,1 10,102 L10,40 A12,12 0 0,1 22,28 Z" />
+        android:pathData="M18,26 L122,26 A10,10 0 0,1 132,36 L132,96 A10,10 0 0,1 122,106 L18,106 A10,10 0 0,1 8,96 L8,36 A10,10 0 0,1 18,26 Z" />
 
     <!-- Subtitle: TIME AT DESK -->
     <path
         android:fillColor="#64748B"
-        android:pathData="M38,38 H102 V44 H38 Z" />
+        android:pathData="M42,34 H98 V40 H42 Z" />
 
     <!-- Work Time: 6h 45m -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M30,52 H110 V74 H30 Z" />
+        android:pathData="M30,48 H110 V68 H30 Z" />
 
     <!-- Exit Status Pill -->
     <path
         android:fillColor="#34D399"
-        android:pathData="M34,84 H106 V92 H34 Z" />
+        android:pathData="M34,76 H106 V84 H34 Z" />
+
+    <!-- Carousel Nav: Left Chevron -->
+    <path
+        android:fillColor="#64748B"
+        android:pathData="M16,112 L19,109 L20,110 L18,112 L20,114 L19,115 Z" />
+
+    <!-- Carousel Nav: Active Pill (Dot 1) -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M46,111 L58,111 A1.5,1.5 0 0,1 59.5,112.5 A1.5,1.5 0 0,1 58,114 L46,114 A1.5,1.5 0 0,1 44.5,112.5 A1.5,1.5 0 0,1 46,111 Z" />
+
+    <!-- Carousel Nav: Dot 2 -->
+    <path
+        android:fillColor="#334155"
+        android:pathData="M67,112.5 A1.5,1.5 0 1,1 70,112.5 A1.5,1.5 0 1,1 67,112.5 Z" />
+
+    <!-- Carousel Nav: Dot 3 -->
+    <path
+        android:fillColor="#334155"
+        android:pathData="M77,112.5 A1.5,1.5 0 1,1 80,112.5 A1.5,1.5 0 1,1 77,112.5 Z" />
+
+    <!-- Carousel Nav: Dot 4 -->
+    <path
+        android:fillColor="#334155"
+        android:pathData="M87,112.5 A1.5,1.5 0 1,1 90,112.5 A1.5,1.5 0 1,1 87,112.5 Z" />
+
+    <!-- Carousel Nav: Right Chevron -->
+    <path
+        android:fillColor="#64748B"
+        android:pathData="M124,112 L121,109 L120,110 L122,112 L120,114 L121,115 Z" />
 
     <!-- Progress Bar Track -->
     <path
         android:fillColor="#0B0F19"
-        android:pathData="M16,122 L124,122 A3,3 0 0,1 127,125 A3,3 0 0,1 124,128 L16,128 A3,3 0 0,1 13,125 A3,3 0 0,1 16,122 Z" />
+        android:pathData="M14,124 L126,124 A2.5,2.5 0 0,1 128.5,126.5 A2.5,2.5 0 0,1 126,129 L14,129 A2.5,2.5 0 0,1 11.5,126.5 A2.5,2.5 0 0,1 14,124 Z" />
     <!-- Progress Bar Fill -->
     <path
         android:fillColor="#00D09C"
-        android:pathData="M16,122 L102,122 A3,3 0 0,1 105,125 A3,3 0 0,1 102,128 L16,128 A3,3 0 0,1 13,125 A3,3 0 0,1 16,122 Z" />
+        android:pathData="M14,124 L102,124 A2.5,2.5 0 0,1 104.5,126.5 A2.5,2.5 0 0,1 102,129 L14,129 A2.5,2.5 0 0,1 11.5,126.5 A2.5,2.5 0 0,1 14,124 Z" />
 </vector>
