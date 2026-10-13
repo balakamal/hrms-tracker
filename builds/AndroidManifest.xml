@@ -82,7 +82,7 @@
 
             <meta-data
                 android:name="android.app.shortcuts"
-                android:resource="@ref/0x7f130007" />
+                android:resource="@ref/0x7f130008" />
         </activity-alias>
 
         <receiver
@@ -97,11 +97,27 @@
 
                 <action
                     android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
+
+                <action
+                    android:name="com.balakamal.hrmstracker.ACTION_CYCLE_PAGE" />
+
+                <action
+                    android:name="com.balakamal.hrmstracker.ACTION_NEXT_PAGE" />
+
+                <action
+                    android:name="com.balakamal.hrmstracker.ACTION_PREV_PAGE" />
+
+                <action
+                    android:name="com.samsung.android.intent.action.REQUEST_SERVICEBOX_REMOTEVIEWS" />
             </intent-filter>
 
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@ref/0x7f130000" />
+
+            <meta-data
+                android:name="com.samsung.systemui.facewidget.executable"
+                android:value="true" />
         </receiver>
 
         <receiver
@@ -116,15 +132,22 @@
 
                 <action
                     android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
+
+                <action
+                    android:name="com.samsung.android.intent.action.REQUEST_SERVICEBOX_REMOTEVIEWS" />
             </intent-filter>
 
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@ref/0x7f130003" />
+                android:resource="@ref/0x7f130004" />
+
+            <meta-data
+                android:name="com.samsung.systemui.facewidget.executable"
+                android:value="true" />
         </receiver>
 
         <receiver
-            android:label="HRMS Badge (Small)"
+            android:label="HRMS Interactive Carousel (Small)"
             android:name="com.balakamal.hrmstracker.AttendanceAppWidgetProviderSmall"
             android:exported="true">
 
@@ -135,15 +158,31 @@
 
                 <action
                     android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
+
+                <action
+                    android:name="com.balakamal.hrmstracker.ACTION_CYCLE_PAGE" />
+
+                <action
+                    android:name="com.balakamal.hrmstracker.ACTION_NEXT_PAGE" />
+
+                <action
+                    android:name="com.balakamal.hrmstracker.ACTION_PREV_PAGE" />
+
+                <action
+                    android:name="com.samsung.android.intent.action.REQUEST_SERVICEBOX_REMOTEVIEWS" />
             </intent-filter>
 
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@ref/0x7f130004" />
+                android:resource="@ref/0x7f130005" />
+
+            <meta-data
+                android:name="com.samsung.systemui.facewidget.executable"
+                android:value="true" />
         </receiver>
 
         <receiver
-            android:label="@ref/0x7f1000aa"
+            android:label="@ref/0x7f1000ab"
             android:name="com.balakamal.hrmstracker.WidgetCountdownProvider"
             android:exported="true">
 
@@ -154,15 +193,22 @@
 
                 <action
                     android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
+
+                <action
+                    android:name="com.samsung.android.intent.action.REQUEST_SERVICEBOX_REMOTEVIEWS" />
             </intent-filter>
 
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@ref/0x7f130001" />
+
+            <meta-data
+                android:name="com.samsung.systemui.facewidget.executable"
+                android:value="true" />
         </receiver>
 
         <receiver
-            android:label="@ref/0x7f1000ac"
+            android:label="@ref/0x7f1000ae"
             android:name="com.balakamal.hrmstracker.WidgetTimesheetProvider"
             android:exported="true">
 
@@ -173,15 +219,22 @@
 
                 <action
                     android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
+
+                <action
+                    android:name="com.samsung.android.intent.action.REQUEST_SERVICEBOX_REMOTEVIEWS" />
             </intent-filter>
 
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@ref/0x7f130005" />
+                android:resource="@ref/0x7f130006" />
+
+            <meta-data
+                android:name="com.samsung.systemui.facewidget.executable"
+                android:value="true" />
         </receiver>
 
         <receiver
-            android:label="@ref/0x7f1000ab"
+            android:label="@ref/0x7f1000ac"
             android:name="com.balakamal.hrmstracker.WidgetDialProvider"
             android:exported="true">
 
@@ -192,18 +245,53 @@
 
                 <action
                     android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
+
+                <action
+                    android:name="com.samsung.android.intent.action.REQUEST_SERVICEBOX_REMOTEVIEWS" />
             </intent-filter>
 
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@ref/0x7f130002" />
+
+            <meta-data
+                android:name="com.samsung.systemui.facewidget.executable"
+                android:value="true" />
+        </receiver>
+
+        <receiver
+            android:label="@ref/0x7f1000ad"
+            android:name="com.balakamal.hrmstracker.WidgetLockScreenProvider"
+            android:exported="true">
+
+            <intent-filter>
+
+                <action
+                    android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+
+                <action
+                    android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
+
+                <action
+                    android:name="com.samsung.android.intent.action.REQUEST_SERVICEBOX_REMOTEVIEWS" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@ref/0x7f130003" />
+
+            <meta-data
+                android:name="com.samsung.systemui.facewidget.executable"
+                android:value="true" />
         </receiver>
 
         <activity
             android:theme="@ref/0x7f110220"
             android:label="@ref/0x7f1000a2"
             android:name="com.balakamal.hrmstracker.WidgetConfigureActivity"
-            android:exported="true">
+            android:exported="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true">
 
             <intent-filter>
 
@@ -220,7 +308,7 @@
 
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@ref/0x7f130006" />
+                android:resource="@ref/0x7f130007" />
         </provider>
 
         <receiver
