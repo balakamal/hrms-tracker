@@ -64,7 +64,7 @@
             android:ellipsize="end"
             android:singleLine="true"
             android:text="Ready for Submission"
-            android:textColor="#34D399"
+            android:textColor="#39B14A"
             android:textSize="10sp"
             android:textStyle="bold" />
     </LinearLayout>

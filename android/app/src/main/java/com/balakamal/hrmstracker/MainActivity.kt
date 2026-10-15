@@ -285,8 +285,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Setup SwipeRefreshLayout pull-to-refresh
-        swipeRefresh.setColorSchemeColors(Color.parseColor("#2563EB"))
-        swipeRefresh.setProgressBackgroundColorSchemeColor(Color.parseColor("#1A1A26"))
+        swipeRefresh.setColorSchemeColors(ContextCompat.getColor(this, R.color.primary_royal))
+        swipeRefresh.setProgressBackgroundColorSchemeColor(ContextCompat.getColor(this, R.color.bg_surface_card))
         swipeRefresh.setOnRefreshListener {
             webView.reload()
         }

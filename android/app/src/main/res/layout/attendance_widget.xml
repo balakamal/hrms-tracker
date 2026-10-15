@@ -59,7 +59,7 @@
                     android:layout_height="wrap_content"
                     android:letterSpacing="0.06"
                     android:text="WFH ACTIVE"
-                    android:textColor="#FBBF24"
+                    android:textColor="#FFCE20"
                     android:textSize="9sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -122,7 +122,7 @@
                 android:paddingBottom="2dp"
                 android:singleLine="true"
                 android:text="Clocked In"
-                android:textColor="#34D399"
+                android:textColor="#39B14A"
                 android:textSize="10sp"
                 android:textStyle="bold" />
         </RelativeLayout>
@@ -159,7 +159,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentStart="true"
                 android:text="80% Goal"
-                android:textColor="#38BDF8"
+                android:textColor="#0576F8"
                 android:textSize="10sp"
                 android:textStyle="bold" />
 
@@ -206,7 +206,7 @@
                     android:contentDescription="First In"
                     android:scaleType="fitCenter"
                     android:src="@drawable/ic_timer"
-                    android:tint="#38BDF8" />
+                    android:tint="#0576F8" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -344,7 +344,7 @@
                     android:contentDescription="Act. Exit"
                     android:scaleType="fitCenter"
                     android:src="@drawable/ic_timer"
-                    android:tint="#A78BFA" />
+                    android:tint="#0576F8" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -362,7 +362,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:text="05:30 PM"
-                android:textColor="#A78BFA"
+                android:textColor="#0576F8"
                 android:textSize="12sp"
                 android:textStyle="bold" />
         </LinearLayout>

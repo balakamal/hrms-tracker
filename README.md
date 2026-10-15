@@ -26,12 +26,12 @@ A premium, glassmorphic attendance dashboard and insights utility designed for `
 *   **Self-Contained Login**: Opens the official login screen securely. Once logged in, it automatically captures authentication tokens for background work.
 *   **Automatic 24/7 Session Token Rotation**: Native background token manager proactively and reactively rotates JWT tokens via SSO before expiration, keeping shift alerts and home-screen widgets alive without manual app launches.
 *   **Minimalist Home-Screen Widgets**:
-    *   **Multiple Responsive Sizes (Large 4x2 Command Center, Medium 4x1 Split Pane, Small 2x1 Badge)**: Automatically adapts layout and fills the widget space with crisp tabular typography and zero awkward truncation.
-    *   **Bespoke WFH Status Capsule**: Dedicated vector home icon and warm amber glass capsule (`bg_widget_wfh_badge.xml`) replacing unstyled emojis, with automatic background sync against employee status API.
-    *   **Obsidian Glass & Material 3 Expressive System**: Deep dark glass surfaces (`#0D1117`), elevated hero pods (`#161B27`), hairline glass borders, and luminous emerald-to-cyan gradient progress capsules (`#10B981` → `#06B6D4`).
+    *   **Multiple Responsive Sizes (Large 4x2 Command Center, Medium 4x1 Split Pane, Small 2x1 Badge, Countdown Pack-Up, Wellbeing Dial, Timesheet Companion)**: Automatically adapts layout and fills the widget space with crisp tabular typography and zero awkward truncation.
+    *   **Bespoke WFH Status Capsule**: Dedicated vector home icon and Paltech warm gold capsule (`bg_widget_wfh_badge.xml`, `#FFCE20`) replacing unstyled emojis, with automatic background sync against employee status API.
+    *   **Paltech HRMS Consistent Design System**: Deep Navy dark glass surfaces (`#041424`), elevated pods (`#08213D`), hairline brand borders (`#164375`), Averta/Roboto typography, and signature tricolor gradient progress capsules (`#0F47C0` → `#0576F8` → `#39B14A`).
     *   **Unified Metrics Shelf**: High-legibility First In, Total Break, and Estimated Exit tiles paired with subtle micro-icons (`ic_login`, `ic_coffee`, `ic_exit`).
     *   **Immediate Asynchronous Placement**: Uses `goAsync()` to reliably fetch and show real-time stats immediately when placing the widget on the homescreen without falling into offline mode.
-    *   **Dynamic Status Feedback**: Sky cyan celebration highlights on shift completion (`#38BDF8`), warm honey amber during breaks & WFH (`#FBBF24`), vibrant emerald when clocked in (`#34D399`), and clean slate gray when synced.
+    *   **Dynamic Status Feedback**: Paltech work emerald on shift completion & clocked-in (`#39B14A`), sky exit cyan (`#0576F8`), warm gold during breaks & WFH (`#FFCE20`), royal blue on weekends (`#0F47C0`), and clean slate gray when synced.
     *   **1-Tap Home-Screen Refresh**: Tactile frosted circular button with clean white vector icon (`@drawable/ic_refresh`) to trigger biometric background sync without opening the app.
     *   **State synchronization**: Auto-updates on device boot, app launch, home-screen refresh, login/logout, and background work checks.
 

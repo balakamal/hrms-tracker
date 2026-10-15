@@ -68,7 +68,7 @@
             android:layout_height="wrap_content"
             android:letterSpacing="-0.03"
             android:text="85%"
-            android:textColor="#00D09C"
+            android:textColor="#39B14A"
             android:textSize="22sp"
             android:textStyle="bold" />
 
@@ -90,7 +90,7 @@
         android:ellipsize="end"
         android:singleLine="true"
         android:text="1h 15m left"
-        android:textColor="#38BDF8"
+        android:textColor="#0576F8"
         android:textSize="10sp"
         android:textStyle="bold" />
 

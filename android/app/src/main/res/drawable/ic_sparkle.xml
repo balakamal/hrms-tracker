@@ -5,6 +5,6 @@
     android:viewportHeight="24">
   <!-- Samsung One UI Intelligence 4-point smooth sparkle star -->
   <path
-      android:fillColor="#38BDF8"
+      android:fillColor="#0576F8"
       android:pathData="M12,2C12,7.52 7.52,12 2,12c5.52,0 10,4.48 10,10c0,-5.52 4.48,-10 10,-10C16.48,12 12,7.52 12,2z"/>
 </vector>

@@ -112,12 +112,12 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 
                 // Dynamic status color & chip styling
                 val statusColor = when {
-                    isCompleted -> 0xFF38BDF8.toInt() // Luminous sky cyan
-                    isWfh -> 0xFFFBBF24.toInt() // Warm golden amber
-                    isWeekOff -> 0xFFA78BFA.toInt() // Samsung One UI lavender
-                    displayStatus.contains("Break", ignoreCase = true) -> 0xFFF59E0B.toInt() // Warm amber
-                    displayStatus.contains("Clocked In", ignoreCase = true) -> 0xFF00D09C.toInt() // Samsung One UI emerald mint
-                    displayStatus.contains("Sync", ignoreCase = true) -> 0xFF60A5FA.toInt() // Soft blue
+                    isCompleted -> 0xFF39B14A.toInt() // Paltech Green
+                    isWfh -> 0xFFFFCE20.toInt() // Paltech Gold
+                    isWeekOff -> 0xFF0F47C0.toInt() // Paltech Royal Blue
+                    displayStatus.contains("Break", ignoreCase = true) -> 0xFFEEAB55.toInt() // Paltech Warm Amber
+                    displayStatus.contains("Clocked In", ignoreCase = true) -> 0xFF0576F8.toInt() // Paltech Sky Blue
+                    displayStatus.contains("Sync", ignoreCase = true) -> 0xFF0576F8.toInt() // Paltech Sky Blue
                     else -> 0xFF94A3B8.toInt() // Slate grey
                 }
                 views.setTextColor(R.id.widget_status_text, statusColor)
@@ -180,7 +180,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                             // Slide 1: Estimated Exit Time (When Can I Leave?)
                             metricLabel = "ESTIMATED EXIT"
                             metricValue = if (isWeekOff) "Enjoy Weekend" else if (isCompleted) "Ready to Leave" else exitTime ?: "--:--"
-                            metricValueColor = if (isCompleted) 0xFF38BDF8.toInt() else 0xFF34D399.toInt()
+                            metricValueColor = if (isCompleted) 0xFF0576F8.toInt() else 0xFF39B14A.toInt()
                             val actualSubtext = if (actualExitTime != "--:--" && actualExitTime != exitTime) " • Act: $actualExitTime" else ""
                             metricSubtext = if (isWeekOff) "Week Off" else if (isWfh) "Flexible Exit" else if (isCompleted) "Shift Completed 🚀" else "$progressRemaining left$actualSubtext"
                             metricSubtextColor = metricValueColor
@@ -189,15 +189,15 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                             // Slide 2: Total Breaks Taken & Count
                             metricLabel = "BREAKS TAKEN"
                             metricValue = if (isWeekOff) "0m" else breakTime ?: "0h 00m"
-                            metricValueColor = 0xFFF59E0B.toInt() // Warm amber
+                            metricValueColor = 0xFFEEAB55.toInt() // Paltech Warm Amber
                             metricSubtext = if (isWeekOff) "Enjoy Weekend" else if (isWfh) "Remote Breaks" else breakCount
-                            metricSubtextColor = 0xFFFBBF24.toInt()
+                            metricSubtextColor = 0xFFFFCE20.toInt()
                         }
                         3 -> {
                             // Slide 3: First In & Daily Summary
                             metricLabel = "FIRST CLOCK-IN"
                             metricValue = if (isWeekOff) "--:--" else firstIn ?: "--:--"
-                            metricValueColor = 0xFFA78BFA.toInt() // Lavender
+                            metricValueColor = 0xFF0F47C0.toInt() // Paltech Royal Blue
                             metricSubtext = if (isWeekOff) "Week Off" else "Target: 8.5h • $progressPercent%"
                             metricSubtextColor = 0xFF94A3B8.toInt()
                         }

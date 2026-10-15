@@ -16,78 +16,89 @@
 
   // --- STYLES INJECTION ---
   const styles = `
-    /* Widget Container - Samsung One UI Obsidian Glass Aesthetics */
+    /* Widget Container - Obsidian Glass Theme */
     #at-widget-container {
-      --at-bg-card: linear-gradient(145deg, rgba(22, 28, 44, 0.94) 0%, rgba(11, 14, 24, 0.98) 100%);
-      --at-bg-badge: linear-gradient(135deg, rgba(28, 36, 54, 0.9) 0%, rgba(14, 18, 28, 0.95) 100%);
-      --at-bg-panels: #0F131D;
-      --at-text-primary: #FFFFFF;
+      --at-bg-card: linear-gradient(165deg, rgba(20, 24, 33, 0.95) 0%, rgba(13, 16, 23, 0.98) 100%);
+      --at-bg-badge: linear-gradient(145deg, rgba(28, 33, 44, 0.95) 0%, rgba(16, 20, 28, 0.97) 100%);
+      --at-bg-panels: #12161F;
+      --at-text-primary: #F8FAFC;
       --at-text-secondary: #94A3B8;
-      --at-border: rgba(255, 255, 255, 0.12);
-      --at-border-input: rgba(255, 255, 255, 0.14);
-      --at-bg-input: rgba(255, 255, 255, 0.06);
-      --at-bg-item: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
-      --at-shadow: rgba(0, 0, 0, 0.55);
+      --at-border: rgba(255, 255, 255, 0.08);
+      --at-border-input: rgba(255, 255, 255, 0.12);
+      --at-bg-input: rgba(255, 255, 255, 0.04);
+      --at-bg-item: rgba(255, 255, 255, 0.035);
+      --at-shadow: rgba(0, 0, 0, 0.5);
       --at-title-color: #FFFFFF;
-      --at-panel-border: rgba(255, 255, 255, 0.1);
-      --at-accent-work: #00D09C;
-      --at-accent-exit: #38BDF8;
-      --at-bg-header: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.01) 100%);
+      --at-panel-border: rgba(255, 255, 255, 0.08);
+      --at-accent-work: #10B981;       /* Clean Emerald */
+      --at-accent-exit: #3B82F6;       /* Vibrant Cobalt */
+      --at-accent-actual: #818CF8;     /* Soft Indigo */
+      --at-accent-gold: #F59E0B;       /* Warm Amber */
+      --at-bg-header: transparent;
 
       position: fixed;
       bottom: 24px;
       right: 24px;
-      z-index: 99999;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      z-index: 2147483647 !important;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Helvetica Neue", sans-serif;
       color: var(--at-text-primary);
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
     #at-widget-container.at-theme-light {
-      --at-bg-card: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(241, 245, 249, 0.95) 100%);
-      --at-bg-badge: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(241, 245, 249, 0.9) 100%);
+      --at-bg-card: linear-gradient(165deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.96) 100%);
+      --at-bg-badge: linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(241, 245, 249, 0.96) 100%);
       --at-bg-panels: #FFFFFF;
       --at-text-primary: #0F172A;
       --at-text-secondary: #64748B;
-      --at-border: rgba(0, 0, 0, 0.1);
+      --at-border: rgba(0, 0, 0, 0.08);
       --at-border-input: rgba(0, 0, 0, 0.12);
-      --at-bg-input: rgba(0, 0, 0, 0.04);
-      --at-bg-item: rgba(248, 250, 252, 0.9);
-      --at-shadow: rgba(0, 0, 0, 0.15);
+      --at-bg-input: #F1F5F9;
+      --at-bg-item: rgba(241, 245, 249, 0.65);
+      --at-shadow: rgba(15, 23, 42, 0.12);
       --at-title-color: #0F172A;
-      --at-panel-border: rgba(0, 0, 0, 0.08);
+      --at-panel-border: rgba(0, 0, 0, 0.06);
       --at-accent-work: #059669;
-      --at-accent-exit: #0284C7;
-      --at-accent-actual: #7C3AED;
-      --at-bg-header: linear-gradient(180deg, rgba(0, 0, 0, 0.03) 0%, rgba(0, 0, 0, 0) 100%);
+      --at-accent-exit: #2563EB;
+      --at-accent-actual: #4F46E5;
+      --at-accent-gold: #D97706;
+      --at-bg-header: transparent;
     }
     #at-widget-container.at-theme-light .highlight-actual {
-      color: #7C3AED !important;
+      color: #4F46E5 !important;
       text-shadow: none;
     }
     #at-widget-container.at-theme-light .highlight-exit {
-      color: #0284C7 !important;
+      color: #2563EB !important;
       text-shadow: none;
     }
     #at-widget-container.at-theme-light .highlight-work {
       color: #059669 !important;
       text-shadow: none;
     }
+    #at-widget-container.at-theme-light #at-wfh-badge,
+    #at-widget-container.at-theme-light #at-badge-wfh {
+      background: #FFFBEB !important;
+      border-color: rgba(245, 158, 11, 0.3) !important;
+      color: #D97706 !important;
+    }
     #at-widget-container.at-dragging {
       transition: none !important;
     }
 
-    /* Floating Badge Mode (Samsung One UI Frosted Pill) */
+    /* Floating Badge Mode (Frosted Glass Pill) */
     .at-badge {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       background: var(--at-bg-badge);
-      backdrop-filter: blur(24px) saturate(200%);
-      -webkit-backdrop-filter: blur(24px) saturate(200%);
-      border: 1.5px solid var(--at-border);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid var(--at-border);
       border-radius: 9999px;
-      padding: 9px 18px;
-      box-shadow: 0 10px 30px var(--at-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      padding: 10px 18px;
+      box-shadow: 0 12px 32px -4px var(--at-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.12);
       cursor: pointer;
       user-select: none;
       transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, border-color 0.2s ease;
@@ -95,18 +106,22 @@
       touch-action: none;
     }
     .at-badge:hover {
-      transform: translateY(-2px) scale(1.03);
-      border-color: rgba(56, 189, 248, 0.5);
-      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(56, 189, 248, 0.25);
+      transform: translateY(-2px) scale(1.02);
+      border-color: rgba(255, 255, 255, 0.18);
+      box-shadow: 0 16px 36px -4px var(--at-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+    #at-widget-container.at-theme-light .at-badge:hover {
+      border-color: rgba(0, 0, 0, 0.15);
+      box-shadow: 0 16px 36px -4px rgba(15, 23, 42, 0.15);
     }
     .at-badge:active {
-      transform: scale(0.96);
+      transform: scale(0.97);
     }
     .at-badge svg {
-      width: 18px;
-      height: 18px;
-      fill: #38BDF8;
-      filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.4));
+      width: 17px;
+      height: 17px;
+      fill: var(--at-accent-exit);
+      filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.4));
     }
     .at-badge-text {
       font-weight: 700;
@@ -114,36 +129,36 @@
       letter-spacing: -0.01em;
     }
 
-    /* Main Dashboard Card (One UI 26px Squircle Surface) */
+    /* Main Dashboard Card (Modern Obsidian Glass) */
     .at-card {
       width: 330px;
       background: var(--at-bg-card);
-      backdrop-filter: blur(28px) saturate(210%);
-      -webkit-backdrop-filter: blur(28px) saturate(210%);
-      border: 1.5px solid var(--at-border);
-      border-radius: 26px;
-      padding: 20px;
-      box-shadow: 0 20px 50px var(--at-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(32px) saturate(190%);
+      -webkit-backdrop-filter: blur(32px) saturate(190%);
+      border: 1px solid var(--at-border);
+      border-radius: 20px;
+      padding: 18px 18px 20px 18px;
+      box-shadow: 0 24px 50px -12px var(--at-shadow), 0 8px 20px -4px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.12);
       position: relative;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 15px;
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       color: var(--at-text-primary);
     }
+    #at-widget-container.at-theme-light .at-card {
+      box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.14), 0 4px 12px -2px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255, 255, 255, 1);
+    }
 
-    /* Header */
+    /* Integrated Header */
     .at-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       cursor: move;
       user-select: none;
-      background: var(--at-bg-header);
-      margin: -20px -20px 0 -20px;
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--at-panel-border);
+      padding-bottom: 2px;
     }
     .at-title-group {
       display: flex;
@@ -151,42 +166,52 @@
     }
     .at-title {
       font-weight: 700;
-      font-size: 16px;
+      font-size: 15px;
       letter-spacing: -0.01em;
       color: var(--at-title-color);
     }
     .at-subtitle {
-      font-size: 11px;
+      font-size: 11.5px;
       color: var(--at-text-secondary);
       font-weight: 500;
-      margin-top: 2px;
-      letter-spacing: 0.02em;
+      margin-top: 1px;
+      letter-spacing: 0.01em;
     }
     .at-header-actions {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       align-items: center;
     }
     .at-btn {
-      background: rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.08);
       color: var(--at-text-secondary);
       cursor: pointer;
-      padding: 6px;
-      border-radius: 10px;
+      padding: 7px;
+      border-radius: 9px;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s ease;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .at-btn:hover {
-      background: rgba(255, 255, 255, 0.14);
-      color: #FFFFFF;
-      transform: scale(1.05);
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: var(--at-text-primary);
+      transform: translateY(-1px);
+    }
+    #at-widget-container.at-theme-light .at-btn {
+      background: rgba(0, 0, 0, 0.04);
+      border-color: rgba(0, 0, 0, 0.06);
+    }
+    #at-widget-container.at-theme-light .at-btn:hover {
+      background: rgba(0, 0, 0, 0.08);
+      border-color: rgba(0, 0, 0, 0.12);
+      color: var(--at-text-primary);
     }
     .at-btn svg {
-      width: 16px;
-      height: 16px;
+      width: 15px;
+      height: 15px;
       fill: currentColor;
     }
     .at-drag-handle {
@@ -195,43 +220,52 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 6px;
-      border-radius: 10px;
+      padding: 7px;
+      border-radius: 9px;
       transition: all 0.2s ease;
       touch-action: none;
     }
     .at-drag-handle:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: #FFFFFF;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--at-text-primary);
+    }
+    #at-widget-container.at-theme-light .at-drag-handle:hover {
+      background: rgba(0, 0, 0, 0.06);
+      color: var(--at-text-primary);
     }
     .at-drag-handle svg {
-      width: 16px;
-      height: 16px;
+      width: 15px;
+      height: 15px;
       fill: currentColor;
     }
 
-    /* Status Banner (Now Bar Capsule) */
+    /* Status Banner (Capsule Style) */
     .at-status-banner {
       display: flex;
       align-items: center;
-      gap: 8px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      padding: 9px 14px;
-      border-radius: 14px;
+      gap: 9px;
+      background: var(--at-bg-item);
+      border: 1px solid var(--at-border);
+      padding: 9px 13px;
+      border-radius: 12px;
       font-size: 12px;
       font-weight: 600;
       color: var(--at-text-primary);
+      letter-spacing: -0.01em;
+    }
+    #at-widget-container.at-theme-light .at-status-banner {
+      background: rgba(241, 245, 249, 0.7);
     }
     .at-status-indicator {
       width: 8px;
       height: 8px;
       border-radius: 50%;
       display: inline-block;
+      flex-shrink: 0;
     }
-    .at-status-in { background-color: #00D09C; box-shadow: 0 0 10px #00D09C; }
-    .at-status-out { background-color: #F59E0B; box-shadow: 0 0 10px #F59E0B; }
-    .at-status-done { background-color: #38BDF8; box-shadow: 0 0 10px #38BDF8; }
+    .at-status-in { background-color: #10B981; box-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
+    .at-status-out { background-color: #F59E0B; box-shadow: 0 0 10px rgba(245, 158, 11, 0.5); }
+    .at-status-done { background-color: #3B82F6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
 
     /* Stats Grid */
     .at-grid {
@@ -243,58 +277,66 @@
       background: var(--at-bg-item);
       border: 1px solid var(--at-border);
       padding: 12px 14px;
-      border-radius: 16px;
+      border-radius: 14px;
       display: flex;
       flex-direction: column;
       gap: 4px;
       color: var(--at-text-primary);
-      transition: transform 0.2s ease, border-color 0.2s ease;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, background 0.2s ease;
     }
     .at-item:hover {
-      transform: translateY(-1px);
-      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1.5px);
+      border-color: rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    #at-widget-container.at-theme-light .at-item:hover {
+      border-color: rgba(0, 0, 0, 0.12);
+      background: #FFFFFF;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
     }
     .at-label {
-      font-size: 10px;
+      font-size: 10.5px;
       color: var(--at-text-secondary);
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.05em;
       font-weight: 700;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
     }
     .at-label svg {
       width: 13px;
       height: 13px;
       fill: currentColor;
+      opacity: 0.85;
     }
     .at-val {
-      font-size: 16px;
+      font-size: 17px;
       font-weight: 700;
       letter-spacing: -0.02em;
       color: var(--at-text-primary);
+      font-variant-numeric: tabular-nums;
     }
     .highlight-work {
-      color: #00D09C !important;
-      text-shadow: 0 0 12px rgba(0, 208, 156, 0.35);
+      color: #10B981 !important;
+      text-shadow: 0 0 14px rgba(16, 185, 129, 0.25);
     }
     .highlight-exit {
-      color: #38BDF8 !important;
-      text-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+      color: #3B82F6 !important;
+      text-shadow: 0 0 14px rgba(59, 130, 246, 0.25);
     }
     .highlight-actual {
-      color: #A78BFA !important;
-      text-shadow: 0 0 12px rgba(167, 139, 250, 0.35);
+      color: #818CF8 !important;
+      text-shadow: 0 0 14px rgba(129, 140, 248, 0.25);
     }
     .at-item-break {
       grid-column: span 2;
     }
     .at-subtext {
-      font-size: 10px;
+      font-size: 10.5px;
       color: var(--at-text-secondary);
       font-weight: 500;
-      letter-spacing: 0.02em;
+      letter-spacing: 0.01em;
       margin-top: 2px;
     }
 
@@ -302,21 +344,23 @@
     .at-progress-sec {
       display: flex;
       flex-direction: column;
-      gap: 7px;
+      gap: 8px;
     }
     .at-progress-track {
-      height: 8px;
-      background: rgba(255, 255, 255, 0.06);
-      border: 0.8px solid rgba(255, 255, 255, 0.1);
+      height: 7px;
+      background: rgba(255, 255, 255, 0.07);
       border-radius: 9999px;
       overflow: hidden;
+    }
+    #at-widget-container.at-theme-light .at-progress-track {
+      background: rgba(0, 0, 0, 0.06);
     }
     .at-progress-fill {
       height: 100%;
       width: 0%;
-      background: linear-gradient(90deg, #00D09C 0%, #38BDF8 100%);
+      background: linear-gradient(90deg, #3B82F6 0%, #10B981 100%);
       border-radius: 9999px;
-      box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.35);
       transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .at-progress-labels {
@@ -325,9 +369,10 @@
       font-size: 11px;
       font-weight: 600;
       color: var(--at-text-secondary);
+      letter-spacing: -0.01em;
     }
 
-    /* Settings Panel */
+    /* Settings Subpanel */
     .at-settings {
       position: absolute;
       top: 0;
@@ -335,7 +380,7 @@
       width: 100%;
       height: 100%;
       background: var(--at-bg-panels);
-      border-radius: 26px;
+      border-radius: 20px;
       padding: 20px;
       box-sizing: border-box;
       display: flex;
@@ -387,14 +432,15 @@
       font-size: 13px;
       outline: none;
       font-family: inherit;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
     .at-input option {
       background: var(--at-bg-panels);
       color: var(--at-text-primary);
     }
     .at-input:focus {
-      border-color: #38BDF8;
-      box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+      border-color: #3B82F6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
     }
     .at-toggle {
       position: relative;
@@ -430,14 +476,14 @@
       border-radius: 50%;
     }
     input:checked + .at-slider {
-      background-color: #00D09C;
+      background-color: #3B82F6;
     }
     input:checked + .at-slider:before {
       transform: translateX(18px);
     }
     .at-btn-save {
-      background: linear-gradient(135deg, #00D09C 0%, #38BDF8 100%);
-      color: #0B0E17;
+      background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+      color: #FFFFFF;
       border: none;
       border-radius: 12px;
       padding: 12px;
@@ -445,7 +491,7 @@
       font-size: 13px;
       cursor: pointer;
       margin-top: auto;
-      box-shadow: 0 4px 16px rgba(0, 208, 156, 0.3);
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
       transition: opacity 0.2s, transform 0.1s;
     }
     .at-btn-save:hover {
@@ -463,7 +509,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(11, 14, 24, 0.88);
+      background: rgba(15, 17, 23, 0.88);
       backdrop-filter: blur(12px);
       z-index: 15;
       display: flex;
@@ -474,6 +520,7 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.3s ease;
+      border-radius: 20px;
     }
     #at-widget-container.at-theme-light .at-loading-overlay {
       background: rgba(255, 255, 255, 0.88);
@@ -483,22 +530,22 @@
       pointer-events: auto;
     }
     .at-spinner {
-      width: 34px;
-      height: 34px;
-      border: 3px solid rgba(56, 189, 248, 0.15);
-      border-top-color: #38BDF8;
+      width: 32px;
+      height: 32px;
+      border: 3px solid rgba(59, 130, 246, 0.2);
+      border-top-color: #3B82F6;
       border-radius: 50%;
       animation: at-spin 0.8s linear infinite;
     }
     #at-widget-container.at-theme-light .at-spinner {
-      border: 3px solid rgba(2, 132, 199, 0.15);
-      border-top-color: #0284C7;
+      border: 3px solid rgba(37, 99, 235, 0.15);
+      border-top-color: #2563EB;
     }
     .at-loading-text {
       font-size: 12px;
       font-weight: 600;
       color: var(--at-text-secondary);
-      letter-spacing: 0.5px;
+      letter-spacing: 0.3px;
     }
     @keyframes at-spin {
       to { transform: rotate(360deg); }
@@ -1149,7 +1196,7 @@
     // 1. Badge View (Collapsed)
     const badge = document.createElement("div");
     badge.className = "at-badge";
-    badge.innerHTML = `<span id="at-badge-wfh" style="display:${state.isWfh ? "inline-flex" : "none"}; align-items:center; gap:4px; margin-right:8px; background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.4); padding: 2px 7px; border-radius: 20px; font-size: 10px; font-weight: 700; color: #FBBF24;"><span style="display:inline-block; width:13px; height:13px; fill:#FBBF24;">${ICONS.home}</span> WFH</span><span class="at-badge-text" id="at-badge-work-time">--h --m</span>`;
+    badge.innerHTML = `<span id="at-badge-wfh" style="display:${state.isWfh ? "inline-flex" : "none"}; align-items:center; gap:5px; margin-right:8px; background: rgba(245, 158, 11, 0.14); border: 1px solid rgba(245, 158, 11, 0.35); padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; color: #F59E0B;"><span style="display:inline-block; width:12px; height:12px; fill:#F59E0B;">${ICONS.home}</span> WFH</span><span class="at-badge-text" id="at-badge-work-time">--h --m</span>`;
     // Click is handled manually in dragEnd to prevent WebView touch scrolling bugs
     container.appendChild(badge);
     elements.badge = badge;
@@ -1180,7 +1227,7 @@
       <div class="at-status-banner">
         <span class="at-status-indicator at-status-out" id="at-status-indicator"></span>
         <span id="at-status-text">Determining status...</span>
-        <span id="at-wfh-badge" style="display:${state.isWfh ? "inline-flex" : "none"}; align-items:center; gap:5px; margin-left:auto; font-size:10px; font-weight:700; color:#FBBF24; background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.4); padding: 3px 9px; border-radius: 20px; vertical-align:middle;"><span style="display:inline-block; width:12px; height:12px; fill:#FBBF24;">${ICONS.home}</span> Remote Workspace</span>
+        <span id="at-wfh-badge" style="display:${state.isWfh ? "inline-flex" : "none"}; align-items:center; gap:5px; margin-left:auto; font-size:10px; font-weight:700; color:#F59E0B; background: rgba(245, 158, 11, 0.14); border: 1px solid rgba(245, 158, 11, 0.35); padding: 3px 9px; border-radius: 20px; vertical-align:middle;"><span style="display:inline-block; width:12px; height:12px; fill:#F59E0B;">${ICONS.home}</span> Remote Workspace</span>
       </div>
 
       <div class="at-grid">
@@ -1242,19 +1289,19 @@
         </div>
         <div class="at-form-group row">
           <label>Policy Target Rate</label>
-          <span style="font-size:11px; font-weight:700; color:#38BDF8;">
+          <span id="at-setting-policy-rate" style="font-size:11px; font-weight:700; color: var(--at-accent-exit);">
             ${state.policyWorkingRate ? `${state.policyWorkingRate}% (${formatMinutes(state.targetHours * 60)})` : "Standard (8h 30m)"}
           </span>
         </div>
         <div class="at-form-group row">
           <label>30-Day Break Avg</label>
-          <span style="font-size:11px; font-weight:700; color:#FBBF24;">
+          <span id="at-setting-break-avg" style="font-size:11px; font-weight:700; color: var(--at-accent-gold);">
             ~${state.avgBreakMinutes || 60}m per day
           </span>
         </div>
         <div class="at-form-group row">
           <label>Workspace Mode</label>
-          <span style="font-size:11px; font-weight:700; color:${state.isWfh ? "#FBBF24" : "var(--at-text-secondary)"};">
+          <span id="at-setting-workspace-mode" style="font-size:11px; font-weight:700; color:${state.isWfh ? "var(--at-accent-gold)" : "var(--at-text-secondary)"};">
             ${state.isWfh ? "Remote Workspace (Synced)" : "In-Office (Synced)"}
           </span>
         </div>
@@ -1529,6 +1576,34 @@
   }
 
   function openSettings() {
+    const hoursSelect = elements.card.querySelector("#at-setting-hours-select");
+    const minutesSelect = elements.card.querySelector("#at-setting-minutes-select");
+    const minutesInput = elements.card.querySelector("#at-setting-minutes-input");
+    const policyRateEl = elements.card.querySelector("#at-setting-policy-rate");
+    const breakAvgEl = elements.card.querySelector("#at-setting-break-avg");
+    const wsModeEl = elements.card.querySelector("#at-setting-workspace-mode");
+
+    if (hoursSelect && minutesSelect && minutesInput) {
+      const totalMinutes = Math.round(state.targetHours * 60);
+      const h = Math.min(24, Math.floor(totalMinutes / 60));
+      const m = Math.min(59, Math.round(totalMinutes % 60));
+      hoursSelect.value = h;
+      minutesSelect.value = m;
+      minutesInput.value = totalMinutes;
+    }
+    if (policyRateEl) {
+      policyRateEl.innerText = state.policyWorkingRate
+        ? `${state.policyWorkingRate}% (${formatMinutes(state.targetHours * 60)})`
+        : "Standard (8h 30m)";
+    }
+    if (breakAvgEl) {
+      breakAvgEl.innerText = `~${state.avgBreakMinutes || 60}m per day`;
+    }
+    if (wsModeEl) {
+      wsModeEl.innerText = state.isWfh ? "Remote Workspace (Synced)" : "In-Office (Synced)";
+      wsModeEl.style.color = state.isWfh ? "var(--at-accent-gold)" : "var(--at-text-secondary)";
+    }
+
     elements.card.querySelector("#at-settings-panel").classList.add("active");
   }
 
@@ -1641,15 +1716,15 @@
         if (statusTextEl) statusTextEl.innerText = "Working from Home";
         if (indicator) {
           indicator.className = "at-status-indicator";
-          indicator.style.background = "#FBBF24";
-          indicator.style.boxShadow = "0 0 8px #FBBF24";
+          indicator.style.background = "#FFCE20";
+          indicator.style.boxShadow = "0 0 8px #FFCE20";
         }
       } else if (isWeekend) {
         if (statusTextEl) statusTextEl.innerText = "Week Off";
         if (indicator) {
           indicator.className = "at-status-indicator";
-          indicator.style.background = "#A78BFA";
-          indicator.style.boxShadow = "0 0 8px #A78BFA";
+          indicator.style.background = "#0F47C0";
+          indicator.style.boxShadow = "0 0 8px rgba(15, 71, 192, 0.45)";
         }
         if (badgeTimeEl) badgeTimeEl.innerText = "Week Off";
         if (exitTimeEl) exitTimeEl.innerText = "Week Off";

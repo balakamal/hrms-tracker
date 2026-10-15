@@ -80,23 +80,23 @@ object LockScreenLiveCardManager {
         when {
             isWfh -> {
                 displayStatus = "REMOTE WORKSPACE • WFH"
-                statusColor = Color.parseColor("#FBBF24") // Amber Gold
+                statusColor = Color.parseColor("#FFCE20") // Paltech Gold
             }
             isWeekend && (firstIn == "--:--" || firstIn.isBlank()) -> {
                 displayStatus = "WEEK OFF • REST & RECHARGE"
-                statusColor = Color.parseColor("#A78BFA") // Lavender
+                statusColor = Color.parseColor("#0F47C0") // Paltech Royal Blue
             }
             progressPercent >= 100 || statusTextRaw.contains("Complete", ignoreCase = true) -> {
                 displayStatus = "SHIFT COMPLETE • GOAL MET 🚀"
-                statusColor = Color.parseColor("#00D09C") // Mint Emerald
+                statusColor = Color.parseColor("#39B14A") // Paltech Green
             }
             statusTextRaw.contains("Clocked", ignoreCase = true) || workTime != "0h 00m" -> {
                 displayStatus = "CLOCKED IN • IN-OFFICE"
-                statusColor = Color.parseColor("#38BDF8") // Sky Cyan
+                statusColor = Color.parseColor("#0576F8") // Paltech Sky Blue
             }
             else -> {
                 displayStatus = statusTextRaw.uppercase()
-                statusColor = Color.parseColor("#38BDF8")
+                statusColor = Color.parseColor("#0576F8")
             }
         }
 

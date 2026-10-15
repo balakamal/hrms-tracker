@@ -3,7 +3,7 @@
     <!-- Base Application Theme using MaterialComponents with Edge-to-Edge immersion -->
     <style name="Theme.HRMS" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/primary_accent</item>
-        <item name="colorPrimaryVariant">#1D4ED8</item>
+        <item name="colorPrimaryVariant">@color/primary_royal</item>
         <item name="colorOnPrimary">#FFFFFF</item>
         <item name="colorSecondary">@color/accent_emerald</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
@@ -13,7 +13,7 @@
         <item name="alertDialogTheme">@style/Theme.HRMS.Dialog</item>
     </style>
 
-    <!-- Sleek One UI Obsidian Glass Alert Dialog Theme -->
+    <!-- Sleek Paltech Navy Glass Alert Dialog Theme -->
     <style name="Theme.HRMS.Dialog" parent="Theme.MaterialComponents.DayNight.Dialog.Alert">
         <item name="colorSurface">@color/bg_surface_card</item>
         <item name="android:background">@color/bg_surface_card</item>

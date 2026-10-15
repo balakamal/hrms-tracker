@@ -34,7 +34,7 @@
                 android:layout_height="wrap_content"
                 android:letterSpacing="0.04"
                 android:text="CLOCKED IN • IN-OFFICE"
-                android:textColor="#38BDF8"
+                android:textColor="@color/accent_cyan"
                 android:textSize="11sp"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -47,7 +47,7 @@
             android:layout_centerVertical="true"
             android:letterSpacing="0.02"
             android:text="79%"
-            android:textColor="#00D09C"
+            android:textColor="@color/accent_emerald"
             android:textSize="12sp"
             android:textStyle="bold" />
     </RelativeLayout>
@@ -109,7 +109,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="1dp"
                 android:text="--:--"
-                android:textColor="#38BDF8"
+                android:textColor="@color/accent_cyan"
                 android:textSize="15sp"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -138,7 +138,7 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:text="-- left"
-                android:textColor="#A78BFA"
+                android:textColor="@color/accent_cyan"
                 android:textSize="13sp"
                 android:textStyle="bold" />
         </LinearLayout>
