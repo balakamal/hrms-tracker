@@ -35,7 +35,13 @@ data class WidgetMetrics(
     val actualExitTime: String,
     val statusText: String,
     val progressPercent: Int,
-    val progressRemaining: String
+    val progressRemaining: String,
+    val baseWorkMinutes: Double = 0.0,
+    val lastInTimestamp: Long = 0L,
+    val isClockedIn: Boolean = false,
+    val targetMinutes: Double = 510.0,
+    val baseBreakMinutes: Double = 0.0,
+    val avgBreakMinutes: Int = 60
 )
 
 open class AttendanceAppWidgetProvider : AppWidgetProvider() {
@@ -82,24 +88,62 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 
                 // Restore cached values from SharedPreferences
                 val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                val workTime = sharedPrefs.getString("WidgetWorkTime", "0h 00m")
-                val firstIn = sharedPrefs.getString("WidgetFirstIn", "--:--")
-                val breakTime = sharedPrefs.getString("WidgetBreakTime", "0h 00m")
+                val todayDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+                val cacheDate = sharedPrefs.getString("WidgetCacheDate", "")
+                val isCacheFromToday = cacheDate == todayDateStr
+
+                val rawWorkTime = sharedPrefs.getString("WidgetWorkTime", "0h 00m") ?: "0h 00m"
+                val firstIn = sharedPrefs.getString("WidgetFirstIn", "--:--") ?: "--:--"
+                val breakTime = sharedPrefs.getString("WidgetBreakTime", "0h 00m") ?: "0h 00m"
                 val breakCount = sharedPrefs.getString("WidgetBreakCount", "0 Breaks Today") ?: "0 Breaks Today"
-                val exitTime = sharedPrefs.getString("WidgetExitTime", "--:--")
-                val actualExitTime = sharedPrefs.getString("WidgetActualExitTime", "--:--") ?: "--:--"
-                val statusText = sharedPrefs.getString("WidgetStatusText", "Not Synced")
-                val progressPercent = sharedPrefs.getInt("WidgetProgressPercent", 0)
-                val progressRemaining = sharedPrefs.getString("WidgetProgressRemaining", "--h --m left")
-                val lastUpdated = sharedPrefs.getString("WidgetLastUpdated", "Last updated: --:--")
+                val rawExitTime = sharedPrefs.getString("WidgetExitTime", "--:--") ?: "--:--"
+                val rawActualExitTime = sharedPrefs.getString("WidgetActualExitTime", "--:--") ?: "--:--"
+                val rawStatusText = sharedPrefs.getString("WidgetStatusText", "Not Synced") ?: "Not Synced"
+                val rawProgressPercent = sharedPrefs.getInt("WidgetProgressPercent", 0)
+                val rawProgressRemaining = sharedPrefs.getString("WidgetProgressRemaining", "--h --m left") ?: "--h --m left"
+                val lastUpdated = sharedPrefs.getString("WidgetLastUpdated", "Last updated: --:--") ?: "Last updated: --:--"
                 val isWfh = sharedPrefs.getBoolean("WfhMode", false)
-                
-                val isCompleted = progressPercent >= 100 || statusText?.contains("Complete", ignoreCase = true) == true
-                val isWeekOff = statusText?.contains("Week Off", ignoreCase = true) == true || (isWeekend() && (statusText == "Not Clocked In" || statusText == "No logs today" || statusText == "Not Synced"))
+
+                // Zero-spam live local extrapolation: dynamically calculate elapsed work minutes while clocked in
+                val isClockedIn = sharedPrefs.getBoolean("WidgetIsClockedIn", false)
+                val lastInTimestamp = sharedPrefs.getLong("WidgetLastInTimestamp", 0L)
+                val baseWorkMinutes = sharedPrefs.getFloat("WidgetBaseWorkMinutes", -1f)
+                val targetMinutes = sharedPrefs.getFloat("WidgetTargetMinutes", 510f)
+
+                val workTime: String
+                val progressPercent: Int
+                val progressRemaining: String
+                val isCompleted: Boolean
+                val statusText: String
+                val exitTime: String
+                val actualExitTime: String
+
+                if (isClockedIn && lastInTimestamp > 0 && baseWorkMinutes >= 0 && isCacheFromToday) {
+                    val elapsedSinceLastIn = Math.max(0L, System.currentTimeMillis() - lastInTimestamp) / 60000.0
+                    val liveWorkMinutes = baseWorkMinutes + elapsedSinceLastIn
+                    val remainingMinutes = Math.max(0.0, targetMinutes - liveWorkMinutes)
+                    isCompleted = liveWorkMinutes >= targetMinutes
+                    progressPercent = Math.min(100, ((liveWorkMinutes / targetMinutes) * 100).toInt())
+                    workTime = formatMinutes(liveWorkMinutes)
+                    progressRemaining = if (isCompleted) "0m left" else "${formatMinutes(remainingMinutes)} left"
+                    statusText = if (isCompleted) "Shift Complete" else "Clocked In"
+                    exitTime = if (isCompleted) "Completed" else rawExitTime
+                    actualExitTime = if (isCompleted) "Completed" else rawActualExitTime
+                } else {
+                    workTime = rawWorkTime
+                    progressPercent = rawProgressPercent
+                    progressRemaining = rawProgressRemaining
+                    isCompleted = rawProgressPercent >= 100 || rawStatusText.contains("Complete", ignoreCase = true)
+                    statusText = rawStatusText
+                    exitTime = rawExitTime
+                    actualExitTime = rawActualExitTime
+                }
+
+                val isWeekOff = statusText.contains("Week Off", ignoreCase = true) || (isWeekend() && (statusText == "Not Clocked In" || statusText == "No logs today" || statusText == "Not Synced"))
                 val displayStatus = when {
                     isWfh && (statusText == "Not Clocked In" || statusText == "No logs today" || statusText == "Not Synced") -> "Working from Home"
                     isWeekOff -> "Week Off"
-                    else -> statusText ?: "Not Synced"
+                    else -> statusText
                 }
 
                 // Apply User's Custom Background & Transparency
@@ -347,10 +391,17 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             progressRemaining: String,
             lastUpdated: String,
             breakCount: String = "0 Breaks Today",
-            actualExitTime: String = "--:--"
+            actualExitTime: String = "--:--",
+            baseWorkMinutes: Double = -1.0,
+            lastInTimestamp: Long = 0L,
+            isClockedIn: Boolean = false,
+            targetMinutes: Double = 510.0,
+            baseBreakMinutes: Double = 0.0,
+            avgBreakMinutes: Int = 60
         ) {
             val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            sharedPrefs.edit()
+            val todayDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+            val editor = sharedPrefs.edit()
                 .putString("WidgetWorkTime", workTime)
                 .putString("WidgetFirstIn", firstIn)
                 .putString("WidgetBreakTime", breakTime)
@@ -361,7 +412,17 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 .putInt("WidgetProgressPercent", progressPercent)
                 .putString("WidgetProgressRemaining", progressRemaining)
                 .putString("WidgetLastUpdated", lastUpdated)
-                .apply()
+                .putString("WidgetCacheDate", todayDateStr)
+
+            if (baseWorkMinutes >= 0) {
+                editor.putFloat("WidgetBaseWorkMinutes", baseWorkMinutes.toFloat())
+                editor.putLong("WidgetLastInTimestamp", lastInTimestamp)
+                editor.putBoolean("WidgetIsClockedIn", isClockedIn)
+                editor.putFloat("WidgetTargetMinutes", targetMinutes.toFloat())
+                editor.putFloat("WidgetBaseBreakMinutes", baseBreakMinutes.toFloat())
+                editor.putInt("WidgetAvgBreakMinutes", avgBreakMinutes)
+            }
+            editor.apply()
 
             LockScreenLiveCardManager.updateLiveCard(context)
         }
@@ -478,6 +539,9 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 }
 
                 val isClockedIn = lastInTime != null
+                val baseWorkMinutes = workDurationMs / 60000.0
+                val lastInTimestamp = lastInTime?.time ?: 0L
+
                 if (isClockedIn) {
                     workDurationMs += (Date().time - lastInTime!!.time)
                 }
@@ -525,7 +589,23 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     else -> "Not Clocked In"
                 }
 
-                return WidgetMetrics(workTimeStr, firstInStr, breakTimeStr, breakCountStr, exitTimeStr, actualExitTimeStr, statusText, progressPercent, progressRemaining)
+                return WidgetMetrics(
+                    workTimeStr,
+                    firstInStr,
+                    breakTimeStr,
+                    breakCountStr,
+                    exitTimeStr,
+                    actualExitTimeStr,
+                    statusText,
+                    progressPercent,
+                    progressRemaining,
+                    baseWorkMinutes = baseWorkMinutes,
+                    lastInTimestamp = lastInTimestamp,
+                    isClockedIn = isClockedIn,
+                    targetMinutes = targetMinutes,
+                    baseBreakMinutes = totalBreakMinutes,
+                    avgBreakMinutes = avgBreakMinutes
+                )
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -600,6 +680,14 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
         }
 
         fun fetchRequiredWorkingHours(context: Context, accessToken: String, userId: String): Float? {
+            val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val cachedTarget = sharedPrefs.getFloat("TargetHours", -1f)
+            val lastFetch = sharedPrefs.getLong("LastPolicyFetchTimestamp", 0L)
+            val oneDayMs = 24 * 60 * 60 * 1000L
+            if (cachedTarget > 0 && (System.currentTimeMillis() - lastFetch) < oneDayMs) {
+                return cachedTarget
+            }
+
             try {
                 val policyUrl = "https://apps.pal.tech/hrms-backend/api/OrganizationPolicy/GetMyPolicies?schemeId=3&policyId=0&employeeId=$userId"
                 val connection = TokenManager.openConnection(context, policyUrl)
@@ -625,10 +713,10 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                         val rate = effHoursObj.optDouble("requiredWorkingRate", 100.0)
                         // 100% requiredWorkingRate corresponds to 8h 30m (8.5h)
                         val targetHours = ((rate / 100.0) * 8.5).toFloat()
-                        val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
                         sharedPrefs.edit()
                             .putFloat("TargetHours", targetHours)
                             .putInt("PolicyWorkingRate", rate.toInt())
+                            .putLong("LastPolicyFetchTimestamp", System.currentTimeMillis())
                             .apply()
                         return targetHours
                     }
@@ -636,11 +724,18 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             } catch (e: Exception) {
                 android.util.Log.e("HRMSWidget", "fetchRequiredWorkingHours failed: ${e.message}")
             }
-            return null
+            return if (cachedTarget > 0) cachedTarget else null
         }
 
         fun fetchAverageBreakMinutes(context: Context, accessToken: String, userId: String): Int {
             val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val cachedAvgBreak = sharedPrefs.getInt("AvgBreakMinutes", -1)
+            val lastFetch = sharedPrefs.getLong("LastAvgBreakFetchTimestamp", 0L)
+            val oneDayMs = 24 * 60 * 60 * 1000L
+            if (cachedAvgBreak > 0 && (System.currentTimeMillis() - lastFetch) < oneDayMs) {
+                return cachedAvgBreak
+            }
+
             try {
                 val cal = Calendar.getInstance()
                 val sdfIso = SimpleDateFormat("yyyy-MM-dd'T'00:00:00.000'Z'", Locale.US)
@@ -694,7 +789,10 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                             val avgSeconds = totalBreakSeconds / validDaysCount
                             val avgMinutes = Math.round(avgSeconds / 60.0).toInt()
                             val result = if (avgMinutes > 0) avgMinutes else 60
-                            sharedPrefs.edit().putInt("AvgBreakMinutes", result).apply()
+                            sharedPrefs.edit()
+                                .putInt("AvgBreakMinutes", result)
+                                .putLong("LastAvgBreakFetchTimestamp", System.currentTimeMillis())
+                                .apply()
                             return result
                         }
                     }
@@ -702,7 +800,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             } catch (e: Exception) {
                 android.util.Log.e("HRMSWidget", "fetchAverageBreakMinutes failed: ${e.message}")
             }
-            return sharedPrefs.getInt("AvgBreakMinutes", 60)
+            return if (cachedAvgBreak > 0) cachedAvgBreak else 60
         }
 
         fun isWeekend(): Boolean {
@@ -830,9 +928,16 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
     private fun fetchAndRefreshWidget(context: Context) {
         val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         var accessToken = TokenManager.getValidAccessToken(context)
-        val userId = sharedPrefs.getString("UserId", null)
+        var userId = sharedPrefs.getString("UserId", null)
         val targetHours = sharedPrefs.getFloat("TargetHours", 8.5f)
         val isWfh = sharedPrefs.getBoolean("WfhMode", false)
+
+        if (userId.isNullOrEmpty() && !accessToken.isNullOrEmpty()) {
+            val identity = TokenManager.fetchUserIdentity(context, accessToken)
+            if (identity != null) {
+                userId = identity.first
+            }
+        }
         
         if (accessToken == null || userId == null) {
             val isWeekendToday = isWeekend()
@@ -939,7 +1044,13 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                         metrics.progressRemaining,
                         "Last updated: " + getCurrentTime(),
                         metrics.breakCount,
-                        metrics.actualExitTime
+                        metrics.actualExitTime,
+                        baseWorkMinutes = metrics.baseWorkMinutes,
+                        lastInTimestamp = metrics.lastInTimestamp,
+                        isClockedIn = metrics.isClockedIn,
+                        targetMinutes = metrics.targetMinutes,
+                        baseBreakMinutes = metrics.baseBreakMinutes,
+                        avgBreakMinutes = metrics.avgBreakMinutes
                     )
                     // Check and trigger Completed notification if complete
                     checkAndSendNotification(context, response.toString(), effectiveTargetHours)

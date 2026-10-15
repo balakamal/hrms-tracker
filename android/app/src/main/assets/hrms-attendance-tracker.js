@@ -37,14 +37,21 @@
       --at-bg-header: transparent;
 
       position: fixed;
-      bottom: 24px;
+      bottom: 22px;
       right: 24px;
       z-index: 2147483647 !important;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Helvetica Neue", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Inter", "Helvetica Neue", sans-serif;
       color: var(--at-text-primary);
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+    }
+    #at-widget-container.at-minimized:not(.at-custom-pos) {
+      left: 50% !important;
+      right: auto !important;
+      bottom: 22px !important;
+      top: auto !important;
+      transform: translateX(-50%);
     }
     #at-widget-container.at-theme-light {
       --at-bg-card: linear-gradient(165deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.96) 100%);
@@ -87,28 +94,77 @@
       transition: none !important;
     }
 
-    /* Floating Badge Mode (Frosted Glass Pill) */
+    /* Apple Dynamic Island Live Activity Pill */
     .at-badge {
       display: flex;
       align-items: center;
       gap: 10px;
-      background: var(--at-bg-badge);
-      backdrop-filter: blur(24px) saturate(180%);
-      -webkit-backdrop-filter: blur(24px) saturate(180%);
-      border: 1px solid var(--at-border);
+      background: linear-gradient(135deg, rgba(22, 27, 38, 0.9) 0%, rgba(13, 16, 23, 0.95) 100%);
+      backdrop-filter: blur(28px) saturate(200%);
+      -webkit-backdrop-filter: blur(28px) saturate(200%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 9999px;
-      padding: 10px 18px;
-      box-shadow: 0 12px 32px -4px var(--at-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      padding: 9px 18px;
+      box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.18);
       cursor: pointer;
       user-select: none;
-      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
       color: var(--at-text-primary);
       touch-action: none;
     }
     .at-badge:hover {
       transform: translateY(-2px) scale(1.02);
-      border-color: rgba(255, 255, 255, 0.18);
-      box-shadow: 0 16px 36px -4px var(--at-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.24);
+      box-shadow: 0 18px 40px -4px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    }
+    #at-widget-container.at-theme-light .at-badge {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(244, 246, 250, 0.98) 100%);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      box-shadow: 0 12px 32px -4px rgba(15, 23, 42, 0.14), inset 0 1px 0 rgba(255, 255, 255, 1);
+    }
+    #at-widget-container.at-theme-light .at-badge:hover {
+      border-color: rgba(0, 0, 0, 0.18);
+      box-shadow: 0 16px 36px -4px rgba(15, 23, 42, 0.2);
+    }
+    .at-badge:active {
+      transform: scale(0.96);
+    }
+    .at-badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #34C759;
+      box-shadow: 0 0 10px rgba(52, 199, 89, 0.75);
+      flex-shrink: 0;
+      animation: at-pulse-dot 2.5s infinite ease-in-out;
+    }
+    .at-badge-dot.at-dot-out {
+      background: #FF9F0A;
+      box-shadow: 0 0 10px rgba(255, 159, 10, 0.75);
+    }
+    .at-badge-dot.at-dot-done {
+      background: #0A84FF;
+      box-shadow: 0 0 10px rgba(10, 132, 255, 0.75);
+    }
+    @keyframes at-pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.75; }
+    }
+    .at-badge-divider {
+      width: 1px;
+      height: 13px;
+      background: rgba(255, 255, 255, 0.16);
+      margin: 0 2px;
+    }
+    #at-widget-container.at-theme-light .at-badge-divider {
+      background: rgba(0, 0, 0, 0.12);
+    }
+    .at-badge-sub {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--at-text-secondary);
+      letter-spacing: -0.01em;
+      font-variant-numeric: tabular-nums;
     }
     #at-widget-container.at-theme-light .at-badge:hover {
       border-color: rgba(0, 0, 0, 0.15);
@@ -129,22 +185,43 @@
       letter-spacing: -0.01em;
     }
 
-    /* Main Dashboard Card (Modern Obsidian Glass) */
+    /* Main Dashboard Card (Apple iOS Sheet Aesthetic) */
+    .at-grab-handle-bar {
+      width: 36px;
+      height: 5px;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.22);
+      margin: 0 auto 10px auto;
+      cursor: grab;
+      touch-action: none;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+    .at-grab-handle-bar:active {
+      cursor: grabbing;
+      background: rgba(255, 255, 255, 0.45);
+      transform: scaleX(1.15);
+    }
+    #at-widget-container.at-theme-light .at-grab-handle-bar {
+      background: rgba(0, 0, 0, 0.15);
+    }
+    #at-widget-container.at-theme-light .at-grab-handle-bar:active {
+      background: rgba(0, 0, 0, 0.3);
+    }
     .at-card {
       width: 330px;
       background: var(--at-bg-card);
       backdrop-filter: blur(32px) saturate(190%);
       -webkit-backdrop-filter: blur(32px) saturate(190%);
       border: 1px solid var(--at-border);
-      border-radius: 20px;
-      padding: 18px 18px 20px 18px;
-      box-shadow: 0 24px 50px -12px var(--at-shadow), 0 8px 20px -4px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      border-radius: 24px;
+      padding: 14px 18px 20px 18px;
+      box-shadow: 0 24px 50px -12px var(--at-shadow), 0 8px 20px -4px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.14);
       position: relative;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      gap: 15px;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      gap: 14px;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
       color: var(--at-text-primary);
     }
     #at-widget-container.at-theme-light .at-card {
@@ -552,14 +629,19 @@
     }
     
     @media (max-width: 600px) {
-      #at-widget-container.at-expanded {
-        right: 12px !important;
-        bottom: 12px !important;
-        left: 12px !important;
-        width: calc(100% - 24px) !important;
+      #at-widget-container {
+        max-width: calc(100vw - 24px);
+      }
+      #at-widget-container.at-expanded:not(.at-custom-pos) {
+        bottom: 16px;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
       }
       #at-widget-container.at-expanded .at-card {
-        width: 100% !important;
+        width: calc(100vw - 28px);
+        max-width: 360px;
+        border-radius: 26px;
       }
     }
   `;
@@ -1193,19 +1275,28 @@
     document.body.appendChild(container);
     elements.container = container;
 
-    // 1. Badge View (Collapsed)
+    // 1. Badge View (Apple Dynamic Island Live Activity Pill)
     const badge = document.createElement("div");
     badge.className = "at-badge";
-    badge.innerHTML = `<span id="at-badge-wfh" style="display:${state.isWfh ? "inline-flex" : "none"}; align-items:center; gap:5px; margin-right:8px; background: rgba(245, 158, 11, 0.14); border: 1px solid rgba(245, 158, 11, 0.35); padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; color: #F59E0B;"><span style="display:inline-block; width:12px; height:12px; fill:#F59E0B;">${ICONS.home}</span> WFH</span><span class="at-badge-text" id="at-badge-work-time">--h --m</span>`;
+    badge.innerHTML = `
+      <span class="at-badge-dot" id="at-badge-dot"></span>
+      <span id="at-badge-wfh" style="display:${state.isWfh ? "inline-flex" : "none"}; align-items:center; gap:4px; background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.35); padding: 1px 7px; border-radius: 12px; font-size: 9.5px; font-weight: 700; color: #F59E0B;"><span style="display:inline-block; width:10px; height:10px; fill:#F59E0B;">${ICONS.home}</span> WFH</span>
+      <span class="at-badge-text" id="at-badge-work-time">--h --m</span>
+      <span class="at-badge-divider"></span>
+      <span class="at-badge-sub" id="at-badge-exit">--:--</span>
+    `;
     // Click is handled manually in dragEnd to prevent WebView touch scrolling bugs
     container.appendChild(badge);
     elements.badge = badge;
 
-    // 2. Card View (Expanded)
+    // 2. Card View (Expanded iOS Sheet)
     const card = document.createElement("div");
     card.className = "at-card";
     card.style.display = "none";
     card.innerHTML = `
+      <!-- Apple Sheet Drag Grabber Handle -->
+      <div class="at-grab-handle-bar" id="at-grab-handle-bar" title="Swipe down to minimize"></div>
+
       <!-- Loading Overlay -->
       <div class="at-loading-overlay" id="at-loading-overlay">
         <div class="at-spinner"></div>
@@ -1339,6 +1430,7 @@
     const savedX = localStorage.getItem("at_widget_x");
     const savedBottom = localStorage.getItem("at_widget_bottom");
     if (savedX !== null && savedBottom !== null) {
+      container.classList.add("at-custom-pos");
       container.style.left = savedX;
       container.style.bottom = savedBottom;
       container.style.top = "auto";
@@ -1351,6 +1443,10 @@
     card
       .querySelector("#at-btn-minimize")
       .addEventListener("click", toggleCollapse);
+    const grabBar = card.querySelector("#at-grab-handle-bar");
+    if (grabBar) {
+      grabBar.addEventListener("click", toggleCollapse);
+    }
     card
       .querySelector("#at-btn-settings")
       .addEventListener("click", openSettings);
@@ -1391,36 +1487,48 @@
     const container = elements.container;
     const badge = elements.badge;
     const dragHandle = elements.card.querySelector("#at-drag-handle");
+    const grabBar = elements.card.querySelector("#at-grab-handle-bar");
 
     let active = false;
     let currentX;
     let currentY;
     let initialX;
     let initialY;
+    let startY = 0;
     let xOffset = 0;
     let yOffset = 0;
     let dragThresholdPassed = false;
     let initialTarget = null;
 
+    function getCoords(e) {
+      if (e.touches && e.touches.length > 0) {
+        return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }
+      if (e.changedTouches && e.changedTouches.length > 0) {
+        return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+      }
+      return { x: e.clientX, y: e.clientY };
+    }
+
     function dragStart(e) {
-      // Don't drag if clicking buttons inside the header/handle
-      if (e.target.closest("button") || e.target.closest("a")) {
+      // Don't drag if interacting with buttons, inputs, or dropdowns
+      if (e.target.closest("button") || e.target.closest("input") || e.target.closest("select")) {
         return;
       }
 
-      if (e.cancelable) {
-        e.preventDefault();
-      }
+      const coords = getCoords(e);
+      if (coords.x === undefined || coords.y === undefined) return;
 
       const rect = container.getBoundingClientRect();
-      initialX = e.clientX;
-      initialY = e.clientY;
+      initialX = coords.x;
+      initialY = coords.y;
+      startY = coords.y;
       initialTarget = e.target;
 
       const styleLeft = container.style.left;
       const styleBottom = container.style.bottom;
 
-      if (styleLeft && styleBottom) {
+      if (container.classList.contains("at-custom-pos") && styleLeft && styleBottom) {
         xOffset = parseFloat(styleLeft);
         yOffset = parseFloat(styleBottom);
       } else {
@@ -1434,32 +1542,19 @@
       container.classList.add("at-dragging");
     }
 
-    function dragEnd(e) {
-      if (!active) return;
-
-      active = false;
-      container.classList.remove("at-dragging");
-
-      if (dragThresholdPassed) {
-        constrainToViewport();
-      } else {
-        // Tap/click fallback since we preventDefault in dragStart
-        if (initialTarget && initialTarget.closest(".at-badge")) {
-          toggleCollapse();
-        }
-      }
-      initialTarget = null;
-    }
-
     function drag(e) {
       if (!active) return;
 
-      const dx = e.clientX - initialX;
-      const dy = e.clientY - initialY;
+      const coords = getCoords(e);
+      if (coords.x === undefined || coords.y === undefined) return;
+
+      const dx = coords.x - initialX;
+      const dy = coords.y - initialY;
 
       if (!dragThresholdPassed && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
         dragThresholdPassed = true;
         wasDragging = true;
+        container.classList.add("at-custom-pos");
       }
 
       if (dragThresholdPassed) {
@@ -1482,37 +1577,89 @@
       }
     }
 
-    [badge, dragHandle].forEach((el) => {
-      if (el) {
-        el.addEventListener("pointerdown", dragStart);
-        el.addEventListener("touchstart", (e) => {
-          if (e.cancelable) e.preventDefault();
-        }, { passive: false });
+    function dragEnd(e) {
+      if (!active) return;
+
+      active = false;
+      container.classList.remove("at-dragging");
+
+      const coords = getCoords(e);
+      const totalDy = (coords.y !== undefined) ? (coords.y - startY) : 0;
+
+      if (dragThresholdPassed) {
+        // iOS gesture: Swipe down on expanded card or handle collapses back to Dynamic Island pill
+        if (!state.isMinimized && totalDy > 70) {
+          toggleCollapse();
+          initialTarget = null;
+          return;
+        }
+
+        // Apple magnetic snap: If dropped near bottom-center, snap to middle bottom
+        const rect = container.getBoundingClientRect();
+        const screenW = window.innerWidth;
+        const screenH = window.innerHeight;
+        const distFromBottom = screenH - rect.bottom;
+        const centerX = rect.left + rect.width / 2;
+        const distFromCenter = Math.abs(centerX - screenW / 2);
+
+        if (state.isMinimized && distFromBottom < 75 && distFromCenter < 100) {
+          container.classList.remove("at-custom-pos");
+          container.style.left = "";
+          container.style.bottom = "";
+          container.style.top = "auto";
+          container.style.right = "auto";
+          localStorage.removeItem("at_widget_x");
+          localStorage.removeItem("at_widget_bottom");
+        } else {
+          constrainToViewport();
+        }
+      } else {
+        // Tap/click fallback
+        if (initialTarget && (initialTarget.closest(".at-badge") || initialTarget.closest("#at-grab-handle-bar"))) {
+          toggleCollapse();
+        }
       }
+      initialTarget = null;
+    }
+
+    const dragElements = [badge, dragHandle, grabBar].filter(Boolean);
+    dragElements.forEach((el) => {
+      el.addEventListener("pointerdown", (e) => {
+        if (e.pointerId && el.setPointerCapture) {
+          try { el.setPointerCapture(e.pointerId); } catch (_) {}
+        }
+        dragStart(e);
+      });
+      el.addEventListener("touchstart", dragStart, { passive: true });
     });
 
     window.addEventListener("pointermove", drag);
     window.addEventListener("pointerup", dragEnd);
     window.addEventListener("pointercancel", dragEnd);
 
-    // Prevent default scroll on touch screens while active dragging is occurring
     window.addEventListener("touchmove", (e) => {
       if (active) {
-        if (e.cancelable) e.preventDefault();
+        drag(e);
       }
     }, { passive: false });
+    window.addEventListener("touchend", dragEnd);
+    window.addEventListener("touchcancel", dragEnd);
   }
 
   function constrainToViewport() {
     const container = elements.container;
     if (!container) return;
-    const rect = container.getBoundingClientRect();
 
+    // If resting at default middle-bottom, let CSS handle it
+    if (!container.classList.contains("at-custom-pos") && state.isMinimized) {
+      return;
+    }
+
+    const rect = container.getBoundingClientRect();
     let left = rect.left;
     let width = rect.width || container.offsetWidth || 320;
     let height = rect.height || container.offsetHeight || 300;
 
-    // Check bounds
     if (left < 0) {
       left = 0;
     } else if (left + width > window.innerWidth) {
@@ -1528,6 +1675,7 @@
 
     const bottom = window.innerHeight - (top + height);
 
+    container.classList.add("at-custom-pos");
     container.style.left = `${left}px`;
     container.style.bottom = `${bottom}px`;
     container.style.top = "auto";
@@ -1551,13 +1699,22 @@
       if (container) {
         container.classList.add("at-minimized");
         container.classList.remove("at-expanded");
+        if (!localStorage.getItem("at_widget_x")) {
+          container.classList.remove("at-custom-pos");
+          container.style.left = "";
+          container.style.bottom = "";
+          container.style.top = "auto";
+          container.style.right = "auto";
+        }
       }
       elements.card.style.opacity = "0";
       setTimeout(() => {
         elements.card.style.display = "none";
         elements.badge.style.display = "flex";
         elements.badge.style.opacity = "1";
-        constrainToViewport();
+        if (container.classList.contains("at-custom-pos")) {
+          constrainToViewport();
+        }
       }, 150);
     } else {
       if (container) {
@@ -1570,7 +1727,9 @@
         elements.card.style.display = "flex";
         elements.card.style.opacity = "1";
         updateUI();
-        constrainToViewport();
+        if (container.classList.contains("at-custom-pos")) {
+          constrainToViewport();
+        }
       }, 150);
     }
   }
@@ -1735,9 +1894,17 @@
       return;
     }
 
-    // Update floating collapsed badge
+    // Update floating collapsed badge (Apple Dynamic Island Live Activity Pill)
     const badgeTimeEl = document.getElementById("at-badge-work-time");
     if (badgeTimeEl) badgeTimeEl.innerText = formatMinutes(metrics.workMinutes);
+    const badgeDotEl = document.getElementById("at-badge-dot");
+    if (badgeDotEl) {
+      badgeDotEl.className = "at-badge-dot" + (metrics.completed ? " at-dot-done" : (metrics.isClockedIn ? "" : " at-dot-out"));
+    }
+    const badgeExitEl = document.getElementById("at-badge-exit");
+    if (badgeExitEl) {
+      badgeExitEl.innerText = metrics.completed ? "Goal Met" : metrics.exitTime;
+    }
 
     // Update status badge
     const indicator = elements.card.querySelector("#at-status-indicator");

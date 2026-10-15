@@ -27,6 +27,10 @@ object TokenManager {
     const val KEY_REFRESH_TOKEN = "RefreshToken"
     private const val REFRESH_ENDPOINT = "https://apps.pal.tech/hrms-backend/api/Account/RefreshToken"
 
+    const val KEY_USER_ID = "UserId"
+    const val KEY_USER_NAME = "UserName"
+    private const val GET_MY_DETAILS_ENDPOINT = "https://apps.pal.tech/hrms-backend/api/Employee/GetMyDetails"
+
     sealed class RefreshResult {
         data class Success(val accessToken: String, val refreshToken: String) : RefreshResult()
         data class SessionExpired(val reason: String) : RefreshResult()
@@ -34,11 +38,11 @@ object TokenManager {
     }
 
     /**
-     * Inspects the JWT token payload and checks if it is expired or within [bufferSeconds] of expiry.
+     * Decodes and parses the payload segment of a JWT token safely into a JSONObject.
      */
-    fun isTokenExpired(token: String?, bufferSeconds: Long = 60): Boolean {
-        if (token.isNullOrEmpty()) return true
-        try {
+    fun decodeJwtPayload(token: String?): JSONObject? {
+        if (token.isNullOrEmpty()) return null
+        return try {
             val parts = token.split(".")
             if (parts.size >= 2) {
                 val rawPayload = parts[1]
@@ -52,17 +56,126 @@ object TokenManager {
                     Base64.URL_SAFE or Base64.NO_WRAP
                 )
                 val payloadString = String(payloadBytes, StandardCharsets.UTF_8)
-                val json = JSONObject(payloadString)
-                val exp = json.optLong("exp", 0L)
-                if (exp > 0) {
-                    val nowSec = System.currentTimeMillis() / 1000
-                    return nowSec >= (exp - bufferSeconds)
-                }
+                JSONObject(payloadString)
+            } else {
+                null
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error checking token expiration: ${e.message}")
+            Log.e(TAG, "Error decoding JWT payload: ${e.message}")
+            null
+        }
+    }
+
+    /**
+     * Inspects the JWT token payload and checks if it is expired or within [bufferSeconds] of expiry.
+     */
+    fun isTokenExpired(token: String?, bufferSeconds: Long = 60): Boolean {
+        if (token.isNullOrEmpty()) return true
+        val json = decodeJwtPayload(token) ?: return true
+        val exp = json.optLong("exp", 0L)
+        if (exp > 0) {
+            val nowSec = System.currentTimeMillis() / 1000
+            return nowSec >= (exp - bufferSeconds)
         }
         return false
+    }
+
+    /**
+     * Extracts user id and user name claims directly from JWT token payload as an offline fallback.
+     */
+    fun extractIdentityFromJwt(token: String?): Pair<String, String>? {
+        val payload = decodeJwtPayload(token) ?: return null
+        val id = listOf("nameid", "sub", "id", "employeeId", "name_id", "userId")
+            .firstNotNullOfOrNull { key -> payload.optString(key).takeIf { it.isNotBlank() && it != "null" } }
+        val name = listOf("name", "unique_name", "fullName", "given_name", "email")
+            .firstNotNullOfOrNull { key -> payload.optString(key).takeIf { it.isNotBlank() && it != "null" } }
+            ?: "User"
+        return if (!id.isNullOrBlank()) Pair(id, name) else null
+    }
+
+    /**
+     * Resolves the authenticated user's id and name natively using the official HRMS API.
+     * Caches the resolved credentials in SharedPreferences (UserId, UserName).
+     * Falls back to offline JWT claims parsing if network or endpoint fails.
+     */
+    @Synchronized
+    fun fetchUserIdentity(context: Context, accessToken: String): Pair<String, String>? {
+        if (accessToken.isBlank()) return null
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+        var connection: HttpURLConnection? = null
+        try {
+            Log.d(TAG, "Resolving user identity natively from: $GET_MY_DETAILS_ENDPOINT")
+            connection = openConnection(context, GET_MY_DETAILS_ENDPOINT)
+            connection.requestMethod = "GET"
+            connection.setRequestProperty("Authorization", "Bearer $accessToken")
+            connection.setRequestProperty("Accept", "application/json")
+            connection.connectTimeout = 8000
+            connection.readTimeout = 8000
+            connection.connect()
+
+            val responseCode = connection.responseCode
+            if (responseCode == 200) {
+                val responseString = BufferedReader(InputStreamReader(connection.inputStream, StandardCharsets.UTF_8)).use {
+                    it.readText()
+                }
+                val jsonResponse = JSONObject(responseString)
+                val dataObj = jsonResponse.optJSONObject("data") ?: jsonResponse
+
+                val id = (dataObj.optString("id").takeIf { it.isNotBlank() && it != "null" }
+                    ?: dataObj.optString("employeeId").takeIf { it.isNotBlank() && it != "null" }
+                    ?: dataObj.optString("userId")).trim()
+
+                val name = (dataObj.optString("name").takeIf { it.isNotBlank() && it != "null" }
+                    ?: dataObj.optString("firstName").takeIf { it.isNotBlank() && it != "null" }
+                    ?: "User").trim()
+
+                if (id.isNotEmpty() && id != "null") {
+                    prefs.edit()
+                        .putString(KEY_USER_ID, id)
+                        .putString(KEY_USER_NAME, name)
+                        .apply()
+                    Log.i(TAG, "Successfully resolved and cached user identity: id=$id, name=$name")
+                    return Pair(id, name)
+                }
+            } else {
+                Log.w(TAG, "GetMyDetails responded with HTTP $responseCode")
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Network exception during fetchUserIdentity: ${e.message}")
+        } finally {
+            connection?.disconnect()
+        }
+
+        // Fallback: Extract from JWT token claims
+        val jwtIdentity = extractIdentityFromJwt(accessToken)
+        if (jwtIdentity != null) {
+            prefs.edit()
+                .putString(KEY_USER_ID, jwtIdentity.first)
+                .putString(KEY_USER_NAME, jwtIdentity.second)
+                .apply()
+            Log.i(TAG, "Resolved user identity from JWT payload: id=${jwtIdentity.first}, name=${jwtIdentity.second}")
+            return jwtIdentity
+        }
+
+        return null
+    }
+
+    /**
+     * Ensures UserId and UserName are present in SharedPreferences.
+     * If absent, automatically invokes fetchUserIdentity with the active access token.
+     */
+    fun ensureUserIdentity(context: Context): Pair<String, String>? {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val existingId = prefs.getString(KEY_USER_ID, null)
+        val existingName = prefs.getString(KEY_USER_NAME, "User") ?: "User"
+
+        if (!existingId.isNullOrBlank()) {
+            return Pair(existingId, existingName)
+        }
+
+        val token = getValidAccessToken(context) ?: return null
+        return fetchUserIdentity(context, token)
     }
 
     /**

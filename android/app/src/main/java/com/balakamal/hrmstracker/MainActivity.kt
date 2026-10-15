@@ -370,8 +370,8 @@ class MainActivity : AppCompatActivity() {
                     // Inject localStorage hook to catch silent Angular token refreshes in real time
                     injectTokenRefreshObserver()
 
-                    // Extract tokens silently for background notifications if they log in
-                    if (url.contains("dashboard") || url.contains("time-sheet") || url.contains("me/timesheet")) {
+                    // Extract tokens silently for background notifications if authenticated
+                    if (!url.contains("/login")) {
                         extractTokensForBackgroundWorker()
                     }
                     
@@ -1169,9 +1169,6 @@ class MainActivity : AppCompatActivity() {
             scheduleBackgroundWorker()
             triggerWidgetRefresh()
         }
-
-        // Show Daily Summary Card overlay on app open
-        showSummaryCard()
     }
 
     private fun injectScriptFromAssets() {
@@ -1272,6 +1269,16 @@ class MainActivity : AppCompatActivity() {
                         
                         editor.apply()
                         
+                        val currentUserId = sharedPrefs.getString(KEY_USER_ID, null)
+                        if (currentUserId.isNullOrBlank() && accessToken.isNotEmpty() && accessToken != "null") {
+                            Thread {
+                                TokenManager.fetchUserIdentity(applicationContext, accessToken)
+                                runOnUiThread {
+                                    triggerWidgetRefresh()
+                                }
+                            }.start()
+                        }
+
                         scheduleBackgroundWorker()
                         triggerWidgetRefresh()
                     }
@@ -1295,19 +1302,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun scheduleBackgroundWorker() {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
-
-        val workRequest = PeriodicWorkRequestBuilder<AttendanceWorker>(15, TimeUnit.MINUTES)
-            .setConstraints(constraints)
-            .build()
-
-        WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
-            "HRMS_ATTENDANCE_CHECK",
-            ExistingPeriodicWorkPolicy.UPDATE,
-            workRequest
-        )
+        AttendanceWorker.schedule(applicationContext)
     }
 
     private fun triggerWidgetRefresh() {
@@ -1359,6 +1354,16 @@ class MainActivity : AppCompatActivity() {
                 .putString(KEY_REFRESH_TOKEN, refreshToken)
                 .apply()
             
+            val currentUserId = sharedPrefs.getString(KEY_USER_ID, null)
+            if (currentUserId.isNullOrBlank() && accessToken.isNotBlank()) {
+                Thread {
+                    TokenManager.fetchUserIdentity(applicationContext, accessToken)
+                    runOnUiThread {
+                        triggerWidgetRefresh()
+                    }
+                }.start()
+            }
+
             runOnUiThread {
                 scheduleBackgroundWorker()
                 triggerWidgetRefresh()

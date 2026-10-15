@@ -24,8 +24,30 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
 
     override fun doWork(): Result {
         var accessToken = TokenManager.getValidAccessToken(applicationContext) ?: return Result.failure()
-        val userId = sharedPrefs.getString("UserId", null) ?: return Result.failure()
+        var userId = sharedPrefs.getString("UserId", null)
+        if (userId.isNullOrEmpty()) {
+            val identity = TokenManager.fetchUserIdentity(applicationContext, accessToken)
+            if (identity != null) {
+                userId = identity.first
+            } else {
+                return Result.failure()
+            }
+        }
         val targetHours = sharedPrefs.getFloat("TargetHours", 8.5f)
+
+        // Office-hours budget check: avoid battery drain & backend spam outside of office hours unless actively clocked in
+        val calendar = Calendar.getInstance()
+        val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+        val minute = calendar.get(Calendar.MINUTE)
+        val isWeekend = dayOfWeek == Calendar.SATURDAY || dayOfWeek == Calendar.SUNDAY
+        val isClockedIn = sharedPrefs.getBoolean("WidgetIsClockedIn", false)
+
+        if (!isClockedIn && (isWeekend || hour < 7 || (hour == 7 && minute < 30) || hour >= 21)) {
+            // Update widget locally without remote network call
+            AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
+            return Result.success()
+        }
 
         // 1. Get formatted local ISO date
         val sdfDate = SimpleDateFormat("yyyy-MM-dd", Locale.US)
@@ -107,7 +129,13 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                         metrics.progressRemaining,
                         "Last updated: " + AttendanceAppWidgetProvider.getCurrentTime(),
                         metrics.breakCount,
-                        metrics.actualExitTime
+                        metrics.actualExitTime,
+                        baseWorkMinutes = metrics.baseWorkMinutes,
+                        lastInTimestamp = metrics.lastInTimestamp,
+                        isClockedIn = metrics.isClockedIn,
+                        targetMinutes = metrics.targetMinutes,
+                        baseBreakMinutes = metrics.baseBreakMinutes,
+                        avgBreakMinutes = metrics.avgBreakMinutes
                     )
                     AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
 
@@ -202,5 +230,25 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
             .build()
 
         notificationManager.notify(1, notification)
+    }
+
+    companion object {
+        const val WORK_NAME = "HRMS_ATTENDANCE_CHECK"
+
+        fun schedule(context: Context) {
+            val constraints = androidx.work.Constraints.Builder()
+                .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
+                .build()
+
+            val workRequest = androidx.work.PeriodicWorkRequestBuilder<AttendanceWorker>(15, java.util.concurrent.TimeUnit.MINUTES)
+                .setConstraints(constraints)
+                .build()
+
+            androidx.work.WorkManager.getInstance(context.applicationContext).enqueueUniquePeriodicWork(
+                WORK_NAME,
+                androidx.work.ExistingPeriodicWorkPolicy.UPDATE,
+                workRequest
+            )
+        }
     }
 }
