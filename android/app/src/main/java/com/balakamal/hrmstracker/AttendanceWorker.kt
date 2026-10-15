@@ -88,8 +88,13 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                     sharedPrefs.edit().putBoolean("WfhMode", remoteWfh).apply()
                 }
 
+                // Fetch dynamic policy target hours & personalized 30-day average break
+                val policyHours = AttendanceAppWidgetProvider.fetchRequiredWorkingHours(applicationContext, accessToken, userId)
+                val effectiveTargetHours = policyHours ?: sharedPrefs.getFloat("TargetHours", 8.5f)
+                val avgBreak = AttendanceAppWidgetProvider.fetchAverageBreakMinutes(applicationContext, accessToken, userId)
+
                 // 3. Calculate and sync widget in the background
-                val metrics = AttendanceAppWidgetProvider.calculateMetrics(response.toString(), targetHours)
+                val metrics = AttendanceAppWidgetProvider.calculateMetrics(response.toString(), effectiveTargetHours, avgBreak)
                 if (metrics != null) {
                     AttendanceAppWidgetProvider.saveWidgetCache(
                         applicationContext,
@@ -101,7 +106,8 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                         metrics.progressPercent,
                         metrics.progressRemaining,
                         "Last updated: " + AttendanceAppWidgetProvider.getCurrentTime(),
-                        metrics.breakCount
+                        metrics.breakCount,
+                        metrics.actualExitTime
                     )
                     AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
 
@@ -153,7 +159,8 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                         noLogsStatus,
                         0,
                         defaultRemaining,
-                        "Last updated: " + AttendanceAppWidgetProvider.getCurrentTime()
+                        "Last updated: " + AttendanceAppWidgetProvider.getCurrentTime(),
+                        actualExitTime = defaultExitTime
                     )
                     AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
                 }

@@ -32,6 +32,7 @@ data class WidgetMetrics(
     val breakTime: String,
     val breakCount: String,
     val exitTime: String,
+    val actualExitTime: String,
     val statusText: String,
     val progressPercent: Int,
     val progressRemaining: String
@@ -86,6 +87,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 val breakTime = sharedPrefs.getString("WidgetBreakTime", "0h 00m")
                 val breakCount = sharedPrefs.getString("WidgetBreakCount", "0 Breaks Today") ?: "0 Breaks Today"
                 val exitTime = sharedPrefs.getString("WidgetExitTime", "--:--")
+                val actualExitTime = sharedPrefs.getString("WidgetActualExitTime", "--:--") ?: "--:--"
                 val statusText = sharedPrefs.getString("WidgetStatusText", "Not Synced")
                 val progressPercent = sharedPrefs.getInt("WidgetProgressPercent", 0)
                 val progressRemaining = sharedPrefs.getString("WidgetProgressRemaining", "--h --m left")
@@ -179,7 +181,8 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                             metricLabel = "ESTIMATED EXIT"
                             metricValue = if (isWeekOff) "Enjoy Weekend" else if (isCompleted) "Ready to Leave" else exitTime ?: "--:--"
                             metricValueColor = if (isCompleted) 0xFF38BDF8.toInt() else 0xFF34D399.toInt()
-                            metricSubtext = if (isWeekOff) "Week Off" else if (isWfh) "Flexible Exit" else if (isCompleted) "Shift Completed 🚀" else "$progressRemaining left"
+                            val actualSubtext = if (actualExitTime != "--:--" && actualExitTime != exitTime) " • Act: $actualExitTime" else ""
+                            metricSubtext = if (isWeekOff) "Week Off" else if (isWfh) "Flexible Exit" else if (isCompleted) "Shift Completed 🚀" else "$progressRemaining left$actualSubtext"
                             metricSubtextColor = metricValueColor
                         }
                         2 -> {
@@ -223,6 +226,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     views.setProgressBar(R.id.widget_progress_bar, 100, progressPercent, false)
                 } else if (layoutId == R.layout.attendance_widget_medium) {
                     views.setTextViewText(R.id.widget_exit_time_value, if (isWeekOff && exitTime == "--:--") "Enjoy Weekend" else exitTime)
+                    views.setTextViewText(R.id.widget_actual_exit_time_value, if (isWeekOff && actualExitTime == "--:--") "" else "• Act: $actualExitTime")
                     views.setTextViewText(R.id.widget_last_updated, "Updated: " + getCurrentTime())
                     views.setTextViewText(R.id.widget_progress_percent, "$progressPercent%")
                 } else if (layoutId == R.layout.attendance_widget_countdown) {
@@ -269,6 +273,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     }
                     views.setTextViewText(R.id.widget_status_text, formattedStatus)
                     views.setTextViewText(R.id.widget_exit_time_value, if (isWeekOff && exitTime == "--:--") "Enjoy Weekend" else exitTime)
+                    views.setTextViewText(R.id.widget_actual_exit_time_value, if (isWeekOff && actualExitTime == "--:--") "--:--" else actualExitTime)
                     views.setTextViewText(R.id.widget_first_in_value, firstIn)
                     views.setTextViewText(R.id.widget_break_time_value, breakTime)
                     views.setProgressBar(R.id.widget_progress_bar, 100, progressPercent, false)
@@ -341,7 +346,8 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             progressPercent: Int,
             progressRemaining: String,
             lastUpdated: String,
-            breakCount: String = "0 Breaks Today"
+            breakCount: String = "0 Breaks Today",
+            actualExitTime: String = "--:--"
         ) {
             val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             sharedPrefs.edit()
@@ -350,6 +356,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 .putString("WidgetBreakTime", breakTime)
                 .putString("WidgetBreakCount", breakCount)
                 .putString("WidgetExitTime", exitTime)
+                .putString("WidgetActualExitTime", actualExitTime)
                 .putString("WidgetStatusText", statusText)
                 .putInt("WidgetProgressPercent", progressPercent)
                 .putString("WidgetProgressRemaining", progressRemaining)
@@ -425,7 +432,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             return "${h}h ${String.format("%02d", m)}m"
         }
 
-        fun calculateMetrics(jsonStr: String, targetHours: Float): WidgetMetrics? {
+        fun calculateMetrics(jsonStr: String, targetHours: Float, avgBreakMinutes: Int = 60): WidgetMetrics? {
             try {
                 val jsonObject = JSONObject(jsonStr)
                 val data = jsonObject.optJSONObject("data") ?: return null
@@ -496,9 +503,16 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 }
                 
                 var exitTimeStr = "Completed"
+                var actualExitTimeStr = "Completed"
                 if (!completed) {
-                    val exitDate = Date(Date().time + (remainingMinutes * 60000).toLong())
-                    exitTimeStr = SimpleDateFormat("hh:mm a", Locale.US).format(exitDate)
+                    // Actual Exit: direct remaining work time without extra breaks
+                    val actualExitDate = Date(Date().time + (remainingMinutes * 60000).toLong())
+                    actualExitTimeStr = SimpleDateFormat("hh:mm a", Locale.US).format(actualExitDate)
+
+                    // Estimated Exit: includes buffer for remaining portion of average break
+                    val remainingBreakMinutes = Math.max(0.0, avgBreakMinutes - totalBreakMinutes)
+                    val estExitDate = Date(Date().time + ((remainingMinutes + remainingBreakMinutes) * 60000).toLong())
+                    exitTimeStr = SimpleDateFormat("hh:mm a", Locale.US).format(estExitDate)
                 }
 
                 val progressPercent = Math.min(100, ((totalWorkMinutes / targetMinutes) * 100).toInt())
@@ -511,7 +525,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     else -> "Not Clocked In"
                 }
 
-                return WidgetMetrics(workTimeStr, firstInStr, breakTimeStr, breakCountStr, exitTimeStr, statusText, progressPercent, progressRemaining)
+                return WidgetMetrics(workTimeStr, firstInStr, breakTimeStr, breakCountStr, exitTimeStr, actualExitTimeStr, statusText, progressPercent, progressRemaining)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -524,6 +538,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             val firstIn = sharedPrefs.getString("WidgetFirstIn", "--:--") ?: "--:--"
             val breakTime = sharedPrefs.getString("WidgetBreakTime", "0h 00m") ?: "0h 00m"
             val exitTime = sharedPrefs.getString("WidgetExitTime", "--:--") ?: "--:--"
+            val actualExitTime = sharedPrefs.getString("WidgetActualExitTime", "--:--") ?: "--:--"
             val progressPercent = sharedPrefs.getInt("WidgetProgressPercent", 0)
             val progressRemaining = sharedPrefs.getString("WidgetProgressRemaining", "--h --m left") ?: "--h --m left"
             val lastUpdated = sharedPrefs.getString("WidgetLastUpdated", "Last updated: --:--") ?: "Last updated: --:--"
@@ -544,7 +559,8 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 finalStatus,
                 progressPercent,
                 progressRemaining,
-                lastUpdated
+                lastUpdated,
+                actualExitTime = actualExitTime
             )
         }
 
@@ -581,6 +597,112 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 android.util.Log.e("HRMSWidget", "checkEmployeeWfhStatus failed: ${e.message}")
             }
             return null
+        }
+
+        fun fetchRequiredWorkingHours(context: Context, accessToken: String, userId: String): Float? {
+            try {
+                val policyUrl = "https://apps.pal.tech/hrms-backend/api/OrganizationPolicy/GetMyPolicies?schemeId=3&policyId=0&employeeId=$userId"
+                val connection = TokenManager.openConnection(context, policyUrl)
+                connection.requestMethod = "GET"
+                connection.setRequestProperty("Authorization", "Bearer $accessToken")
+                connection.setRequestProperty("Accept", "application/json")
+                connection.connectTimeout = 6000
+                connection.readTimeout = 6000
+                connection.connect()
+
+                if (connection.responseCode == 200) {
+                    val reader = BufferedReader(InputStreamReader(connection.inputStream))
+                    val sb = StringBuilder()
+                    var line: String?
+                    while (reader.readLine().also { line = it } != null) {
+                        sb.append(line)
+                    }
+                    reader.close()
+                    val json = JSONObject(sb.toString())
+                    val dataObj = json.optJSONObject("data")
+                    val effHoursObj = dataObj?.optJSONObject("effectiveHours")
+                    if (effHoursObj != null && effHoursObj.has("requiredWorkingRate")) {
+                        val rate = effHoursObj.optDouble("requiredWorkingRate", 100.0)
+                        // 100% requiredWorkingRate corresponds to 8h 30m (8.5h)
+                        val targetHours = ((rate / 100.0) * 8.5).toFloat()
+                        val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                        sharedPrefs.edit()
+                            .putFloat("TargetHours", targetHours)
+                            .putInt("PolicyWorkingRate", rate.toInt())
+                            .apply()
+                        return targetHours
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("HRMSWidget", "fetchRequiredWorkingHours failed: ${e.message}")
+            }
+            return null
+        }
+
+        fun fetchAverageBreakMinutes(context: Context, accessToken: String, userId: String): Int {
+            val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            try {
+                val cal = Calendar.getInstance()
+                val sdfIso = SimpleDateFormat("yyyy-MM-dd'T'00:00:00.000'Z'", Locale.US)
+                val sdfDate = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+                val todayStr = sdfDate.format(cal.time)
+                val endIso = sdfIso.format(cal.time)
+
+                cal.add(Calendar.DAY_OF_YEAR, -30)
+                val startIso = sdfIso.format(cal.time)
+
+                val summaryUrl = "https://apps.pal.tech/hrms-backend/api/Attendance/GetDailySummaryLog?startDate=$startIso&endDate=$endIso&userId=$userId"
+                val connection = TokenManager.openConnection(context, summaryUrl)
+                connection.requestMethod = "GET"
+                connection.setRequestProperty("Authorization", "Bearer $accessToken")
+                connection.setRequestProperty("Accept", "application/json")
+                connection.connectTimeout = 6000
+                connection.readTimeout = 6000
+                connection.connect()
+
+                if (connection.responseCode == 200) {
+                    val reader = BufferedReader(InputStreamReader(connection.inputStream))
+                    val sb = StringBuilder()
+                    var line: String?
+                    while (reader.readLine().also { line = it } != null) {
+                        sb.append(line)
+                    }
+                    reader.close()
+                    val json = JSONObject(sb.toString())
+                    val dataArray = json.optJSONArray("data")
+                    if (dataArray != null && dataArray.length() > 0) {
+                        var totalBreakSeconds = 0L
+                        var validDaysCount = 0
+
+                        for (i in 0 until dataArray.length()) {
+                            val dayObj = dataArray.getJSONObject(i)
+                            val dateStr = dayObj.optString("date", "")
+                            val grossHours = dayObj.optLong("grossHours", 0L)
+                            val effectiveHours = dayObj.optLong("effectiveHours", 0L)
+
+                            // Only consider completed work days with recorded time, excluding today
+                            if (grossHours > 0 && effectiveHours > 0 && !dateStr.startsWith(todayStr)) {
+                                val breakSeconds = grossHours - effectiveHours
+                                if (breakSeconds >= 0) {
+                                    totalBreakSeconds += breakSeconds
+                                    validDaysCount++
+                                }
+                            }
+                        }
+
+                        if (validDaysCount > 0) {
+                            val avgSeconds = totalBreakSeconds / validDaysCount
+                            val avgMinutes = Math.round(avgSeconds / 60.0).toInt()
+                            val result = if (avgMinutes > 0) avgMinutes else 60
+                            sharedPrefs.edit().putInt("AvgBreakMinutes", result).apply()
+                            return result
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("HRMSWidget", "fetchAverageBreakMinutes failed: ${e.message}")
+            }
+            return sharedPrefs.getInt("AvgBreakMinutes", 60)
         }
 
         fun isWeekend(): Boolean {
@@ -722,7 +844,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             val defaultWork = if (isWeekendToday) "Week Off" else "0h 00m"
             val defaultExit = if (isWeekendToday) "Enjoy Weekend" else "--:--"
             val defaultRem = if (isWeekendToday) "Rest & Recharge" else "--h --m left"
-            saveWidgetCache(context, defaultWork, "--:--", "0h 00m", defaultExit, defaultStatus, 0, defaultRem, "Last updated: " + getCurrentTime())
+            saveWidgetCache(context, defaultWork, "--:--", "0h 00m", defaultExit, defaultStatus, 0, defaultRem, "Last updated: " + getCurrentTime(), actualExitTime = defaultExit)
             triggerWidgetUpdate(context)
             return
         }
@@ -799,7 +921,12 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     sharedPrefs.edit().putBoolean("WfhMode", remoteWfh).apply()
                 }
 
-                val metrics = calculateMetrics(response.toString(), targetHours)
+                // Fetch dynamic policy target hours & personalized 30-day average break
+                val policyHours = fetchRequiredWorkingHours(context, accessToken, userId)
+                val effectiveTargetHours = policyHours ?: sharedPrefs.getFloat("TargetHours", 8.5f)
+                val avgBreak = fetchAverageBreakMinutes(context, accessToken, userId)
+
+                val metrics = calculateMetrics(response.toString(), effectiveTargetHours, avgBreak)
                 if (metrics != null) {
                     saveWidgetCache(
                         context,
@@ -811,10 +938,11 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                         metrics.progressPercent,
                         metrics.progressRemaining,
                         "Last updated: " + getCurrentTime(),
-                        metrics.breakCount
+                        metrics.breakCount,
+                        metrics.actualExitTime
                     )
                     // Check and trigger Completed notification if complete
-                    checkAndSendNotification(context, response.toString(), targetHours)
+                    checkAndSendNotification(context, response.toString(), effectiveTargetHours)
                 } else {
                     val isWfh = sharedPrefs.getBoolean("WfhMode", false)
                     val isWeekendToday = isWeekend()
@@ -826,7 +954,18 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     val defaultWorkTime = if (isWeekendToday) "Week Off" else "0h 00m"
                     val defaultExitTime = if (isWeekendToday) "Enjoy Weekend" else "--:--"
                     val defaultRemaining = if (isWeekendToday) "Rest & Recharge" else "--h --m left"
-                    saveWidgetCache(context, defaultWorkTime, "--:--", "0h 00m", defaultExitTime, noLogsStatus, 0, defaultRemaining, "Last updated: " + getCurrentTime())
+                    saveWidgetCache(
+                        context,
+                        defaultWorkTime,
+                        "--:--",
+                        "0h 00m",
+                        defaultExitTime,
+                        noLogsStatus,
+                        0,
+                        defaultRemaining,
+                        "Last updated: " + getCurrentTime(),
+                        actualExitTime = defaultExitTime
+                    )
                 }
             } else {
                 saveWidgetCacheError(context, "Sync Error (${connection.responseCode})")

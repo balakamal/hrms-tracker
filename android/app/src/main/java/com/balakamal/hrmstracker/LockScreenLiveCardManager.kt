@@ -49,6 +49,7 @@ object LockScreenLiveCardManager {
         val firstIn = prefs.getString("WidgetFirstIn", "--:--") ?: "--:--"
         val workTime = prefs.getString("WidgetWorkTime", "0h 00m") ?: "0h 00m"
         val exitTime = prefs.getString("WidgetExitTime", "--:--") ?: "--:--"
+        val actualExitTime = prefs.getString("WidgetActualExitTime", "--:--") ?: "--:--"
         val statusTextRaw = prefs.getString("WidgetStatusText", "Clocked In") ?: "Clocked In"
         val progressPercent = prefs.getInt("WidgetProgressPercent", 0)
         val remaining = prefs.getString("WidgetProgressRemaining", "-- left") ?: "-- left"
@@ -104,7 +105,12 @@ object LockScreenLiveCardManager {
         views.setTextViewText(R.id.txt_ls_progress_pct, "$progressPercent%")
         views.setTextViewText(R.id.txt_ls_work_time, if (workTime.isBlank()) "--" else workTime)
         views.setTextViewText(R.id.txt_ls_exit_time, if (exitTime.isBlank()) "--:--" else exitTime)
-        views.setTextViewText(R.id.txt_ls_remaining, remaining)
+        val remainingDisplay = if (actualExitTime != "--:--" && actualExitTime != exitTime && !isWeekend && !isWfh) {
+            "$remaining (Act: $actualExitTime)"
+        } else {
+            remaining
+        }
+        views.setTextViewText(R.id.txt_ls_remaining, remainingDisplay)
         views.setProgressBar(R.id.pb_ls_progress, 100, progressPercent, false)
 
         // 1-Tap Refresh Action

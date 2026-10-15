@@ -61,6 +61,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var txtSummaryFirstIn: TextView
     private lateinit var txtSummaryWorkTime: TextView
     private lateinit var txtSummaryExitTime: TextView
+    private lateinit var txtSummaryActualExitTime: TextView
     private lateinit var txtSummaryStatus: TextView
     private lateinit var layoutError: View
     private lateinit var btnRetry: Button
@@ -161,6 +162,7 @@ class MainActivity : AppCompatActivity() {
         txtSummaryFirstIn = findViewById(R.id.txt_summary_first_in)
         txtSummaryWorkTime = findViewById(R.id.txt_summary_work_time)
         txtSummaryExitTime = findViewById(R.id.txt_summary_exit_time)
+        txtSummaryActualExitTime = findViewById(R.id.txt_summary_actual_exit_time)
         txtSummaryStatus = findViewById(R.id.txt_summary_status)
         layoutError = findViewById(R.id.layout_error)
         btnRetry = findViewById(R.id.btn_retry)
@@ -602,11 +604,13 @@ class MainActivity : AppCompatActivity() {
         }
         val workTime = sharedPrefs.getString("WidgetWorkTime", "0h 00m") ?: "0h 00m"
         val exitTime = sharedPrefs.getString("WidgetExitTime", "--:--") ?: "--:--"
+        val actualExitTime = sharedPrefs.getString("WidgetActualExitTime", "--:--") ?: "--:--"
         val status = sharedPrefs.getString("WidgetStatusText", "Clocked In") ?: "Clocked In"
 
         txtSummaryFirstIn.text = firstIn
         txtSummaryWorkTime.text = workTime
         txtSummaryExitTime.text = exitTime
+        txtSummaryActualExitTime.text = actualExitTime
         txtSummaryStatus.text = status
 
         val statusColor = when {
@@ -1212,7 +1216,9 @@ class MainActivity : AppCompatActivity() {
                         refreshToken: localStorage.getItem('RefreshToken') || '',
                         userId: localStorage.getItem('at_user_id') || '',
                         userName: localStorage.getItem('at_user_name') || '',
-                        targetHours: localStorage.getItem('at_target_hours') || ''
+                        targetHours: localStorage.getItem('at_target_hours') || '',
+                        policyWorkingRate: localStorage.getItem('at_policy_rate') || '',
+                        avgBreakMinutes: localStorage.getItem('at_avg_break_min') || ''
                     });
                 } catch(e) {
                     return '{}';
@@ -1231,6 +1237,8 @@ class MainActivity : AppCompatActivity() {
                     val userId = jsonObject.optString("userId").trim()
                     val userName = jsonObject.optString("userName").trim()
                     val targetHoursStr = jsonObject.optString("targetHours").trim()
+                    val policyRateStr = jsonObject.optString("policyWorkingRate").trim()
+                    val avgBreakStr = jsonObject.optString("avgBreakMinutes").trim()
 
                     if (accessToken.isNotEmpty() && accessToken != "null") {
                         val editor = sharedPrefs.edit()
@@ -1248,6 +1256,18 @@ class MainActivity : AppCompatActivity() {
                         if (targetHoursStr.isNotEmpty() && targetHoursStr != "null") {
                             val targetHours = targetHoursStr.toFloatOrNull() ?: 8.5f
                             editor.putFloat(KEY_TARGET_HOURS, targetHours)
+                        }
+                        if (policyRateStr.isNotEmpty() && policyRateStr != "null") {
+                            val rate = policyRateStr.toIntOrNull()
+                            if (rate != null) {
+                                editor.putInt("PolicyWorkingRate", rate)
+                            }
+                        }
+                        if (avgBreakStr.isNotEmpty() && avgBreakStr != "null") {
+                            val avgBreak = avgBreakStr.toIntOrNull()
+                            if (avgBreak != null) {
+                                editor.putInt("AvgBreakMinutes", avgBreak)
+                            }
                         }
                         
                         editor.apply()

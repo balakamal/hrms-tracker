@@ -174,7 +174,7 @@
         </RelativeLayout>
     </LinearLayout>
 
-    <!-- Bottom 3-Column Stats Row (Unified Glass Shelf) -->
+    <!-- Bottom 4-Column Stats Row (Unified Glass Shelf) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -186,12 +186,12 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_marginEnd="5dp"
+            android:layout_marginEnd="4dp"
             android:layout_weight="1"
             android:background="@drawable/bg_widget_stat_cell"
             android:gravity="center"
             android:orientation="vertical"
-            android:padding="5dp">
+            android:padding="4dp">
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -200,9 +200,9 @@
                 android:orientation="horizontal">
 
                 <ImageView
-                    android:layout_width="11dp"
-                    android:layout_height="11dp"
-                    android:layout_marginEnd="4dp"
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:layout_marginEnd="3dp"
                     android:contentDescription="First In"
                     android:scaleType="fitCenter"
                     android:src="@drawable/ic_timer"
@@ -214,7 +214,7 @@
                     android:letterSpacing="0.05"
                     android:text="FIRST IN"
                     android:textColor="#94A3B8"
-                    android:textSize="8sp"
+                    android:textSize="7sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
@@ -225,7 +225,7 @@
                 android:layout_marginTop="2dp"
                 android:text="09:15 AM"
                 android:textColor="#F1F5F9"
-                android:textSize="13sp"
+                android:textSize="12sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -233,12 +233,12 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_marginEnd="5dp"
+            android:layout_marginEnd="4dp"
             android:layout_weight="1"
             android:background="@drawable/bg_widget_stat_cell"
             android:gravity="center"
             android:orientation="vertical"
-            android:padding="5dp">
+            android:padding="4dp">
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -247,9 +247,9 @@
                 android:orientation="horizontal">
 
                 <ImageView
-                    android:layout_width="11dp"
-                    android:layout_height="11dp"
-                    android:layout_marginEnd="4dp"
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:layout_marginEnd="3dp"
                     android:contentDescription="Break"
                     android:scaleType="fitCenter"
                     android:src="@drawable/ic_coffee" />
@@ -260,7 +260,7 @@
                     android:letterSpacing="0.05"
                     android:text="BREAK"
                     android:textColor="#94A3B8"
-                    android:textSize="8sp"
+                    android:textSize="7sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
@@ -271,7 +271,7 @@
                 android:layout_marginTop="2dp"
                 android:text="0h 45m"
                 android:textColor="#F1F5F9"
-                android:textSize="13sp"
+                android:textSize="12sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -279,11 +279,12 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_marginEnd="4dp"
             android:layout_weight="1"
             android:background="@drawable/bg_widget_stat_cell"
             android:gravity="center"
             android:orientation="vertical"
-            android:padding="5dp">
+            android:padding="4dp">
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -292,9 +293,9 @@
                 android:orientation="horizontal">
 
                 <ImageView
-                    android:layout_width="11dp"
-                    android:layout_height="11dp"
-                    android:layout_marginEnd="4dp"
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:layout_marginEnd="3dp"
                     android:contentDescription="Est. Exit"
                     android:scaleType="fitCenter"
                     android:src="@drawable/ic_exit" />
@@ -305,7 +306,7 @@
                     android:letterSpacing="0.05"
                     android:text="EST. EXIT"
                     android:textColor="#94A3B8"
-                    android:textSize="8sp"
+                    android:textSize="7sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
@@ -316,7 +317,53 @@
                 android:layout_marginTop="2dp"
                 android:text="06:30 PM"
                 android:textColor="#F1F5F9"
-                android:textSize="13sp"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Column 4: Act. Exit -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_widget_stat_cell"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="4dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:layout_marginEnd="3dp"
+                    android:contentDescription="Act. Exit"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_timer"
+                    android:tint="#A78BFA" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.05"
+                    android:text="ACT. EXIT"
+                    android:textColor="#94A3B8"
+                    android:textSize="7sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/widget_actual_exit_time_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="05:30 PM"
+                android:textColor="#A78BFA"
+                android:textSize="12sp"
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>

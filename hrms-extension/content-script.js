@@ -57,7 +57,20 @@
       --at-panel-border: rgba(0, 0, 0, 0.08);
       --at-accent-work: #059669;
       --at-accent-exit: #0284C7;
+      --at-accent-actual: #7C3AED;
       --at-bg-header: linear-gradient(180deg, rgba(0, 0, 0, 0.03) 0%, rgba(0, 0, 0, 0) 100%);
+    }
+    #at-widget-container.at-theme-light .highlight-actual {
+      color: #7C3AED !important;
+      text-shadow: none;
+    }
+    #at-widget-container.at-theme-light .highlight-exit {
+      color: #0284C7 !important;
+      text-shadow: none;
+    }
+    #at-widget-container.at-theme-light .highlight-work {
+      color: #059669 !important;
+      text-shadow: none;
     }
     #at-widget-container.at-dragging {
       transition: none !important;
@@ -269,6 +282,20 @@
     .highlight-exit {
       color: #38BDF8 !important;
       text-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+    }
+    .highlight-actual {
+      color: #A78BFA !important;
+      text-shadow: 0 0 12px rgba(167, 139, 250, 0.35);
+    }
+    .at-item-break {
+      grid-column: span 2;
+    }
+    .at-subtext {
+      font-size: 10px;
+      color: var(--at-text-secondary);
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      margin-top: 2px;
     }
 
     /* Progress Section */
@@ -509,6 +536,8 @@
     userId: localStorage.getItem("at_user_id") || null,
     userName: localStorage.getItem("at_user_name") || "User",
     targetHours: parseFloat(localStorage.getItem("at_target_hours") || "8.5"),
+    policyWorkingRate: localStorage.getItem("at_policy_rate") ? parseFloat(localStorage.getItem("at_policy_rate")) : null,
+    avgBreakMinutes: localStorage.getItem("at_avg_break_min") ? parseFloat(localStorage.getItem("at_avg_break_min")) : 60,
     notifyEnabled: localStorage.getItem("at_notify_enabled") !== "false",
     isMinimized: localStorage.getItem("at_is_minimized") === "true",
     theme: localStorage.getItem("at_theme") || "dark",
@@ -798,6 +827,134 @@
     }
   }
 
+  async function fetchOrganizationPolicy() {
+    if (!state.userId) await fetchUserIdentity();
+    if (!state.userId) return;
+
+    const url = `https://apps.pal.tech/hrms-backend/api/OrganizationPolicy/GetMyPolicies?schemeId=3&policyId=0&employeeId=${state.userId}`;
+    let token = localStorage.getItem("AccessToken");
+    if (!token) return;
+
+    try {
+      let response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
+
+      if (response.status === 401) {
+        const refreshed = await attemptTokenRefresh();
+        if (refreshed) {
+          token = localStorage.getItem("AccessToken");
+          response = await fetch(url, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/json",
+            },
+          });
+        }
+      }
+
+      if (!response.ok) return;
+      const resData = await response.json();
+      if (resData && resData.data && resData.data.effectiveHours) {
+        const rate = parseFloat(resData.data.effectiveHours.requiredWorkingRate);
+        if (!isNaN(rate) && rate > 0) {
+          state.policyWorkingRate = rate;
+          // 100% = 8 hours 30 mins = 8.5 hours
+          state.targetHours = (rate / 100.0) * 8.5;
+          localStorage.setItem("at_target_hours", state.targetHours.toString());
+          localStorage.setItem("at_policy_rate", rate.toString());
+          if (window.AndroidApp && typeof window.AndroidApp.saveSettings === "function") {
+            window.AndroidApp.saveSettings(state.targetHours);
+          }
+          updateUI();
+        }
+      }
+    } catch (e) {
+      console.error("Error fetching organization policy in tracker script:", e);
+    }
+  }
+
+  async function fetchBreakAverageFromSummary() {
+    if (!state.userId) await fetchUserIdentity();
+    if (!state.userId) return;
+
+    const today = new Date();
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setDate(today.getDate() - 30);
+
+    const pad = (n) => String(n).padStart(2, "0");
+    const fmtDate = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+    const startDate = `${fmtDate(oneMonthAgo)}T00:00:00.000Z`;
+    const endDate = `${fmtDate(today)}T00:00:00.000Z`;
+    const todayLocalStr = fmtDate(today);
+
+    const url = `https://apps.pal.tech/hrms-backend/api/Attendance/GetDailySummaryLog?startDate=${startDate}&endDate=${endDate}&userId=${state.userId}`;
+    let token = localStorage.getItem("AccessToken");
+    if (!token) return;
+
+    try {
+      let response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
+
+      if (response.status === 401) {
+        const refreshed = await attemptTokenRefresh();
+        if (refreshed) {
+          token = localStorage.getItem("AccessToken");
+          response = await fetch(url, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/json",
+            },
+          });
+        }
+      }
+
+      if (!response.ok) return;
+      const resData = await response.json();
+      const logs = Array.isArray(resData.data) ? resData.data : [];
+
+      let totalBreakSeconds = 0;
+      let workingDayCount = 0;
+
+      for (let i = 0; i < logs.length; i++) {
+        const log = logs[i];
+        if (!log) continue;
+        const logDateStr = (log.date || "").split("T")[0];
+        // Exclude today's incomplete log
+        if (logDateStr === todayLocalStr) continue;
+
+        const gross = Number(log.grossHours) || 0;
+        const eff = Number(log.effectiveHours) || 0;
+
+        // Valid completed working day punch
+        if (gross > 0 && eff > 0 && gross >= eff) {
+          const diff = gross - eff; // in seconds
+          totalBreakSeconds += diff;
+          workingDayCount++;
+        }
+      }
+
+      if (workingDayCount > 0) {
+        const avgSec = totalBreakSeconds / workingDayCount;
+        state.avgBreakMinutes = Math.max(15, Math.round(avgSec / 60)); // minimum 15m sanity check
+      } else {
+        state.avgBreakMinutes = 60; // 1-hour fallback
+      }
+      localStorage.setItem("at_avg_break_min", state.avgBreakMinutes.toString());
+      updateUI();
+    } catch (e) {
+      console.error("Error fetching daily summary break average in tracker script:", e);
+    }
+  }
+
   async function fetchAttendanceLogs() {
     checkDomForWfhStatus();
     if (!state.userId) await fetchUserIdentity();
@@ -805,6 +962,12 @@
 
     // Fetch official employee status from HRMS backend (WFH: 1 check)
     fetchEmployeeStatus();
+
+    // Fetch organization policy for dynamic target working rate
+    fetchOrganizationPolicy();
+
+    // Fetch 30-day daily summary to compute personalized average break duration
+    fetchBreakAverageFromSummary();
 
     // Sync tokens with Android side in case they have changed or are freshly available
     syncTokensToAndroid();
@@ -913,9 +1076,23 @@
       (totalElapsedMs - workDurationMs) / 60000,
     );
 
+    // Actual Exit Time (pure work completion without extra breaks)
+    let actualExitTime = "Completed";
+    if (!completed) {
+      const actualExitDate = new Date(now.getTime() + remainingMinutes * 60000);
+      actualExitTime = actualExitDate.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
+
+    // Estimated Exit Time (factoring in remaining estimated break)
+    const avgBreakMin = typeof state.avgBreakMinutes === "number" && !isNaN(state.avgBreakMinutes) ? state.avgBreakMinutes : 60;
+    const remainingBreakMinutes = Math.max(0, avgBreakMin - totalBreakMinutes);
+
     let exitTime = "Completed";
     if (!completed) {
-      const exitDate = new Date(now.getTime() + remainingMinutes * 60000);
+      const exitDate = new Date(now.getTime() + (remainingMinutes + remainingBreakMinutes) * 60000);
       exitTime = exitDate.toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
@@ -931,6 +1108,9 @@
       breakMinutes: totalBreakMinutes,
       remainingMinutes: remainingMinutes,
       exitTime: exitTime,
+      actualExitTime: actualExitTime,
+      avgBreakMinutes: avgBreakMin,
+      remainingBreakMinutes: remainingBreakMinutes,
       isClockedIn: isClockedIn,
       completed: completed,
       lastLocation: lastLocation,
@@ -1012,13 +1192,20 @@
           <span class="at-label">${ICONS.work} Work Time</span>
           <span class="at-val highlight-work" id="at-val-work-time">--h --m</span>
         </div>
-        <div class="at-item">
+        <div class="at-item at-item-break">
           <span class="at-label">${ICONS.coffee} Total Break</span>
           <span class="at-val" id="at-val-break-time">--h --m</span>
+          <span class="at-subtext" id="at-sub-break-avg">30d Avg: ~60m</span>
         </div>
         <div class="at-item">
           <span class="at-label">${ICONS.exit} Est. Exit</span>
           <span class="at-val highlight-exit" id="at-val-exit-time">--:--</span>
+          <span class="at-subtext" id="at-sub-exit-desc">with est. break</span>
+        </div>
+        <div class="at-item">
+          <span class="at-label">${ICONS.clock} Actual Exit</span>
+          <span class="at-val highlight-actual" id="at-val-actual-exit-time">--:--</span>
+          <span class="at-subtext">no extra break</span>
         </div>
       </div>
 
@@ -1052,6 +1239,18 @@
         <div class="at-form-group">
           <label>Target Work (Minutes / Formula)</label>
           <input type="text" class="at-input" id="at-setting-minutes-input" value="${Math.round(state.targetHours * 60)}" placeholder="e.g. 510 or 8*60+30">
+        </div>
+        <div class="at-form-group row">
+          <label>Policy Target Rate</label>
+          <span style="font-size:11px; font-weight:700; color:#38BDF8;">
+            ${state.policyWorkingRate ? `${state.policyWorkingRate}% (${formatMinutes(state.targetHours * 60)})` : "Standard (8h 30m)"}
+          </span>
+        </div>
+        <div class="at-form-group row">
+          <label>30-Day Break Avg</label>
+          <span style="font-size:11px; font-weight:700; color:#FBBF24;">
+            ~${state.avgBreakMinutes || 60}m per day
+          </span>
         </div>
         <div class="at-form-group row">
           <label>Workspace Mode</label>
@@ -1436,6 +1635,7 @@
       const indicator = elements.card.querySelector("#at-status-indicator");
       const badgeTimeEl = document.getElementById("at-badge-work-time");
       const exitTimeEl = elements.card.querySelector("#at-val-exit-time");
+      const actualExitTimeEl = elements.card.querySelector("#at-val-actual-exit-time");
 
       if (state.isWfh) {
         if (statusTextEl) statusTextEl.innerText = "Working from Home";
@@ -1453,6 +1653,7 @@
         }
         if (badgeTimeEl) badgeTimeEl.innerText = "Week Off";
         if (exitTimeEl) exitTimeEl.innerText = "Week Off";
+        if (actualExitTimeEl) actualExitTimeEl.innerText = "Week Off";
       } else {
         if (statusTextEl) statusTextEl.innerText = "No attendance logs today";
       }
@@ -1494,12 +1695,18 @@
     const workTimeEl = elements.card.querySelector("#at-val-work-time");
     const breakTimeEl = elements.card.querySelector("#at-val-break-time");
     const exitTimeEl = elements.card.querySelector("#at-val-exit-time");
+    const actualExitTimeEl = elements.card.querySelector("#at-val-actual-exit-time");
+    const subBreakAvgEl = elements.card.querySelector("#at-sub-break-avg");
+    const subExitDescEl = elements.card.querySelector("#at-sub-exit-desc");
 
     if (firstInEl) firstInEl.innerText = metrics.firstClockIn;
     if (workTimeEl) workTimeEl.innerText = formatMinutes(metrics.workMinutes);
     if (breakTimeEl)
       breakTimeEl.innerText = formatMinutes(metrics.breakMinutes);
     if (exitTimeEl) exitTimeEl.innerText = metrics.exitTime;
+    if (actualExitTimeEl) actualExitTimeEl.innerText = metrics.actualExitTime;
+    if (subBreakAvgEl) subBreakAvgEl.innerText = `30d Avg: ~${metrics.avgBreakMinutes}m`;
+    if (subExitDescEl) subExitDescEl.innerText = metrics.completed ? "Goal Met" : `+${metrics.remainingBreakMinutes}m break remaining`;
 
     // Update progress bar
     const targetMin = state.targetHours * 60;

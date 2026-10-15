@@ -393,24 +393,24 @@
                         app:tint="@color/text_muted" />
                 </RelativeLayout>
 
-                <!-- Metrics Grid (4-Column One UI Squircle Shelf) -->
+                <!-- Metrics Grid (5-Column One UI Squircle Shelf) -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:orientation="horizontal"
-                    android:weightSum="4">
+                    android:weightSum="5">
 
                     <!-- First In -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="4dp"
+                        android:layout_marginEnd="3dp"
                         android:layout_weight="1"
                         android:background="@drawable/bg_widget_stat_cell"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="7dp">
+                        android:padding="6dp">
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -418,7 +418,7 @@
                             android:letterSpacing="0.05"
                             android:text="FIRST IN"
                             android:textColor="@color/text_secondary"
-                            android:textSize="8sp"
+                            android:textSize="7sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -428,7 +428,7 @@
                             android:layout_marginTop="2dp"
                             android:text="--:--"
                             android:textColor="@color/accent_emerald"
-                            android:textSize="13sp"
+                            android:textSize="12sp"
                             android:textStyle="bold" />
                     </LinearLayout>
 
@@ -436,12 +436,12 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="4dp"
+                        android:layout_marginEnd="3dp"
                         android:layout_weight="1"
                         android:background="@drawable/bg_widget_stat_cell"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="7dp">
+                        android:padding="6dp">
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -449,7 +449,7 @@
                             android:letterSpacing="0.05"
                             android:text="WORK"
                             android:textColor="@color/text_secondary"
-                            android:textSize="8sp"
+                            android:textSize="7sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -459,7 +459,7 @@
                             android:layout_marginTop="2dp"
                             android:text="--:--"
                             android:textColor="@color/accent_cyan"
-                            android:textSize="13sp"
+                            android:textSize="12sp"
                             android:textStyle="bold" />
                     </LinearLayout>
 
@@ -467,12 +467,12 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="4dp"
+                        android:layout_marginEnd="3dp"
                         android:layout_weight="1"
                         android:background="@drawable/bg_widget_stat_cell"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="7dp">
+                        android:padding="6dp">
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -480,7 +480,7 @@
                             android:letterSpacing="0.05"
                             android:text="EST. EXIT"
                             android:textColor="@color/text_secondary"
-                            android:textSize="8sp"
+                            android:textSize="7sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -490,7 +490,38 @@
                             android:layout_marginTop="2dp"
                             android:text="--:--"
                             android:textColor="@color/accent_amber"
-                            android:textSize="13sp"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Actual Exit -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="3dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_widget_stat_cell"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="6dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:letterSpacing="0.05"
+                            android:text="ACT. EXIT"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="7sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/txt_summary_actual_exit_time"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="--:--"
+                            android:textColor="#A78BFA"
+                            android:textSize="12sp"
                             android:textStyle="bold" />
                     </LinearLayout>
 
@@ -502,7 +533,7 @@
                         android:background="@drawable/bg_widget_stat_cell"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="7dp">
+                        android:padding="6dp">
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -510,7 +541,7 @@
                             android:letterSpacing="0.05"
                             android:text="STATUS"
                             android:textColor="@color/text_secondary"
-                            android:textSize="8sp"
+                            android:textSize="7sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -522,7 +553,7 @@
                             android:maxLines="1"
                             android:text="--"
                             android:textColor="@color/accent_violet"
-                            android:textSize="11sp"
+                            android:textSize="10sp"
                             android:textStyle="bold" />
                     </LinearLayout>
                 </LinearLayout>
