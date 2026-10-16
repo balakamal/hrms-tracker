@@ -49,7 +49,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var layoutTopBar: View
     private lateinit var btnDesktopMode: ImageButton
     private lateinit var btnRefresh: ImageButton
-    private lateinit var btnSettings: ImageButton
     private lateinit var appTitle: TextView
     private lateinit var layoutNowBar: View
     private lateinit var imgNowBarIcon: ImageView
@@ -150,7 +149,6 @@ class MainActivity : AppCompatActivity() {
         layoutTopBar = findViewById(R.id.layout_top_bar)
         btnDesktopMode = findViewById(R.id.btn_desktop_mode)
         btnRefresh = findViewById(R.id.btn_refresh)
-        btnSettings = findViewById(R.id.btn_settings)
         appTitle = findViewById(R.id.app_title)
         layoutNowBar = findViewById(R.id.layout_now_bar)
         imgNowBarIcon = findViewById(R.id.img_now_bar_icon)
@@ -285,8 +283,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Setup SwipeRefreshLayout pull-to-refresh
-        swipeRefresh.setColorSchemeColors(Color.parseColor("#2563EB"))
-        swipeRefresh.setProgressBackgroundColorSchemeColor(Color.parseColor("#1A1A26"))
+        swipeRefresh.setColorSchemeColors(ContextCompat.getColor(this, R.color.primary_royal))
+        swipeRefresh.setProgressBackgroundColorSchemeColor(ContextCompat.getColor(this, R.color.bg_surface_card))
         swipeRefresh.setOnRefreshListener {
             webView.reload()
         }
@@ -370,8 +368,8 @@ class MainActivity : AppCompatActivity() {
                     // Inject localStorage hook to catch silent Angular token refreshes in real time
                     injectTokenRefreshObserver()
 
-                    // Extract tokens silently for background notifications if they log in
-                    if (url.contains("dashboard") || url.contains("time-sheet") || url.contains("me/timesheet")) {
+                    // Extract tokens silently for background notifications if authenticated
+                    if (!url.contains("/login")) {
                         extractTokensForBackgroundWorker()
                     }
                     
@@ -438,18 +436,6 @@ class MainActivity : AppCompatActivity() {
             webView.reload()
         }
 
-        // Dedicated Settings & Preferences button with One UI micro-rotation
-        btnSettings.setOnClickListener {
-            btnSettings.animate()
-                .scaleX(0.88f).scaleY(0.88f)
-                .rotationBy(45f)
-                .setDuration(120)
-                .withEndAction {
-                    btnSettings.animate().scaleX(1f).scaleY(1f).setDuration(120).start()
-                }
-                .start()
-            showSettingsDialog()
-        }
 
         // Long click on Title opens Settings & Preferences Dialog
         appTitle.setOnLongClickListener {
@@ -537,8 +523,9 @@ class MainActivity : AppCompatActivity() {
         if (isActive) {
             val overtimeMins = ShiftAlertManager.getOvertimeMinutes(this)
             val overtimeStr = if (overtimeMins > 0) "+${overtimeMins}m Overtime" else "Shift Met"
+            val interval = ShiftAlertManager.getIntervalMinutes(this)
             txtNudgeTitle.text = "SHIFT COMPLETE • $overtimeStr 🚀"
-            txtNudgeMessage.text = "You've completed your daily shift! Step out and head home. Alerts repeat every 2 minutes until stopped."
+            txtNudgeMessage.text = "You've completed your daily shift! Step out and head home. Alerts repeat every $interval minutes until stopped."
 
             if (layoutShiftNudgeOverlay.visibility != View.VISIBLE) {
                 layoutShiftNudgeOverlay.visibility = View.VISIBLE
@@ -838,6 +825,7 @@ class MainActivity : AppCompatActivity() {
         val notifPre = sharedPrefs.getBoolean(KEY_NOTIF_PRE_EXIT, true)
         val wfh = sharedPrefs.getBoolean(KEY_WFH_MODE, false)
         val nudgeEnabled = ShiftAlertManager.isNudgeEnabled(this)
+        val nudgeInterval = ShiftAlertManager.getIntervalMinutes(this)
 
         val timesheetEnabled = sharedPrefs.getBoolean(TimesheetReminderWorker.KEY_REMINDER_ENABLED, true)
         val timesheetHour = sharedPrefs.getInt(TimesheetReminderWorker.KEY_REMINDER_HOUR, 21)
@@ -857,7 +845,7 @@ class MainActivity : AppCompatActivity() {
             if (lockscreenLiveEnabled) "Lock Screen Live Activity: Enabled" else "Lock Screen Live Activity: Disabled",
             "Lock Screen Setup & Help (Samsung & Android)",
             "Daily Timesheet Reminder: $timesheetStatus",
-            if (nudgeEnabled) "Leave Office Alerts: Every 2 Min (Enabled)" else "Leave Office Alerts: Every 2 Min (Disabled)",
+            "Leave Office Alerts: Every ${nudgeInterval} Min (${if (nudgeEnabled) "Enabled" else "Disabled"})",
             if (notifComplete) "Shift Complete Alerts: Enabled" else "Shift Complete Alerts: Disabled",
             if (notifPre) "15-Min Pre-Exit Alerts: Enabled" else "15-Min Pre-Exit Alerts: Disabled",
             if (wfh) "Workspace: Remote (Synced from HRMS)" else "Workspace: In-Office (Synced from HRMS)",
@@ -884,15 +872,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     3 -> showLockScreenHelpDialog()
                     4 -> showTimesheetReminderDialog()
-                    5 -> {
-                        val nextState = !nudgeEnabled
-                        ShiftAlertManager.setNudgeEnabled(this, nextState)
-                        Toast.makeText(
-                            this,
-                            if (nextState) "2-min Leave Office alerts enabled" else "Leave Office alerts disabled",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+                    5 -> showLeaveOfficeAlertDialog()
                     6 -> {
                         val nextState = !notifComplete
                         sharedPrefs.edit().putBoolean(KEY_NOTIF_SHIFT_COMPLETE, nextState).apply()
@@ -930,6 +910,58 @@ class MainActivity : AppCompatActivity() {
             }
             .setNegativeButton("Close", null)
             .show()
+    }
+
+    /**
+     * Apple-grade, polished dialog to configure Leave Office alerts & repeating frequency
+     */
+    private fun showLeaveOfficeAlertDialog() {
+        val isEnabled = ShiftAlertManager.isNudgeEnabled(this)
+        val currentInterval = ShiftAlertManager.getIntervalMinutes(this)
+
+        val options = arrayOf(
+            if (isEnabled) "Alerts: Enabled (Tap to Disable)" else "Alerts: Disabled (Tap to Enable)",
+            "Every 2 Minutes" + if (currentInterval == 2) "  ✓" else "",
+            "Every 5 Minutes (Default)" + if (currentInterval == 5) "  ✓" else "",
+            "Every 10 Minutes" + if (currentInterval == 10) "  ✓" else "",
+            "Every 15 Minutes" + if (currentInterval == 15) "  ✓" else "",
+            "Send Test Alert (Preview)"
+        )
+
+        AlertDialog.Builder(this, R.style.Theme_HRMS_Dialog)
+            .setTitle("Leave Office Repeating Alerts")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> {
+                        val next = !isEnabled
+                        ShiftAlertManager.setNudgeEnabled(this, next)
+                        Toast.makeText(
+                            this,
+                            if (next) "Leave Office alerts enabled (Every ${currentInterval}m)" else "Leave Office alerts disabled",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        updateNudgeOverlayState(animate = true)
+                        showLeaveOfficeAlertDialog()
+                    }
+                    1 -> setLeaveAlertInterval(2)
+                    2 -> setLeaveAlertInterval(5)
+                    3 -> setLeaveAlertInterval(10)
+                    4 -> setLeaveAlertInterval(15)
+                    5 -> {
+                        ShiftAlertManager.sendTestAlert(this)
+                        Toast.makeText(this, "Test leave office alert sent! Check your notification panel.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+            .setNegativeButton("Back", null)
+            .show()
+    }
+
+    private fun setLeaveAlertInterval(minutes: Int) {
+        ShiftAlertManager.setIntervalMinutes(this, minutes)
+        ShiftAlertManager.setNudgeEnabled(this, true)
+        Toast.makeText(this, "Alert frequency set to every $minutes minutes", Toast.LENGTH_SHORT).show()
+        updateNudgeOverlayState(animate = true)
     }
 
     private fun showLockScreenHelpDialog() {
@@ -1169,9 +1201,6 @@ class MainActivity : AppCompatActivity() {
             scheduleBackgroundWorker()
             triggerWidgetRefresh()
         }
-
-        // Show Daily Summary Card overlay on app open
-        showSummaryCard()
     }
 
     private fun injectScriptFromAssets() {
@@ -1272,6 +1301,16 @@ class MainActivity : AppCompatActivity() {
                         
                         editor.apply()
                         
+                        val currentUserId = sharedPrefs.getString(KEY_USER_ID, null)
+                        if (currentUserId.isNullOrBlank() && accessToken.isNotEmpty() && accessToken != "null") {
+                            Thread {
+                                TokenManager.fetchUserIdentity(applicationContext, accessToken)
+                                runOnUiThread {
+                                    triggerWidgetRefresh()
+                                }
+                            }.start()
+                        }
+
                         scheduleBackgroundWorker()
                         triggerWidgetRefresh()
                     }
@@ -1295,19 +1334,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun scheduleBackgroundWorker() {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
-
-        val workRequest = PeriodicWorkRequestBuilder<AttendanceWorker>(15, TimeUnit.MINUTES)
-            .setConstraints(constraints)
-            .build()
-
-        WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
-            "HRMS_ATTENDANCE_CHECK",
-            ExistingPeriodicWorkPolicy.UPDATE,
-            workRequest
-        )
+        AttendanceWorker.schedule(applicationContext)
     }
 
     private fun triggerWidgetRefresh() {
@@ -1359,6 +1386,16 @@ class MainActivity : AppCompatActivity() {
                 .putString(KEY_REFRESH_TOKEN, refreshToken)
                 .apply()
             
+            val currentUserId = sharedPrefs.getString(KEY_USER_ID, null)
+            if (currentUserId.isNullOrBlank() && accessToken.isNotBlank()) {
+                Thread {
+                    TokenManager.fetchUserIdentity(applicationContext, accessToken)
+                    runOnUiThread {
+                        triggerWidgetRefresh()
+                    }
+                }.start()
+            }
+
             runOnUiThread {
                 scheduleBackgroundWorker()
                 triggerWidgetRefresh()
@@ -1422,6 +1459,85 @@ class MainActivity : AppCompatActivity() {
         @JavascriptInterface
         fun toggleFullscreenBars() {
             this@MainActivity.toggleFullscreenBars()
+        }
+
+        @JavascriptInterface
+        fun getNativeSettings(): String {
+            val nudgeEnabled = ShiftAlertManager.isNudgeEnabled(this@MainActivity)
+            val nudgeInterval = ShiftAlertManager.getIntervalMinutes(this@MainActivity)
+            val notifComplete = sharedPrefs.getBoolean(KEY_NOTIF_SHIFT_COMPLETE, true)
+            val notifPre = sharedPrefs.getBoolean(KEY_NOTIF_PRE_EXIT, true)
+            val liveCard = LockScreenLiveCardManager.isLiveCardEnabled(this@MainActivity)
+            val timesheetEnabled = sharedPrefs.getBoolean(TimesheetReminderWorker.KEY_REMINDER_ENABLED, true)
+            val timesheetHour = sharedPrefs.getInt(TimesheetReminderWorker.KEY_REMINDER_HOUR, 21)
+            val timesheetMinute = sharedPrefs.getInt(TimesheetReminderWorker.KEY_REMINDER_MINUTE, 0)
+            val casual = sharedPrefs.getString(KEY_LEAVE_CASUAL, "—") ?: "—"
+            val sick = sharedPrefs.getString(KEY_LEAVE_SICK, "—") ?: "—"
+            val earned = sharedPrefs.getString(KEY_LEAVE_EARNED, "—") ?: "—"
+
+            val json = org.json.JSONObject().apply {
+                put("leaveAlertEnabled", nudgeEnabled)
+                put("leaveAlertInterval", nudgeInterval)
+                put("notifShiftComplete", notifComplete)
+                put("notifPreExit", notifPre)
+                put("liveCardEnabled", liveCard)
+                put("timesheetEnabled", timesheetEnabled)
+                put("timesheetHour", timesheetHour)
+                put("timesheetMinute", timesheetMinute)
+                put("leaveCasual", casual)
+                put("leaveSick", sick)
+                put("leaveEarned", earned)
+            }
+            return json.toString()
+        }
+
+        @JavascriptInterface
+        fun setLeaveAlerts(enabled: Boolean, interval: Int) {
+            ShiftAlertManager.setIntervalMinutes(this@MainActivity, interval)
+            ShiftAlertManager.setNudgeEnabled(this@MainActivity, enabled)
+            runOnUiThread {
+                updateNudgeOverlayState(animate = true)
+            }
+        }
+
+        @JavascriptInterface
+        fun setPreExitAlerts(enabled: Boolean) {
+            sharedPrefs.edit().putBoolean(KEY_NOTIF_PRE_EXIT, enabled).apply()
+        }
+
+        @JavascriptInterface
+        fun setShiftCompleteAlerts(enabled: Boolean) {
+            sharedPrefs.edit().putBoolean(KEY_NOTIF_SHIFT_COMPLETE, enabled).apply()
+        }
+
+        @JavascriptInterface
+        fun setLiveCardEnabled(enabled: Boolean) {
+            LockScreenLiveCardManager.setLiveCardEnabled(this@MainActivity, enabled)
+            LockScreenLiveCardManager.updateLiveCard(this@MainActivity)
+        }
+
+        @JavascriptInterface
+        fun setTimesheetReminder(enabled: Boolean, hour: Int, minute: Int) {
+            sharedPrefs.edit()
+                .putBoolean(TimesheetReminderWorker.KEY_REMINDER_ENABLED, enabled)
+                .putInt(TimesheetReminderWorker.KEY_REMINDER_HOUR, hour)
+                .putInt(TimesheetReminderWorker.KEY_REMINDER_MINUTE, minute)
+                .apply()
+            TimesheetReminderWorker.schedule(applicationContext)
+        }
+
+        @JavascriptInterface
+        fun openWidgetConfig() {
+            runOnUiThread {
+                startActivity(Intent(this@MainActivity, WidgetConfigureActivity::class.java))
+            }
+        }
+
+        @JavascriptInterface
+        fun logout() {
+            runOnUiThread {
+                clearTokensAndShowLogin()
+            }
         }
     }
 

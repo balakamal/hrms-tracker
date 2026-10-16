@@ -5,12 +5,12 @@
         <shape android:shape="rectangle">
             <gradient
                 android:angle="0"
-                android:startColor="#059669"
-                android:endColor="#10B981" />
+                android:startColor="#2C9920"
+                android:endColor="#39B14A" />
             <corners android:radius="14dp" />
             <stroke
                 android:width="1dp"
-                android:color="#34D399" />
+                android:color="#39B14A" />
         </shape>
     </item>
 </ripple>

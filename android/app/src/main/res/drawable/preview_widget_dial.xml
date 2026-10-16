@@ -5,8 +5,8 @@
     android:viewportHeight="140">
     <!-- Outer Container Squircle -->
     <path
-        android:fillColor="#0D121F"
-        android:strokeColor="#253248"
+        android:fillColor="#041424"
+        android:strokeColor="#164375"
         android:strokeWidth="1.5"
         android:pathData="M22,2 L118,2 A20,20 0 0,1 138,22 L138,118 A20,20 0 0,1 118,138 L22,138 A20,20 0 0,1 2,118 L2,22 A20,20 0 0,1 22,2 Z" />
 
@@ -15,19 +15,19 @@
         android:fillColor="#94A3B8"
         android:pathData="M14,12 H64 V17 H14 Z" />
     <path
-        android:fillColor="#1E293B"
+        android:fillColor="#08213D"
         android:pathData="M116,9 A7,7 0 1,1 130,9 A7,7 0 1,1 116,9 Z" />
 
     <!-- Center Ring Outer Stroke (Dial Track) -->
     <path
-        android:fillColor="#141E2F"
-        android:strokeColor="#00D09C"
+        android:fillColor="#08213D"
+        android:strokeColor="#39B14A"
         android:strokeWidth="3.5"
         android:pathData="M70,30 A38,38 0 1,1 69.9,30 Z" />
 
     <!-- 85% Percent inside Dial -->
     <path
-        android:fillColor="#00D09C"
+        android:fillColor="#39B14A"
         android:pathData="M48,56 H92 V74 H48 Z" />
 
     <!-- 7h 15m Metric inside Dial -->
@@ -37,6 +37,6 @@
 
     <!-- Bottom Status Pill: Shift Goal -->
     <path
-        android:fillColor="#38BDF8"
+        android:fillColor="#0576F8"
         android:pathData="M44,118 H96 V125 H44 Z" />
 </vector>

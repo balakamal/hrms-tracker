@@ -1,22 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Backgrounds & Surfaces (Samsung One UI AMOLED Obsidian) -->
-    <color name="ic_launcher_background">#161822</color>
-    <color name="bg_app">#0A0D14</color>
+    <!-- Backgrounds & Surfaces (Paltech Corporate Navy Aesthetics) -->
+    <color name="ic_launcher_background">#064173</color>
+    <color name="bg_app">#041424</color>
     <color name="bg_top_bar">#00000000</color>
-    <color name="bg_surface_card">#131724</color>
-    <color name="stroke_card">#222C3E</color>
-    <color name="stroke_glass_specular">#26FFFFFF</color>
+    <color name="bg_surface_card">#08213D</color>
+    <color name="stroke_card">#133863</color>
+    <color name="stroke_glass_specular">#2B0F47C0</color>
 
-    <!-- Brand & Accent Colors -->
-    <color name="primary_accent">#2563EB</color>
-    <color name="accent_emerald">#00D09C</color>
-    <color name="accent_cyan">#38BDF8</color>
-    <color name="accent_amber">#F59E0B</color>
-    <color name="accent_amber_gold">#FBBF24</color>
-    <color name="accent_violet">#8B5CF6</color>
-    <color name="accent_lavender">#A78BFA</color>
-    <color name="accent_rose">#F43F5E</color>
+    <!-- Paltech Brand & Accent Colors -->
+    <color name="primary_accent">#064173</color>
+    <color name="primary_royal">#0F47C0</color>
+    <color name="accent_emerald">#39B14A</color>
+    <color name="accent_cyan">#0576F8</color>
+    <color name="accent_amber">#EEAB55</color>
+    <color name="accent_amber_gold">#FFCE20</color>
+    <color name="accent_violet">#0F47C0</color>
+    <color name="accent_lavender">#7C9BCE</color>
+    <color name="accent_rose">#DE1A1A</color>
 
     <!-- Typography -->
     <color name="text_primary">#F8FAFC</color>
@@ -24,6 +25,6 @@
     <color name="text_muted">#64748B</color>
 
     <!-- Navigation / Legacy -->
-    <color name="nav_active">#38BDF8</color>
+    <color name="nav_active">#0576F8</color>
     <color name="nav_inactive">#64748B</color>
 </resources>

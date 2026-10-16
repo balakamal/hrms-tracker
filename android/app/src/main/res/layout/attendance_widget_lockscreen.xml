@@ -43,7 +43,7 @@
                 android:letterSpacing="0.04"
                 android:maxLines="1"
                 android:text="IN-OFFICE"
-                android:textColor="#38BDF8"
+                android:textColor="#0576F8"
                 android:textSize="9sp"
                 android:textStyle="bold" />
         </LinearLayout>

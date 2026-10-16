@@ -24,8 +24,30 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
 
     override fun doWork(): Result {
         var accessToken = TokenManager.getValidAccessToken(applicationContext) ?: return Result.failure()
-        val userId = sharedPrefs.getString("UserId", null) ?: return Result.failure()
+        var userId = sharedPrefs.getString("UserId", null)
+        if (userId.isNullOrEmpty()) {
+            val identity = TokenManager.fetchUserIdentity(applicationContext, accessToken)
+            if (identity != null) {
+                userId = identity.first
+            } else {
+                return Result.failure()
+            }
+        }
         val targetHours = sharedPrefs.getFloat("TargetHours", 8.5f)
+
+        // Office-hours budget check: avoid battery drain & backend spam outside of office hours unless actively clocked in
+        val calendar = Calendar.getInstance()
+        val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+        val minute = calendar.get(Calendar.MINUTE)
+        val isWeekend = dayOfWeek == Calendar.SATURDAY || dayOfWeek == Calendar.SUNDAY
+        val isClockedIn = sharedPrefs.getBoolean("WidgetIsClockedIn", false)
+
+        if (!isClockedIn && (isWeekend || hour < 7 || (hour == 7 && minute < 30) || hour >= 21)) {
+            // Update widget locally without remote network call
+            AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
+            return Result.success()
+        }
 
         // 1. Get formatted local ISO date
         val sdfDate = SimpleDateFormat("yyyy-MM-dd", Locale.US)
@@ -107,7 +129,13 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                         metrics.progressRemaining,
                         "Last updated: " + AttendanceAppWidgetProvider.getCurrentTime(),
                         metrics.breakCount,
-                        metrics.actualExitTime
+                        metrics.actualExitTime,
+                        baseWorkMinutes = metrics.baseWorkMinutes,
+                        lastInTimestamp = metrics.lastInTimestamp,
+                        isClockedIn = metrics.isClockedIn,
+                        targetMinutes = metrics.targetMinutes,
+                        baseBreakMinutes = metrics.baseBreakMinutes,
+                        avgBreakMinutes = metrics.avgBreakMinutes
                     )
                     AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
 
@@ -116,30 +144,51 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                     val notifyPreExit = sharedPrefs.getBoolean("NotifPreExit", true)
                     val isWfh = sharedPrefs.getBoolean("WfhMode", false)
 
-                    if (!isWfh && (metrics.statusText == "Completed shift!" || metrics.statusText.contains("CONQUERED") || metrics.progressPercent >= 100)) {
-                        if (notifyShiftComplete) {
-                            val lastNotifiedDate = sharedPrefs.getString("LastNotificationDate", "")
-                            if (lastNotifiedDate != todayStr) {
+                    val isCompleted = metrics.statusText == "Completed shift!" || metrics.statusText.contains("CONQUERED") || metrics.progressPercent >= 100
+
+                    if (!isWfh && isCompleted) {
+                        if (metrics.isClockedIn) {
+                            if (notifyShiftComplete) {
+                                val lastNotifiedDate = sharedPrefs.getString("LastNotificationDate", "")
+                                if (lastNotifiedDate != todayStr) {
+                                    sendNotification(
+                                        "Shift Completed!", 
+                                        "You have completed ${metrics.workTime} of biometric office time. Time to head home!"
+                                    )
+                                    sharedPrefs.edit().putString("LastNotificationDate", todayStr).apply()
+                                }
+                            }
+                            // Start repeating leave office alerts if active & not dismissed
+                            ShiftAlertManager.checkAndTriggerNudge(applicationContext, metrics.workTime)
+                        } else {
+                            // Employee already punched out at the turnstile/portal; permanently silence alerts
+                            ShiftAlertManager.stopAlerts(applicationContext)
+                        }
+                    } else if (!isWfh) {
+                        if (metrics.isClockedIn && metrics.lastInTimestamp > 0) {
+                            // Schedule exact alarm for when shift goal will be reached while at desk
+                            val remainingMinutes = Math.max(0.0, metrics.targetMinutes - metrics.baseWorkMinutes)
+                            val targetExitTimestamp = metrics.lastInTimestamp + (remainingMinutes * 60000).toLong()
+                            ShiftAlertManager.scheduleShiftTargetAlarm(applicationContext, targetExitTimestamp)
+                        } else {
+                            ShiftAlertManager.stopAlerts(applicationContext)
+                        }
+
+                        if (notifyPreExit && metrics.progressPercent in 92..99) {
+                            val lastPreNotifiedDate = sharedPrefs.getString("LastPreNotificationDate", "")
+                            if (lastPreNotifiedDate != todayStr) {
                                 sendNotification(
-                                    "Shift Completed!", 
-                                    "You have completed ${metrics.workTime} of biometric office time. Time to head home!"
+                                    "Almost Done! (${metrics.progressRemaining})",
+                                    "Shift is at ${metrics.progressPercent}%. Wrap up tasks and get ready to pack up!"
                                 )
-                                sharedPrefs.edit().putString("LastNotificationDate", todayStr).apply()
+                                sharedPrefs.edit().putString("LastPreNotificationDate", todayStr).apply()
                             }
                         }
-                        // Start 2-minute repeating leave office alerts if active & not dismissed
-                        ShiftAlertManager.checkAndTriggerNudge(applicationContext, metrics.workTime)
-                    } else if (!isWfh && notifyPreExit && metrics.progressPercent in 92..99) {
-                        val lastPreNotifiedDate = sharedPrefs.getString("LastPreNotificationDate", "")
-                        if (lastPreNotifiedDate != todayStr) {
-                            sendNotification(
-                                "Almost Done! (${metrics.progressRemaining})",
-                                "Shift is at ${metrics.progressPercent}%. Wrap up tasks and get ready to pack up!"
-                            )
-                            sharedPrefs.edit().putString("LastPreNotificationDate", todayStr).apply()
-                        }
+                    } else {
+                        ShiftAlertManager.stopAlerts(applicationContext)
                     }
                 } else {
+                    ShiftAlertManager.stopAlerts(applicationContext)
                     val isWfh = sharedPrefs.getBoolean("WfhMode", false)
                     val isWeekendToday = AttendanceAppWidgetProvider.isWeekend()
                     val noLogsStatus = when {
@@ -202,5 +251,25 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
             .build()
 
         notificationManager.notify(1, notification)
+    }
+
+    companion object {
+        const val WORK_NAME = "HRMS_ATTENDANCE_CHECK"
+
+        fun schedule(context: Context) {
+            val constraints = androidx.work.Constraints.Builder()
+                .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
+                .build()
+
+            val workRequest = androidx.work.PeriodicWorkRequestBuilder<AttendanceWorker>(15, java.util.concurrent.TimeUnit.MINUTES)
+                .setConstraints(constraints)
+                .build()
+
+            androidx.work.WorkManager.getInstance(context.applicationContext).enqueueUniquePeriodicWork(
+                WORK_NAME,
+                androidx.work.ExistingPeriodicWorkPolicy.UPDATE,
+                workRequest
+            )
+        }
     }
 }

@@ -10,6 +10,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.widget.RemoteViews
@@ -35,7 +36,13 @@ data class WidgetMetrics(
     val actualExitTime: String,
     val statusText: String,
     val progressPercent: Int,
-    val progressRemaining: String
+    val progressRemaining: String,
+    val baseWorkMinutes: Double = 0.0,
+    val lastInTimestamp: Long = 0L,
+    val isClockedIn: Boolean = false,
+    val targetMinutes: Double = 510.0,
+    val baseBreakMinutes: Double = 0.0,
+    val avgBreakMinutes: Int = 60
 )
 
 open class AttendanceAppWidgetProvider : AppWidgetProvider() {
@@ -82,25 +89,86 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 
                 // Restore cached values from SharedPreferences
                 val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                val workTime = sharedPrefs.getString("WidgetWorkTime", "0h 00m")
-                val firstIn = sharedPrefs.getString("WidgetFirstIn", "--:--")
-                val breakTime = sharedPrefs.getString("WidgetBreakTime", "0h 00m")
+                val todayDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+                val cacheDate = sharedPrefs.getString("WidgetCacheDate", "")
+                val isCacheFromToday = cacheDate == todayDateStr
+
+                val rawWorkTime = sharedPrefs.getString("WidgetWorkTime", "0h 00m") ?: "0h 00m"
+                val firstIn = sharedPrefs.getString("WidgetFirstIn", "--:--") ?: "--:--"
+                val breakTime = sharedPrefs.getString("WidgetBreakTime", "0h 00m") ?: "0h 00m"
                 val breakCount = sharedPrefs.getString("WidgetBreakCount", "0 Breaks Today") ?: "0 Breaks Today"
-                val exitTime = sharedPrefs.getString("WidgetExitTime", "--:--")
-                val actualExitTime = sharedPrefs.getString("WidgetActualExitTime", "--:--") ?: "--:--"
-                val statusText = sharedPrefs.getString("WidgetStatusText", "Not Synced")
-                val progressPercent = sharedPrefs.getInt("WidgetProgressPercent", 0)
-                val progressRemaining = sharedPrefs.getString("WidgetProgressRemaining", "--h --m left")
-                val lastUpdated = sharedPrefs.getString("WidgetLastUpdated", "Last updated: --:--")
+                val rawExitTime = sharedPrefs.getString("WidgetExitTime", "--:--") ?: "--:--"
+                val rawActualExitTime = sharedPrefs.getString("WidgetActualExitTime", "--:--") ?: "--:--"
+                val rawStatusText = sharedPrefs.getString("WidgetStatusText", "Not Synced") ?: "Not Synced"
+                val rawProgressPercent = sharedPrefs.getInt("WidgetProgressPercent", 0)
+                val rawProgressRemaining = sharedPrefs.getString("WidgetProgressRemaining", "--h --m left") ?: "--h --m left"
+                val lastUpdated = sharedPrefs.getString("WidgetLastUpdated", "Last updated: --:--") ?: "Last updated: --:--"
                 val isWfh = sharedPrefs.getBoolean("WfhMode", false)
-                
-                val isCompleted = progressPercent >= 100 || statusText?.contains("Complete", ignoreCase = true) == true
-                val isWeekOff = statusText?.contains("Week Off", ignoreCase = true) == true || (isWeekend() && (statusText == "Not Clocked In" || statusText == "No logs today" || statusText == "Not Synced"))
+
+                // Zero-spam live local extrapolation: dynamically calculate elapsed work minutes while clocked in
+                val isClockedIn = sharedPrefs.getBoolean("WidgetIsClockedIn", false)
+                val lastInTimestamp = sharedPrefs.getLong("WidgetLastInTimestamp", 0L)
+                val baseWorkMinutes = sharedPrefs.getFloat("WidgetBaseWorkMinutes", -1f)
+                val targetMinutes = sharedPrefs.getFloat("WidgetTargetMinutes", 510f)
+
+                val workTime: String
+                val progressPercent: Int
+                val progressRemaining: String
+                val isCompleted: Boolean
+                val statusText: String
+                val exitTime: String
+                val actualExitTime: String
+
+                if (isClockedIn && lastInTimestamp > 0 && baseWorkMinutes >= 0 && isCacheFromToday) {
+                    val elapsedSinceLastIn = Math.max(0L, System.currentTimeMillis() - lastInTimestamp) / 60000.0
+                    val liveWorkMinutes = baseWorkMinutes + elapsedSinceLastIn
+                    val remainingMinutes = Math.max(0.0, targetMinutes - liveWorkMinutes)
+                    isCompleted = liveWorkMinutes >= targetMinutes
+                    progressPercent = Math.min(100, ((liveWorkMinutes / targetMinutes) * 100).toInt())
+                    workTime = formatMinutes(liveWorkMinutes)
+                    progressRemaining = if (isCompleted) "0m left" else "${formatMinutes(remainingMinutes)} left"
+                    statusText = if (isCompleted) "Shift Complete" else "Clocked In"
+                    exitTime = if (isCompleted) "Completed" else rawExitTime
+                    actualExitTime = if (isCompleted) "Completed" else rawActualExitTime
+                } else {
+                    workTime = rawWorkTime
+                    progressPercent = rawProgressPercent
+                    progressRemaining = rawProgressRemaining
+                    isCompleted = rawProgressPercent >= 100 || rawStatusText.contains("Complete", ignoreCase = true)
+                    statusText = rawStatusText
+                    exitTime = rawExitTime
+                    actualExitTime = rawActualExitTime
+                }
+
+                val isWeekOff = statusText.contains("Week Off", ignoreCase = true) || (isWeekend() && (statusText == "Not Clocked In" || statusText == "No logs today" || statusText == "Not Synced"))
                 val displayStatus = when {
                     isWfh && (statusText == "Not Clocked In" || statusText == "No logs today" || statusText == "Not Synced") -> "Working from Home"
                     isWeekOff -> "Week Off"
-                    else -> statusText ?: "Not Synced"
+                    else -> statusText
                 }
+
+                // Determine Theme & Effective Night Mode
+                val isSystemNight = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+                val theme = sharedPrefs.getString("WidgetTheme", "SYSTEM") ?: "SYSTEM"
+                val isEffectiveDark = when (theme) {
+                    "LIGHT" -> false
+                    "DARK", "AMOLED" -> true
+                    "TRANSPARENT" -> isSystemNight
+                    else -> isSystemNight // "SYSTEM"
+                }
+
+                // Adaptive Typography & Inset Surfaces
+                val colorTextPrimary = if (isEffectiveDark) 0xFFF8FAFC.toInt() else 0xFF0F172A.toInt()
+                val colorTextLabel = if (isEffectiveDark) 0xFF94A3B8.toInt() else 0xFF64748B.toInt()
+                val colorTextStat = if (isEffectiveDark) 0xFFF1F5F9.toInt() else 0xFF1E293B.toInt()
+                val colorTextSubtle = if (isEffectiveDark) 0xFF94A3B8.toInt() else 0xFF475569.toInt()
+                val colorTextMuted = if (isEffectiveDark) 0xFF64748B.toInt() else 0xFF94A3B8.toInt()
+                val colorSkyAccent = if (isEffectiveDark) 0xFF38BDF8.toInt() else 0xFF0284C7.toInt()
+
+                val heroCardBg = if (isEffectiveDark) R.drawable.widget_card_hero_dark else R.drawable.widget_card_hero_light
+                val statCellBg = if (isEffectiveDark) R.drawable.widget_card_cell_dark else R.drawable.widget_card_cell_light
+                val refreshBtnBg = if (isEffectiveDark) R.drawable.widget_btn_refresh_dark else R.drawable.widget_btn_refresh_light
+                val progressDrawable = if (isEffectiveDark) R.drawable.widget_m3_progress_drawable else R.drawable.widget_progress_drawable_light
 
                 // Apply User's Custom Background & Transparency
                 views.setInt(R.id.widget_root, "setBackgroundResource", getWidgetBackground(context))
@@ -109,18 +177,39 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 views.setTextViewText(R.id.widget_status_text, displayStatus)
                 views.setTextViewText(R.id.widget_work_time_value, if (isWeekOff && workTime == "0h 00m") "Week Off" else workTime)
                 views.setViewVisibility(R.id.widget_wfh_badge, if (isWfh) android.view.View.VISIBLE else android.view.View.GONE)
-                
+
+                // Refresh button background & header branding
+                views.setInt(R.id.widget_btn_refresh, "setBackgroundResource", refreshBtnBg)
+                views.setTextColor(R.id.widget_title, colorTextLabel)
+
+                // Adaptive WFH Badge
+                views.setInt(R.id.widget_wfh_badge, "setBackgroundResource", if (isEffectiveDark) R.drawable.bg_widget_wfh_badge else R.drawable.bg_widget_wfh_badge_light)
+                views.setTextColor(R.id.widget_wfh_text, if (isEffectiveDark) 0xFFFBBF24.toInt() else 0xFFA16207.toInt())
+
                 // Dynamic status color & chip styling
-                val statusColor = when {
-                    isCompleted -> 0xFF38BDF8.toInt() // Luminous sky cyan
-                    isWfh -> 0xFFFBBF24.toInt() // Warm golden amber
-                    isWeekOff -> 0xFFA78BFA.toInt() // Samsung One UI lavender
-                    displayStatus.contains("Break", ignoreCase = true) -> 0xFFF59E0B.toInt() // Warm amber
-                    displayStatus.contains("Clocked In", ignoreCase = true) -> 0xFF00D09C.toInt() // Samsung One UI emerald mint
-                    displayStatus.contains("Sync", ignoreCase = true) -> 0xFF60A5FA.toInt() // Soft blue
-                    else -> 0xFF94A3B8.toInt() // Slate grey
+                val statusColor = if (isEffectiveDark) {
+                    when {
+                        isCompleted -> 0xFF10B981.toInt()
+                        isWfh -> 0xFFFBBF24.toInt()
+                        isWeekOff -> 0xFF38BDF8.toInt()
+                        displayStatus.contains("Break", ignoreCase = true) -> 0xFFF59E0B.toInt()
+                        displayStatus.contains("Clocked In", ignoreCase = true) -> 0xFF10B981.toInt()
+                        displayStatus.contains("Sync", ignoreCase = true) -> 0xFF38BDF8.toInt()
+                        else -> 0xFF94A3B8.toInt()
+                    }
+                } else {
+                    when {
+                        isCompleted -> 0xFF15803D.toInt()
+                        isWfh -> 0xFFA16207.toInt()
+                        isWeekOff -> 0xFF0369A1.toInt()
+                        displayStatus.contains("Break", ignoreCase = true) -> 0xFFB45309.toInt()
+                        displayStatus.contains("Clocked In", ignoreCase = true) -> 0xFF15803D.toInt()
+                        displayStatus.contains("Sync", ignoreCase = true) -> 0xFF0284C7.toInt()
+                        else -> 0xFF64748B.toInt()
+                    }
                 }
                 views.setTextColor(R.id.widget_status_text, statusColor)
+                views.setInt(R.id.widget_status_text, "setBackgroundResource", if (isEffectiveDark) R.drawable.bg_widget_status_chip else R.drawable.bg_widget_status_chip_light)
 
                 // Layout-specific bindings
                 if (layoutId == R.layout.attendance_widget_small) {
@@ -180,7 +269,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                             // Slide 1: Estimated Exit Time (When Can I Leave?)
                             metricLabel = "ESTIMATED EXIT"
                             metricValue = if (isWeekOff) "Enjoy Weekend" else if (isCompleted) "Ready to Leave" else exitTime ?: "--:--"
-                            metricValueColor = if (isCompleted) 0xFF38BDF8.toInt() else 0xFF34D399.toInt()
+                            metricValueColor = if (isCompleted) (if (isEffectiveDark) 0xFF10B981.toInt() else 0xFF15803D.toInt()) else colorSkyAccent
                             val actualSubtext = if (actualExitTime != "--:--" && actualExitTime != exitTime) " • Act: $actualExitTime" else ""
                             metricSubtext = if (isWeekOff) "Week Off" else if (isWfh) "Flexible Exit" else if (isCompleted) "Shift Completed 🚀" else "$progressRemaining left$actualSubtext"
                             metricSubtextColor = metricValueColor
@@ -189,29 +278,31 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                             // Slide 2: Total Breaks Taken & Count
                             metricLabel = "BREAKS TAKEN"
                             metricValue = if (isWeekOff) "0m" else breakTime ?: "0h 00m"
-                            metricValueColor = 0xFFF59E0B.toInt() // Warm amber
+                            metricValueColor = if (isEffectiveDark) 0xFFF59E0B.toInt() else 0xFFB45309.toInt()
                             metricSubtext = if (isWeekOff) "Enjoy Weekend" else if (isWfh) "Remote Breaks" else breakCount
-                            metricSubtextColor = 0xFFFBBF24.toInt()
+                            metricSubtextColor = metricValueColor
                         }
                         3 -> {
                             // Slide 3: First In & Daily Summary
                             metricLabel = "FIRST CLOCK-IN"
                             metricValue = if (isWeekOff) "--:--" else firstIn ?: "--:--"
-                            metricValueColor = 0xFFA78BFA.toInt() // Lavender
+                            metricValueColor = colorSkyAccent
                             metricSubtext = if (isWeekOff) "Week Off" else "Target: 8.5h • $progressPercent%"
-                            metricSubtextColor = 0xFF94A3B8.toInt()
+                            metricSubtextColor = colorTextSubtle
                         }
                         else -> {
                             // Slide 0: Time at Desk (Total Hours Spent)
                             metricLabel = "TIME AT DESK"
                             metricValue = if (isWeekOff && workTime == "0h 00m") "Week Off" else workTime ?: "0h 00m"
-                            metricValueColor = 0xFFFFFFFF.toInt()
+                            metricValueColor = colorTextPrimary
                             metricSubtext = if (isWeekOff) "Rest & Recharge" else if (isWfh) "Remote Workspace" else if (isCompleted) "Goal Met • 100%" else "$displayStatus • $progressPercent%"
                             metricSubtextColor = statusColor
                         }
                     }
 
+                    views.setInt(R.id.widget_card_pod, "setBackgroundResource", heroCardBg)
                     views.setTextViewText(R.id.widget_metric_label, metricLabel)
+                    views.setTextColor(R.id.widget_metric_label, colorTextLabel)
                     views.setTextViewText(R.id.widget_work_time_value, metricValue)
                     views.setTextColor(R.id.widget_work_time_value, metricValueColor)
                     views.setTextViewText(R.id.widget_status_text, metricSubtext)
@@ -224,18 +315,46 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     views.setImageViewResource(R.id.dot_4, if (page == 3) R.drawable.widget_dot_active else R.drawable.widget_dot_inactive)
 
                     views.setProgressBar(R.id.widget_progress_bar, 100, progressPercent, false)
+                    views.setInt(R.id.widget_progress_bar, "setProgressDrawable", progressDrawable)
                 } else if (layoutId == R.layout.attendance_widget_medium) {
+                    views.setInt(R.id.widget_hero_card, "setBackgroundResource", heroCardBg)
+                    views.setInt(R.id.widget_cell_exit, "setBackgroundResource", statCellBg)
+
+                    views.setTextColor(R.id.widget_work_subtitle, colorTextLabel)
+                    views.setTextColor(R.id.widget_work_time_value, colorTextPrimary)
+                    views.setTextColor(R.id.widget_progress_percent, colorSkyAccent)
+
+                    views.setTextColor(R.id.widget_label_exit, colorTextLabel)
                     views.setTextViewText(R.id.widget_exit_time_value, if (isWeekOff && exitTime == "--:--") "Enjoy Weekend" else exitTime)
+                    views.setTextColor(R.id.widget_exit_time_value, colorTextStat)
+
                     views.setTextViewText(R.id.widget_actual_exit_time_value, if (isWeekOff && actualExitTime == "--:--") "" else "• Act: $actualExitTime")
+                    views.setTextColor(R.id.widget_actual_exit_time_value, colorSkyAccent)
+
                     views.setTextViewText(R.id.widget_last_updated, "Updated: " + getCurrentTime())
+                    views.setTextColor(R.id.widget_last_updated, colorTextMuted)
                     views.setTextViewText(R.id.widget_progress_percent, "$progressPercent%")
                 } else if (layoutId == R.layout.attendance_widget_countdown) {
+                    views.setInt(R.id.widget_hero_card, "setBackgroundResource", heroCardBg)
+                    views.setInt(R.id.widget_cell_status, "setBackgroundResource", statCellBg)
+
+                    views.setTextColor(R.id.widget_label_countdown, colorTextLabel)
                     views.setTextViewText(R.id.widget_exit_time_value, if (isWeekOff && exitTime == "--:--") "Week Off" else exitTime)
+                    views.setTextColor(R.id.widget_exit_time_value, colorTextPrimary)
+
                     views.setTextViewText(R.id.widget_progress_remaining, if (isWfh) "Remote Workspace" else if (isWeekOff) "Enjoy Weekend" else progressRemaining)
+                    views.setTextColor(R.id.widget_progress_remaining, colorSkyAccent)
+
                     views.setTextViewText(R.id.widget_progress_percent, "$progressPercent%")
+                    views.setTextColor(R.id.widget_progress_percent, if (isEffectiveDark) 0xFF10B981.toInt() else 0xFF15803D.toInt())
+
                     views.setTextViewText(R.id.widget_status_text, displayStatus)
+                    views.setTextColor(R.id.widget_status_text, colorTextSubtle)
                 } else if (layoutId == R.layout.attendance_widget_timesheet) {
+                    views.setInt(R.id.widget_hero_card, "setBackgroundResource", heroCardBg)
+                    views.setTextColor(R.id.widget_label_timesheet, colorTextLabel)
                     views.setTextViewText(R.id.widget_work_time_value, if (isWeekOff && workTime == "0h 00m") "Week Off" else workTime)
+                    views.setTextColor(R.id.widget_work_time_value, colorTextPrimary)
                     views.setTextViewText(R.id.widget_status_text, if (isCompleted) "Goal Met • Submit" else if (isWeekOff) "Week Off" else "$displayStatus • $progressPercent%")
 
                     // 1-Tap direct deep-link launcher to HRMS Timesheet
@@ -251,20 +370,33 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     )
                     views.setOnClickPendingIntent(R.id.widget_btn_timesheet, timesheetPendingIntent)
                 } else if (layoutId == R.layout.attendance_widget_dial) {
+                    views.setTextColor(R.id.widget_label_wellbeing, colorTextLabel)
                     views.setTextViewText(R.id.widget_progress_percent, "$progressPercent%")
+                    views.setTextColor(R.id.widget_progress_percent, if (isEffectiveDark) 0xFF10B981.toInt() else 0xFF15803D.toInt())
                     views.setTextViewText(R.id.widget_work_time_value, if (isWeekOff && workTime == "0h 00m") "Week Off" else workTime)
+                    views.setTextColor(R.id.widget_work_time_value, colorTextPrimary)
                     views.setTextViewText(R.id.widget_status_text, if (isCompleted) "Shift Complete" else if (isWeekOff) "Week Off" else progressRemaining)
+                    views.setTextColor(R.id.widget_status_text, colorSkyAccent)
                 } else if (layoutId == R.layout.attendance_widget_lockscreen) {
                     views.setTextViewText(R.id.txt_widget_work_time, if (isWeekOff && workTime == "0h 00m") "Week Off" else workTime)
                     views.setTextViewText(R.id.txt_widget_exit_time, if (isWeekOff) "Enjoy Weekend" else "Exit: $exitTime")
                     views.setTextViewText(R.id.txt_widget_status, if (isCompleted) "GOAL MET" else if (isWfh) "WFH" else if (isWeekOff) "WEEK OFF" else "IN-OFFICE")
                 } else if (layoutId == R.layout.attendance_widget) {
+                    // Large 4x2 Dashboard
+                    views.setInt(R.id.widget_hero_card, "setBackgroundResource", heroCardBg)
+                    views.setInt(R.id.widget_cell_first_in, "setBackgroundResource", statCellBg)
+                    views.setInt(R.id.widget_cell_break, "setBackgroundResource", statCellBg)
+                    views.setInt(R.id.widget_cell_exit, "setBackgroundResource", statCellBg)
+                    views.setInt(R.id.widget_cell_actual, "setBackgroundResource", statCellBg)
+
                     val subtitle = when {
                         isWfh -> "REMOTE WORKDAY"
                         isWeekOff -> "WEEK OFF"
                         else -> "TIME AT DESK"
                     }
                     views.setTextViewText(R.id.widget_work_subtitle, subtitle)
+                    views.setTextColor(R.id.widget_work_subtitle, colorTextLabel)
+
                     val formattedStatus = when {
                         isCompleted -> "Shift Complete • 100%"
                         isWfh -> "Remote Workspace"
@@ -272,13 +404,34 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                         else -> "$displayStatus • $progressPercent%"
                     }
                     views.setTextViewText(R.id.widget_status_text, formattedStatus)
+
+                    views.setTextColor(R.id.widget_work_time_value, colorTextPrimary)
+
                     views.setTextViewText(R.id.widget_exit_time_value, if (isWeekOff && exitTime == "--:--") "Enjoy Weekend" else exitTime)
+                    views.setTextColor(R.id.widget_exit_time_value, colorTextStat)
+
                     views.setTextViewText(R.id.widget_actual_exit_time_value, if (isWeekOff && actualExitTime == "--:--") "--:--" else actualExitTime)
+                    views.setTextColor(R.id.widget_actual_exit_time_value, colorSkyAccent)
+
                     views.setTextViewText(R.id.widget_first_in_value, firstIn)
+                    views.setTextColor(R.id.widget_first_in_value, colorTextStat)
+
                     views.setTextViewText(R.id.widget_break_time_value, breakTime)
+                    views.setTextColor(R.id.widget_break_time_value, colorTextStat)
+
+                    views.setTextColor(R.id.widget_label_first_in, colorTextLabel)
+                    views.setTextColor(R.id.widget_label_break, colorTextLabel)
+                    views.setTextColor(R.id.widget_label_exit, colorTextLabel)
+                    views.setTextColor(R.id.widget_label_actual, colorTextLabel)
+
                     views.setProgressBar(R.id.widget_progress_bar, 100, progressPercent, false)
+                    views.setInt(R.id.widget_progress_bar, "setProgressDrawable", progressDrawable)
+
                     views.setTextViewText(R.id.widget_progress_percent, "$progressPercent% Goal")
+                    views.setTextColor(R.id.widget_progress_percent, colorSkyAccent)
+
                     views.setTextViewText(R.id.widget_progress_remaining, if (isWfh) "Biometrics Paused" else if (isWeekOff) "Rest & Recharge" else progressRemaining)
+                    views.setTextColor(R.id.widget_progress_remaining, colorTextSubtle)
                 }
                 
                 appWidgetManager.updateAppWidget(appWidgetId, views)
@@ -347,10 +500,17 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             progressRemaining: String,
             lastUpdated: String,
             breakCount: String = "0 Breaks Today",
-            actualExitTime: String = "--:--"
+            actualExitTime: String = "--:--",
+            baseWorkMinutes: Double = -1.0,
+            lastInTimestamp: Long = 0L,
+            isClockedIn: Boolean = false,
+            targetMinutes: Double = 510.0,
+            baseBreakMinutes: Double = 0.0,
+            avgBreakMinutes: Int = 60
         ) {
             val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            sharedPrefs.edit()
+            val todayDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+            val editor = sharedPrefs.edit()
                 .putString("WidgetWorkTime", workTime)
                 .putString("WidgetFirstIn", firstIn)
                 .putString("WidgetBreakTime", breakTime)
@@ -361,7 +521,17 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 .putInt("WidgetProgressPercent", progressPercent)
                 .putString("WidgetProgressRemaining", progressRemaining)
                 .putString("WidgetLastUpdated", lastUpdated)
-                .apply()
+                .putString("WidgetCacheDate", todayDateStr)
+
+            if (baseWorkMinutes >= 0) {
+                editor.putFloat("WidgetBaseWorkMinutes", baseWorkMinutes.toFloat())
+                editor.putLong("WidgetLastInTimestamp", lastInTimestamp)
+                editor.putBoolean("WidgetIsClockedIn", isClockedIn)
+                editor.putFloat("WidgetTargetMinutes", targetMinutes.toFloat())
+                editor.putFloat("WidgetBaseBreakMinutes", baseBreakMinutes.toFloat())
+                editor.putInt("WidgetAvgBreakMinutes", avgBreakMinutes)
+            }
+            editor.apply()
 
             LockScreenLiveCardManager.updateLiveCard(context)
         }
@@ -478,6 +648,9 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 }
 
                 val isClockedIn = lastInTime != null
+                val baseWorkMinutes = workDurationMs / 60000.0
+                val lastInTimestamp = lastInTime?.time ?: 0L
+
                 if (isClockedIn) {
                     workDurationMs += (Date().time - lastInTime!!.time)
                 }
@@ -525,7 +698,23 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     else -> "Not Clocked In"
                 }
 
-                return WidgetMetrics(workTimeStr, firstInStr, breakTimeStr, breakCountStr, exitTimeStr, actualExitTimeStr, statusText, progressPercent, progressRemaining)
+                return WidgetMetrics(
+                    workTimeStr,
+                    firstInStr,
+                    breakTimeStr,
+                    breakCountStr,
+                    exitTimeStr,
+                    actualExitTimeStr,
+                    statusText,
+                    progressPercent,
+                    progressRemaining,
+                    baseWorkMinutes = baseWorkMinutes,
+                    lastInTimestamp = lastInTimestamp,
+                    isClockedIn = isClockedIn,
+                    targetMinutes = targetMinutes,
+                    baseBreakMinutes = totalBreakMinutes,
+                    avgBreakMinutes = avgBreakMinutes
+                )
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -600,6 +789,14 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
         }
 
         fun fetchRequiredWorkingHours(context: Context, accessToken: String, userId: String): Float? {
+            val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val cachedTarget = sharedPrefs.getFloat("TargetHours", -1f)
+            val lastFetch = sharedPrefs.getLong("LastPolicyFetchTimestamp", 0L)
+            val oneDayMs = 24 * 60 * 60 * 1000L
+            if (cachedTarget > 0 && (System.currentTimeMillis() - lastFetch) < oneDayMs) {
+                return cachedTarget
+            }
+
             try {
                 val policyUrl = "https://apps.pal.tech/hrms-backend/api/OrganizationPolicy/GetMyPolicies?schemeId=3&policyId=0&employeeId=$userId"
                 val connection = TokenManager.openConnection(context, policyUrl)
@@ -625,10 +822,10 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                         val rate = effHoursObj.optDouble("requiredWorkingRate", 100.0)
                         // 100% requiredWorkingRate corresponds to 8h 30m (8.5h)
                         val targetHours = ((rate / 100.0) * 8.5).toFloat()
-                        val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
                         sharedPrefs.edit()
                             .putFloat("TargetHours", targetHours)
                             .putInt("PolicyWorkingRate", rate.toInt())
+                            .putLong("LastPolicyFetchTimestamp", System.currentTimeMillis())
                             .apply()
                         return targetHours
                     }
@@ -636,11 +833,18 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             } catch (e: Exception) {
                 android.util.Log.e("HRMSWidget", "fetchRequiredWorkingHours failed: ${e.message}")
             }
-            return null
+            return if (cachedTarget > 0) cachedTarget else null
         }
 
         fun fetchAverageBreakMinutes(context: Context, accessToken: String, userId: String): Int {
             val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val cachedAvgBreak = sharedPrefs.getInt("AvgBreakMinutes", -1)
+            val lastFetch = sharedPrefs.getLong("LastAvgBreakFetchTimestamp", 0L)
+            val oneDayMs = 24 * 60 * 60 * 1000L
+            if (cachedAvgBreak > 0 && (System.currentTimeMillis() - lastFetch) < oneDayMs) {
+                return cachedAvgBreak
+            }
+
             try {
                 val cal = Calendar.getInstance()
                 val sdfIso = SimpleDateFormat("yyyy-MM-dd'T'00:00:00.000'Z'", Locale.US)
@@ -694,7 +898,10 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                             val avgSeconds = totalBreakSeconds / validDaysCount
                             val avgMinutes = Math.round(avgSeconds / 60.0).toInt()
                             val result = if (avgMinutes > 0) avgMinutes else 60
-                            sharedPrefs.edit().putInt("AvgBreakMinutes", result).apply()
+                            sharedPrefs.edit()
+                                .putInt("AvgBreakMinutes", result)
+                                .putLong("LastAvgBreakFetchTimestamp", System.currentTimeMillis())
+                                .apply()
                             return result
                         }
                     }
@@ -702,7 +909,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             } catch (e: Exception) {
                 android.util.Log.e("HRMSWidget", "fetchAverageBreakMinutes failed: ${e.message}")
             }
-            return sharedPrefs.getInt("AvgBreakMinutes", 60)
+            return if (cachedAvgBreak > 0) cachedAvgBreak else 60
         }
 
         fun isWeekend(): Boolean {
@@ -712,8 +919,16 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
 
         fun getWidgetBackground(context: Context): Int {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            val theme = prefs.getString("WidgetTheme", "DARK") ?: "DARK"
+            val theme = prefs.getString("WidgetTheme", "SYSTEM") ?: "SYSTEM"
             val opacity = prefs.getInt("WidgetOpacity", 100)
+
+            val isSystemNight = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+            val isEffectiveDark = when (theme) {
+                "LIGHT" -> false
+                "DARK", "AMOLED" -> true
+                "TRANSPARENT" -> isSystemNight
+                else -> isSystemNight // "SYSTEM"
+            }
 
             return when (theme) {
                 "AMOLED" -> R.drawable.widget_bg_amoled
@@ -725,12 +940,31 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     opacity >= 15 -> R.drawable.widget_bg_light_25
                     else -> R.drawable.widget_bg_transparent
                 }
-                else -> when { // DARK
+                "DARK" -> when {
                     opacity >= 90 -> R.drawable.widget_bg_dark_100
                     opacity >= 65 -> R.drawable.widget_bg_dark_75
                     opacity >= 40 -> R.drawable.widget_bg_dark_50
                     opacity >= 15 -> R.drawable.widget_bg_dark_25
                     else -> R.drawable.widget_bg_transparent
+                }
+                else -> { // SYSTEM
+                    if (isEffectiveDark) {
+                        when {
+                            opacity >= 90 -> R.drawable.widget_bg_dark_100
+                            opacity >= 65 -> R.drawable.widget_bg_dark_75
+                            opacity >= 40 -> R.drawable.widget_bg_dark_50
+                            opacity >= 15 -> R.drawable.widget_bg_dark_25
+                            else -> R.drawable.widget_bg_transparent
+                        }
+                    } else {
+                        when {
+                            opacity >= 90 -> R.drawable.widget_bg_light_100
+                            opacity >= 65 -> R.drawable.widget_bg_light_75
+                            opacity >= 40 -> R.drawable.widget_bg_light_50
+                            opacity >= 15 -> R.drawable.widget_bg_light_25
+                            else -> R.drawable.widget_bg_transparent
+                        }
+                    }
                 }
             }
         }
@@ -830,9 +1064,16 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
     private fun fetchAndRefreshWidget(context: Context) {
         val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         var accessToken = TokenManager.getValidAccessToken(context)
-        val userId = sharedPrefs.getString("UserId", null)
+        var userId = sharedPrefs.getString("UserId", null)
         val targetHours = sharedPrefs.getFloat("TargetHours", 8.5f)
         val isWfh = sharedPrefs.getBoolean("WfhMode", false)
+
+        if (userId.isNullOrEmpty() && !accessToken.isNullOrEmpty()) {
+            val identity = TokenManager.fetchUserIdentity(context, accessToken)
+            if (identity != null) {
+                userId = identity.first
+            }
+        }
         
         if (accessToken == null || userId == null) {
             val isWeekendToday = isWeekend()
@@ -939,7 +1180,13 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                         metrics.progressRemaining,
                         "Last updated: " + getCurrentTime(),
                         metrics.breakCount,
-                        metrics.actualExitTime
+                        metrics.actualExitTime,
+                        baseWorkMinutes = metrics.baseWorkMinutes,
+                        lastInTimestamp = metrics.lastInTimestamp,
+                        isClockedIn = metrics.isClockedIn,
+                        targetMinutes = metrics.targetMinutes,
+                        baseBreakMinutes = metrics.baseBreakMinutes,
+                        avgBreakMinutes = metrics.avgBreakMinutes
                     )
                     // Check and trigger Completed notification if complete
                     checkAndSendNotification(context, response.toString(), effectiveTargetHours)
@@ -1014,6 +1261,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             }
 
             val isClockedIn = lastInTime != null
+            val baseWorkMinutes = workDurationMs / 60000.0
             if (isClockedIn) {
                 workDurationMs += (Date().time - lastInTime!!.time)
             }
@@ -1023,19 +1271,33 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             val completed = totalWorkMinutes >= targetMinutes
 
             if (completed) {
-                val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                val notifyShiftComplete = sharedPrefs.getBoolean("NotifShiftComplete", true)
-                val lastNotifiedDate = sharedPrefs.getString("LastNotificationDate", "")
-                if (notifyShiftComplete && lastNotifiedDate != todayStr) {
-                    sendNotification(
-                        context,
-                        "Shift Completed!",
-                        "You have completed ${formatMinutes(totalWorkMinutes)} of biometric office time. Time to head home!"
-                    )
-                    sharedPrefs.edit().putString("LastNotificationDate", todayStr).apply()
+                if (isClockedIn) {
+                    val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                    val notifyShiftComplete = sharedPrefs.getBoolean("NotifShiftComplete", true)
+                    val lastNotifiedDate = sharedPrefs.getString("LastNotificationDate", "")
+                    if (notifyShiftComplete && lastNotifiedDate != todayStr) {
+                        sendNotification(
+                            context,
+                            "Shift Completed!",
+                            "You have completed ${formatMinutes(totalWorkMinutes)} of biometric office time. Time to head home!"
+                        )
+                        sharedPrefs.edit().putString("LastNotificationDate", todayStr).apply()
+                    }
+                    // Start repeating leave office alerts if active & not dismissed
+                    ShiftAlertManager.checkAndTriggerNudge(context, formatMinutes(totalWorkMinutes))
+                } else {
+                    // Employee already punched out at the turnstile/portal; permanently silence alerts
+                    ShiftAlertManager.stopAlerts(context)
                 }
-                // Start 2-minute repeating leave office alerts if active & not dismissed
-                ShiftAlertManager.checkAndTriggerNudge(context, formatMinutes(totalWorkMinutes))
+            } else {
+                if (isClockedIn && lastInTime != null) {
+                    // Schedule exact alarm for when shift goal will be reached while at desk
+                    val remainingMinutes = Math.max(0.0, targetMinutes - baseWorkMinutes)
+                    val targetExitTimestamp = lastInTime.time + (remainingMinutes * 60000).toLong()
+                    ShiftAlertManager.scheduleShiftTargetAlarm(context, targetExitTimestamp)
+                } else {
+                    ShiftAlertManager.stopAlerts(context)
+                }
             }
         } catch (e: Exception) {
             android.util.Log.e("HRMSWidget", "checkAndSendNotification error: ${e.message}", e)
