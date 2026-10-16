@@ -10,6 +10,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.widget.RemoteViews
@@ -146,6 +147,29 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     else -> statusText
                 }
 
+                // Determine Theme & Effective Night Mode
+                val isSystemNight = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+                val theme = sharedPrefs.getString("WidgetTheme", "SYSTEM") ?: "SYSTEM"
+                val isEffectiveDark = when (theme) {
+                    "LIGHT" -> false
+                    "DARK", "AMOLED" -> true
+                    "TRANSPARENT" -> isSystemNight
+                    else -> isSystemNight // "SYSTEM"
+                }
+
+                // Adaptive Typography & Inset Surfaces
+                val colorTextPrimary = if (isEffectiveDark) 0xFFF8FAFC.toInt() else 0xFF0F172A.toInt()
+                val colorTextLabel = if (isEffectiveDark) 0xFF94A3B8.toInt() else 0xFF64748B.toInt()
+                val colorTextStat = if (isEffectiveDark) 0xFFF1F5F9.toInt() else 0xFF1E293B.toInt()
+                val colorTextSubtle = if (isEffectiveDark) 0xFF94A3B8.toInt() else 0xFF475569.toInt()
+                val colorTextMuted = if (isEffectiveDark) 0xFF64748B.toInt() else 0xFF94A3B8.toInt()
+                val colorSkyAccent = if (isEffectiveDark) 0xFF38BDF8.toInt() else 0xFF0284C7.toInt()
+
+                val heroCardBg = if (isEffectiveDark) R.drawable.widget_card_hero_dark else R.drawable.widget_card_hero_light
+                val statCellBg = if (isEffectiveDark) R.drawable.widget_card_cell_dark else R.drawable.widget_card_cell_light
+                val refreshBtnBg = if (isEffectiveDark) R.drawable.widget_btn_refresh_dark else R.drawable.widget_btn_refresh_light
+                val progressDrawable = if (isEffectiveDark) R.drawable.widget_m3_progress_drawable else R.drawable.widget_progress_drawable_light
+
                 // Apply User's Custom Background & Transparency
                 views.setInt(R.id.widget_root, "setBackgroundResource", getWidgetBackground(context))
 
@@ -153,18 +177,39 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 views.setTextViewText(R.id.widget_status_text, displayStatus)
                 views.setTextViewText(R.id.widget_work_time_value, if (isWeekOff && workTime == "0h 00m") "Week Off" else workTime)
                 views.setViewVisibility(R.id.widget_wfh_badge, if (isWfh) android.view.View.VISIBLE else android.view.View.GONE)
-                
+
+                // Refresh button background & header branding
+                views.setInt(R.id.widget_btn_refresh, "setBackgroundResource", refreshBtnBg)
+                views.setTextColor(R.id.widget_title, colorTextLabel)
+
+                // Adaptive WFH Badge
+                views.setInt(R.id.widget_wfh_badge, "setBackgroundResource", if (isEffectiveDark) R.drawable.bg_widget_wfh_badge else R.drawable.bg_widget_wfh_badge_light)
+                views.setTextColor(R.id.widget_wfh_text, if (isEffectiveDark) 0xFFFBBF24.toInt() else 0xFFA16207.toInt())
+
                 // Dynamic status color & chip styling
-                val statusColor = when {
-                    isCompleted -> 0xFF39B14A.toInt() // Paltech Green
-                    isWfh -> 0xFFFFCE20.toInt() // Paltech Gold
-                    isWeekOff -> 0xFF0F47C0.toInt() // Paltech Royal Blue
-                    displayStatus.contains("Break", ignoreCase = true) -> 0xFFEEAB55.toInt() // Paltech Warm Amber
-                    displayStatus.contains("Clocked In", ignoreCase = true) -> 0xFF0576F8.toInt() // Paltech Sky Blue
-                    displayStatus.contains("Sync", ignoreCase = true) -> 0xFF0576F8.toInt() // Paltech Sky Blue
-                    else -> 0xFF94A3B8.toInt() // Slate grey
+                val statusColor = if (isEffectiveDark) {
+                    when {
+                        isCompleted -> 0xFF10B981.toInt()
+                        isWfh -> 0xFFFBBF24.toInt()
+                        isWeekOff -> 0xFF38BDF8.toInt()
+                        displayStatus.contains("Break", ignoreCase = true) -> 0xFFF59E0B.toInt()
+                        displayStatus.contains("Clocked In", ignoreCase = true) -> 0xFF10B981.toInt()
+                        displayStatus.contains("Sync", ignoreCase = true) -> 0xFF38BDF8.toInt()
+                        else -> 0xFF94A3B8.toInt()
+                    }
+                } else {
+                    when {
+                        isCompleted -> 0xFF15803D.toInt()
+                        isWfh -> 0xFFA16207.toInt()
+                        isWeekOff -> 0xFF0369A1.toInt()
+                        displayStatus.contains("Break", ignoreCase = true) -> 0xFFB45309.toInt()
+                        displayStatus.contains("Clocked In", ignoreCase = true) -> 0xFF15803D.toInt()
+                        displayStatus.contains("Sync", ignoreCase = true) -> 0xFF0284C7.toInt()
+                        else -> 0xFF64748B.toInt()
+                    }
                 }
                 views.setTextColor(R.id.widget_status_text, statusColor)
+                views.setInt(R.id.widget_status_text, "setBackgroundResource", if (isEffectiveDark) R.drawable.bg_widget_status_chip else R.drawable.bg_widget_status_chip_light)
 
                 // Layout-specific bindings
                 if (layoutId == R.layout.attendance_widget_small) {
@@ -224,7 +269,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                             // Slide 1: Estimated Exit Time (When Can I Leave?)
                             metricLabel = "ESTIMATED EXIT"
                             metricValue = if (isWeekOff) "Enjoy Weekend" else if (isCompleted) "Ready to Leave" else exitTime ?: "--:--"
-                            metricValueColor = if (isCompleted) 0xFF0576F8.toInt() else 0xFF39B14A.toInt()
+                            metricValueColor = if (isCompleted) (if (isEffectiveDark) 0xFF10B981.toInt() else 0xFF15803D.toInt()) else colorSkyAccent
                             val actualSubtext = if (actualExitTime != "--:--" && actualExitTime != exitTime) " • Act: $actualExitTime" else ""
                             metricSubtext = if (isWeekOff) "Week Off" else if (isWfh) "Flexible Exit" else if (isCompleted) "Shift Completed 🚀" else "$progressRemaining left$actualSubtext"
                             metricSubtextColor = metricValueColor
@@ -233,29 +278,31 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                             // Slide 2: Total Breaks Taken & Count
                             metricLabel = "BREAKS TAKEN"
                             metricValue = if (isWeekOff) "0m" else breakTime ?: "0h 00m"
-                            metricValueColor = 0xFFEEAB55.toInt() // Paltech Warm Amber
+                            metricValueColor = if (isEffectiveDark) 0xFFF59E0B.toInt() else 0xFFB45309.toInt()
                             metricSubtext = if (isWeekOff) "Enjoy Weekend" else if (isWfh) "Remote Breaks" else breakCount
-                            metricSubtextColor = 0xFFFFCE20.toInt()
+                            metricSubtextColor = metricValueColor
                         }
                         3 -> {
                             // Slide 3: First In & Daily Summary
                             metricLabel = "FIRST CLOCK-IN"
                             metricValue = if (isWeekOff) "--:--" else firstIn ?: "--:--"
-                            metricValueColor = 0xFF0F47C0.toInt() // Paltech Royal Blue
+                            metricValueColor = colorSkyAccent
                             metricSubtext = if (isWeekOff) "Week Off" else "Target: 8.5h • $progressPercent%"
-                            metricSubtextColor = 0xFF94A3B8.toInt()
+                            metricSubtextColor = colorTextSubtle
                         }
                         else -> {
                             // Slide 0: Time at Desk (Total Hours Spent)
                             metricLabel = "TIME AT DESK"
                             metricValue = if (isWeekOff && workTime == "0h 00m") "Week Off" else workTime ?: "0h 00m"
-                            metricValueColor = 0xFFFFFFFF.toInt()
+                            metricValueColor = colorTextPrimary
                             metricSubtext = if (isWeekOff) "Rest & Recharge" else if (isWfh) "Remote Workspace" else if (isCompleted) "Goal Met • 100%" else "$displayStatus • $progressPercent%"
                             metricSubtextColor = statusColor
                         }
                     }
 
+                    views.setInt(R.id.widget_card_pod, "setBackgroundResource", heroCardBg)
                     views.setTextViewText(R.id.widget_metric_label, metricLabel)
+                    views.setTextColor(R.id.widget_metric_label, colorTextLabel)
                     views.setTextViewText(R.id.widget_work_time_value, metricValue)
                     views.setTextColor(R.id.widget_work_time_value, metricValueColor)
                     views.setTextViewText(R.id.widget_status_text, metricSubtext)
@@ -268,18 +315,46 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     views.setImageViewResource(R.id.dot_4, if (page == 3) R.drawable.widget_dot_active else R.drawable.widget_dot_inactive)
 
                     views.setProgressBar(R.id.widget_progress_bar, 100, progressPercent, false)
+                    views.setInt(R.id.widget_progress_bar, "setProgressDrawable", progressDrawable)
                 } else if (layoutId == R.layout.attendance_widget_medium) {
+                    views.setInt(R.id.widget_hero_card, "setBackgroundResource", heroCardBg)
+                    views.setInt(R.id.widget_cell_exit, "setBackgroundResource", statCellBg)
+
+                    views.setTextColor(R.id.widget_work_subtitle, colorTextLabel)
+                    views.setTextColor(R.id.widget_work_time_value, colorTextPrimary)
+                    views.setTextColor(R.id.widget_progress_percent, colorSkyAccent)
+
+                    views.setTextColor(R.id.widget_label_exit, colorTextLabel)
                     views.setTextViewText(R.id.widget_exit_time_value, if (isWeekOff && exitTime == "--:--") "Enjoy Weekend" else exitTime)
+                    views.setTextColor(R.id.widget_exit_time_value, colorTextStat)
+
                     views.setTextViewText(R.id.widget_actual_exit_time_value, if (isWeekOff && actualExitTime == "--:--") "" else "• Act: $actualExitTime")
+                    views.setTextColor(R.id.widget_actual_exit_time_value, colorSkyAccent)
+
                     views.setTextViewText(R.id.widget_last_updated, "Updated: " + getCurrentTime())
+                    views.setTextColor(R.id.widget_last_updated, colorTextMuted)
                     views.setTextViewText(R.id.widget_progress_percent, "$progressPercent%")
                 } else if (layoutId == R.layout.attendance_widget_countdown) {
+                    views.setInt(R.id.widget_hero_card, "setBackgroundResource", heroCardBg)
+                    views.setInt(R.id.widget_cell_status, "setBackgroundResource", statCellBg)
+
+                    views.setTextColor(R.id.widget_label_countdown, colorTextLabel)
                     views.setTextViewText(R.id.widget_exit_time_value, if (isWeekOff && exitTime == "--:--") "Week Off" else exitTime)
+                    views.setTextColor(R.id.widget_exit_time_value, colorTextPrimary)
+
                     views.setTextViewText(R.id.widget_progress_remaining, if (isWfh) "Remote Workspace" else if (isWeekOff) "Enjoy Weekend" else progressRemaining)
+                    views.setTextColor(R.id.widget_progress_remaining, colorSkyAccent)
+
                     views.setTextViewText(R.id.widget_progress_percent, "$progressPercent%")
+                    views.setTextColor(R.id.widget_progress_percent, if (isEffectiveDark) 0xFF10B981.toInt() else 0xFF15803D.toInt())
+
                     views.setTextViewText(R.id.widget_status_text, displayStatus)
+                    views.setTextColor(R.id.widget_status_text, colorTextSubtle)
                 } else if (layoutId == R.layout.attendance_widget_timesheet) {
+                    views.setInt(R.id.widget_hero_card, "setBackgroundResource", heroCardBg)
+                    views.setTextColor(R.id.widget_label_timesheet, colorTextLabel)
                     views.setTextViewText(R.id.widget_work_time_value, if (isWeekOff && workTime == "0h 00m") "Week Off" else workTime)
+                    views.setTextColor(R.id.widget_work_time_value, colorTextPrimary)
                     views.setTextViewText(R.id.widget_status_text, if (isCompleted) "Goal Met • Submit" else if (isWeekOff) "Week Off" else "$displayStatus • $progressPercent%")
 
                     // 1-Tap direct deep-link launcher to HRMS Timesheet
@@ -295,20 +370,33 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     )
                     views.setOnClickPendingIntent(R.id.widget_btn_timesheet, timesheetPendingIntent)
                 } else if (layoutId == R.layout.attendance_widget_dial) {
+                    views.setTextColor(R.id.widget_label_wellbeing, colorTextLabel)
                     views.setTextViewText(R.id.widget_progress_percent, "$progressPercent%")
+                    views.setTextColor(R.id.widget_progress_percent, if (isEffectiveDark) 0xFF10B981.toInt() else 0xFF15803D.toInt())
                     views.setTextViewText(R.id.widget_work_time_value, if (isWeekOff && workTime == "0h 00m") "Week Off" else workTime)
+                    views.setTextColor(R.id.widget_work_time_value, colorTextPrimary)
                     views.setTextViewText(R.id.widget_status_text, if (isCompleted) "Shift Complete" else if (isWeekOff) "Week Off" else progressRemaining)
+                    views.setTextColor(R.id.widget_status_text, colorSkyAccent)
                 } else if (layoutId == R.layout.attendance_widget_lockscreen) {
                     views.setTextViewText(R.id.txt_widget_work_time, if (isWeekOff && workTime == "0h 00m") "Week Off" else workTime)
                     views.setTextViewText(R.id.txt_widget_exit_time, if (isWeekOff) "Enjoy Weekend" else "Exit: $exitTime")
                     views.setTextViewText(R.id.txt_widget_status, if (isCompleted) "GOAL MET" else if (isWfh) "WFH" else if (isWeekOff) "WEEK OFF" else "IN-OFFICE")
                 } else if (layoutId == R.layout.attendance_widget) {
+                    // Large 4x2 Dashboard
+                    views.setInt(R.id.widget_hero_card, "setBackgroundResource", heroCardBg)
+                    views.setInt(R.id.widget_cell_first_in, "setBackgroundResource", statCellBg)
+                    views.setInt(R.id.widget_cell_break, "setBackgroundResource", statCellBg)
+                    views.setInt(R.id.widget_cell_exit, "setBackgroundResource", statCellBg)
+                    views.setInt(R.id.widget_cell_actual, "setBackgroundResource", statCellBg)
+
                     val subtitle = when {
                         isWfh -> "REMOTE WORKDAY"
                         isWeekOff -> "WEEK OFF"
                         else -> "TIME AT DESK"
                     }
                     views.setTextViewText(R.id.widget_work_subtitle, subtitle)
+                    views.setTextColor(R.id.widget_work_subtitle, colorTextLabel)
+
                     val formattedStatus = when {
                         isCompleted -> "Shift Complete • 100%"
                         isWfh -> "Remote Workspace"
@@ -316,13 +404,34 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                         else -> "$displayStatus • $progressPercent%"
                     }
                     views.setTextViewText(R.id.widget_status_text, formattedStatus)
+
+                    views.setTextColor(R.id.widget_work_time_value, colorTextPrimary)
+
                     views.setTextViewText(R.id.widget_exit_time_value, if (isWeekOff && exitTime == "--:--") "Enjoy Weekend" else exitTime)
+                    views.setTextColor(R.id.widget_exit_time_value, colorTextStat)
+
                     views.setTextViewText(R.id.widget_actual_exit_time_value, if (isWeekOff && actualExitTime == "--:--") "--:--" else actualExitTime)
+                    views.setTextColor(R.id.widget_actual_exit_time_value, colorSkyAccent)
+
                     views.setTextViewText(R.id.widget_first_in_value, firstIn)
+                    views.setTextColor(R.id.widget_first_in_value, colorTextStat)
+
                     views.setTextViewText(R.id.widget_break_time_value, breakTime)
+                    views.setTextColor(R.id.widget_break_time_value, colorTextStat)
+
+                    views.setTextColor(R.id.widget_label_first_in, colorTextLabel)
+                    views.setTextColor(R.id.widget_label_break, colorTextLabel)
+                    views.setTextColor(R.id.widget_label_exit, colorTextLabel)
+                    views.setTextColor(R.id.widget_label_actual, colorTextLabel)
+
                     views.setProgressBar(R.id.widget_progress_bar, 100, progressPercent, false)
+                    views.setInt(R.id.widget_progress_bar, "setProgressDrawable", progressDrawable)
+
                     views.setTextViewText(R.id.widget_progress_percent, "$progressPercent% Goal")
+                    views.setTextColor(R.id.widget_progress_percent, colorSkyAccent)
+
                     views.setTextViewText(R.id.widget_progress_remaining, if (isWfh) "Biometrics Paused" else if (isWeekOff) "Rest & Recharge" else progressRemaining)
+                    views.setTextColor(R.id.widget_progress_remaining, colorTextSubtle)
                 }
                 
                 appWidgetManager.updateAppWidget(appWidgetId, views)
@@ -810,8 +919,16 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
 
         fun getWidgetBackground(context: Context): Int {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            val theme = prefs.getString("WidgetTheme", "DARK") ?: "DARK"
+            val theme = prefs.getString("WidgetTheme", "SYSTEM") ?: "SYSTEM"
             val opacity = prefs.getInt("WidgetOpacity", 100)
+
+            val isSystemNight = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+            val isEffectiveDark = when (theme) {
+                "LIGHT" -> false
+                "DARK", "AMOLED" -> true
+                "TRANSPARENT" -> isSystemNight
+                else -> isSystemNight // "SYSTEM"
+            }
 
             return when (theme) {
                 "AMOLED" -> R.drawable.widget_bg_amoled
@@ -823,12 +940,31 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     opacity >= 15 -> R.drawable.widget_bg_light_25
                     else -> R.drawable.widget_bg_transparent
                 }
-                else -> when { // DARK
+                "DARK" -> when {
                     opacity >= 90 -> R.drawable.widget_bg_dark_100
                     opacity >= 65 -> R.drawable.widget_bg_dark_75
                     opacity >= 40 -> R.drawable.widget_bg_dark_50
                     opacity >= 15 -> R.drawable.widget_bg_dark_25
                     else -> R.drawable.widget_bg_transparent
+                }
+                else -> { // SYSTEM
+                    if (isEffectiveDark) {
+                        when {
+                            opacity >= 90 -> R.drawable.widget_bg_dark_100
+                            opacity >= 65 -> R.drawable.widget_bg_dark_75
+                            opacity >= 40 -> R.drawable.widget_bg_dark_50
+                            opacity >= 15 -> R.drawable.widget_bg_dark_25
+                            else -> R.drawable.widget_bg_transparent
+                        }
+                    } else {
+                        when {
+                            opacity >= 90 -> R.drawable.widget_bg_light_100
+                            opacity >= 65 -> R.drawable.widget_bg_light_75
+                            opacity >= 40 -> R.drawable.widget_bg_light_50
+                            opacity >= 15 -> R.drawable.widget_bg_light_25
+                            else -> R.drawable.widget_bg_transparent
+                        }
+                    }
                 }
             }
         }

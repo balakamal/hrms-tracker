@@ -47,6 +47,7 @@
                 android:visibility="gone">
 
                 <ImageView
+                    android:id="@+id/widget_wfh_icon"
                     android:layout_width="10dp"
                     android:layout_height="10dp"
                     android:layout_marginEnd="2dp"
@@ -55,11 +56,12 @@
                     android:src="@drawable/ic_wfh_home" />
 
                 <TextView
+                    android:id="@+id/widget_wfh_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:letterSpacing="0.04"
                     android:text="WFH"
-                    android:textColor="#FFCE20"
+                    android:textColor="#FBBF24"
                     android:textSize="8sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -71,7 +73,7 @@
             android:layout_height="22dp"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:background="@drawable/widget_m3_btn_refresh"
+            android:background="@drawable/widget_btn_refresh_dark"
             android:contentDescription="Refresh attendance stats"
             android:padding="4dp"
             android:scaleType="fitCenter"
@@ -85,15 +87,15 @@
         android:layout_height="0dp"
         android:layout_marginTop="5dp"
         android:layout_weight="1"
-        android:background="@drawable/widget_m3_pill_mint"
+        android:background="@drawable/widget_card_hero_dark"
         android:clickable="true"
         android:focusable="true"
         android:gravity="center"
         android:orientation="vertical"
-        android:paddingStart="6dp"
-        android:paddingEnd="6dp"
-        android:paddingTop="4dp"
-        android:paddingBottom="4dp">
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp">
 
         <TextView
             android:id="@+id/widget_metric_label"
@@ -101,7 +103,7 @@
             android:layout_height="wrap_content"
             android:letterSpacing="0.05"
             android:text="TIME AT DESK"
-            android:textColor="#64748B"
+            android:textColor="#94A3B8"
             android:textSize="8sp"
             android:textStyle="bold" />
 
@@ -111,8 +113,8 @@
             android:layout_height="wrap_content"
             android:letterSpacing="-0.02"
             android:text="6h 45m"
-            android:textColor="#FFFFFF"
-            android:textSize="22sp"
+            android:textColor="#F8FAFC"
+            android:textSize="23sp"
             android:textStyle="bold" />
 
         <TextView
@@ -123,7 +125,7 @@
             android:ellipsize="end"
             android:singleLine="true"
             android:text="Exit: 06:30 PM"
-            android:textColor="#39B14A"
+            android:textColor="#10B981"
             android:textSize="10sp"
             android:textStyle="bold" />
     </LinearLayout>

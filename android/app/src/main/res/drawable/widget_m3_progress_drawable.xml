@@ -4,10 +4,10 @@
     <item android:id="@android:id/background">
         <shape>
             <corners android:radius="14dp" />
-            <solid android:color="#041424" />
+            <solid android:color="#0D1017" />
             <stroke
                 android:width="0.8dp"
-                android:color="#133863" />
+                android:color="#1F2633" />
         </shape>
     </item>
     <!-- Progress Fill -->
@@ -16,9 +16,9 @@
             <shape>
                 <corners android:radius="14dp" />
                 <gradient
-                    android:startColor="#0F47C0"
-                    android:centerColor="#0576F8"
-                    android:endColor="#39B14A"
+                    android:startColor="#3B82F6"
+                    android:centerColor="#38BDF8"
+                    android:endColor="#10B981"
                     android:angle="0" />
             </shape>
         </clip>

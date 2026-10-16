@@ -5,6 +5,7 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
@@ -24,11 +25,23 @@ class WidgetConfigureActivity : AppCompatActivity() {
     private lateinit var sharedPrefs: SharedPreferences
 
     private lateinit var previewWidgetCard: LinearLayout
+    private lateinit var previewHeroCard: LinearLayout
+    private lateinit var previewCellExit: LinearLayout
+    private lateinit var previewLabelWork: TextView
+    private lateinit var previewWorkTime: TextView
+    private lateinit var previewStatusText: TextView
+    private lateinit var previewLabelExit: TextView
+    private lateinit var previewExitTime: TextView
+    private lateinit var previewRemainingTime: TextView
+
+    private lateinit var btnThemeSystem: LinearLayout
     private lateinit var btnThemeDark: LinearLayout
     private lateinit var btnThemeLight: LinearLayout
     private lateinit var btnThemeAmoled: LinearLayout
     private lateinit var btnThemeTransparent: LinearLayout
 
+    private lateinit var txtThemeSystem: TextView
+    private lateinit var txtThemeSystemSub: TextView
     private lateinit var txtThemeDark: TextView
     private lateinit var txtThemeLight: TextView
     private lateinit var txtThemeAmoled: TextView
@@ -45,7 +58,7 @@ class WidgetConfigureActivity : AppCompatActivity() {
     private lateinit var btnPinWidget: Button
     private lateinit var btnBack: ImageButton
 
-    private var selectedTheme = "DARK"
+    private var selectedTheme = "SYSTEM"
     private var selectedOpacity = 100
 
     companion object {
@@ -65,7 +78,7 @@ class WidgetConfigureActivity : AppCompatActivity() {
         }
 
         sharedPrefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        selectedTheme = sharedPrefs.getString(KEY_WIDGET_THEME, "DARK") ?: "DARK"
+        selectedTheme = sharedPrefs.getString(KEY_WIDGET_THEME, "SYSTEM") ?: "SYSTEM"
         selectedOpacity = sharedPrefs.getInt(KEY_WIDGET_OPACITY, 100)
 
         initViews()
@@ -75,11 +88,23 @@ class WidgetConfigureActivity : AppCompatActivity() {
 
     private fun initViews() {
         previewWidgetCard = findViewById(R.id.preview_widget_card)
+        previewHeroCard = findViewById(R.id.preview_hero_card)
+        previewCellExit = findViewById(R.id.preview_cell_exit)
+        previewLabelWork = findViewById(R.id.preview_label_work)
+        previewWorkTime = findViewById(R.id.preview_work_time)
+        previewStatusText = findViewById(R.id.preview_status_text)
+        previewLabelExit = findViewById(R.id.preview_label_exit)
+        previewExitTime = findViewById(R.id.preview_exit_time)
+        previewRemainingTime = findViewById(R.id.preview_remaining_time)
+
+        btnThemeSystem = findViewById(R.id.btn_theme_system)
         btnThemeDark = findViewById(R.id.btn_theme_dark)
         btnThemeLight = findViewById(R.id.btn_theme_light)
         btnThemeAmoled = findViewById(R.id.btn_theme_amoled)
         btnThemeTransparent = findViewById(R.id.btn_theme_transparent)
 
+        txtThemeSystem = findViewById(R.id.txt_theme_system)
+        txtThemeSystemSub = findViewById(R.id.txt_theme_system_sub)
         txtThemeDark = findViewById(R.id.txt_theme_dark)
         txtThemeLight = findViewById(R.id.txt_theme_light)
         txtThemeAmoled = findViewById(R.id.txt_theme_amoled)
@@ -104,6 +129,11 @@ class WidgetConfigureActivity : AppCompatActivity() {
 
     private fun setupListeners() {
         btnBack.setOnClickListener { finish() }
+
+        btnThemeSystem.setOnClickListener {
+            selectedTheme = "SYSTEM"
+            updateUIState()
+        }
 
         btnThemeDark.setOnClickListener {
             selectedTheme = "DARK"
@@ -215,6 +245,11 @@ class WidgetConfigureActivity : AppCompatActivity() {
         txtOpacityValue.text = "$selectedOpacity%"
 
         // Theme selection chip highlighting
+        val isSystem = selectedTheme == "SYSTEM"
+        btnThemeSystem.setBackgroundResource(if (isSystem) R.drawable.bg_configure_chip_selected else R.drawable.bg_configure_chip)
+        txtThemeSystem.setTextColor(if (isSystem) 0xFFFFFFFF.toInt() else 0xFF94A3B8.toInt())
+        txtThemeSystemSub.setTextColor(if (isSystem) 0xFFCBD5E1.toInt() else 0xFF64748B.toInt())
+
         btnThemeDark.setBackgroundResource(if (selectedTheme == "DARK") R.drawable.bg_configure_chip_selected else R.drawable.bg_configure_chip)
         txtThemeDark.setTextColor(if (selectedTheme == "DARK") 0xFFFFFFFF.toInt() else 0xFF94A3B8.toInt())
 
@@ -235,7 +270,16 @@ class WidgetConfigureActivity : AppCompatActivity() {
             chip.setTextColor(if (isMatch) 0xFFFFFFFF.toInt() else 0xFF94A3B8.toInt())
         }
 
-        // Live preview background
+        // Resolve effective dark/light mode for live preview
+        val isSystemNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val isEffectiveDark = when (selectedTheme) {
+            "LIGHT" -> false
+            "DARK", "AMOLED" -> true
+            "TRANSPARENT" -> isSystemNight
+            else -> isSystemNight // "SYSTEM"
+        }
+
+        // Live preview outer card background
         val backgroundRes = when (selectedTheme) {
             "AMOLED" -> R.drawable.widget_bg_amoled
             "TRANSPARENT" -> R.drawable.widget_bg_transparent
@@ -246,15 +290,46 @@ class WidgetConfigureActivity : AppCompatActivity() {
                 selectedOpacity >= 15 -> R.drawable.widget_bg_light_25
                 else -> R.drawable.widget_bg_transparent
             }
-            else -> when { // DARK
+            "DARK" -> when {
                 selectedOpacity >= 90 -> R.drawable.widget_bg_dark_100
                 selectedOpacity >= 65 -> R.drawable.widget_bg_dark_75
                 selectedOpacity >= 40 -> R.drawable.widget_bg_dark_50
                 selectedOpacity >= 15 -> R.drawable.widget_bg_dark_25
                 else -> R.drawable.widget_bg_transparent
             }
+            else -> { // SYSTEM
+                if (isSystemNight) {
+                    when {
+                        selectedOpacity >= 90 -> R.drawable.widget_bg_dark_100
+                        selectedOpacity >= 65 -> R.drawable.widget_bg_dark_75
+                        selectedOpacity >= 40 -> R.drawable.widget_bg_dark_50
+                        selectedOpacity >= 15 -> R.drawable.widget_bg_dark_25
+                        else -> R.drawable.widget_bg_transparent
+                    }
+                } else {
+                    when {
+                        selectedOpacity >= 90 -> R.drawable.widget_bg_light_100
+                        selectedOpacity >= 65 -> R.drawable.widget_bg_light_75
+                        selectedOpacity >= 40 -> R.drawable.widget_bg_light_50
+                        selectedOpacity >= 15 -> R.drawable.widget_bg_light_25
+                        else -> R.drawable.widget_bg_transparent
+                    }
+                }
+            }
         }
         previewWidgetCard.setBackgroundResource(backgroundRes)
+
+        // Live preview inner card surfaces & high-contrast typography
+        previewHeroCard.setBackgroundResource(if (isEffectiveDark) R.drawable.widget_card_hero_dark else R.drawable.widget_card_hero_light)
+        previewCellExit.setBackgroundResource(if (isEffectiveDark) R.drawable.widget_card_cell_dark else R.drawable.widget_card_cell_light)
+
+        previewLabelWork.setTextColor(if (isEffectiveDark) 0xFF94A3B8.toInt() else 0xFF64748B.toInt())
+        previewWorkTime.setTextColor(if (isEffectiveDark) 0xFFF8FAFC.toInt() else 0xFF0F172A.toInt())
+        previewStatusText.setTextColor(if (isEffectiveDark) 0xFF10B981.toInt() else 0xFF15803D.toInt())
+
+        previewLabelExit.setTextColor(if (isEffectiveDark) 0xFF94A3B8.toInt() else 0xFF64748B.toInt())
+        previewExitTime.setTextColor(if (isEffectiveDark) 0xFFF1F5F9.toInt() else 0xFF1E293B.toInt())
+        previewRemainingTime.setTextColor(if (isEffectiveDark) 0xFF38BDF8.toInt() else 0xFF0284C7.toInt())
     }
 
     private fun applyAndSavePreferences() {

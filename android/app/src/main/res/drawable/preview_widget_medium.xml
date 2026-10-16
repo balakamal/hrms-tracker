@@ -5,41 +5,41 @@
     android:viewportHeight="80">
     <!-- Outer Container Squircle -->
     <path
-        android:fillColor="#041424"
-        android:strokeColor="#164375"
-        android:strokeWidth="1.5"
+        android:fillColor="#12151D"
+        android:strokeColor="#252D3D"
+        android:strokeWidth="1.2"
         android:pathData="M24,2 L276,2 A20,20 0 0,1 298,22 L298,58 A20,20 0 0,1 276,78 L24,78 A20,20 0 0,1 2,58 L2,22 A20,20 0 0,1 24,2 Z" />
 
     <!-- Left Pane Pod (Work Time) -->
     <path
-        android:fillColor="#08213D"
-        android:strokeColor="#164375"
+        android:fillColor="#171B24"
+        android:strokeColor="#263040"
         android:strokeWidth="1"
         android:pathData="M22,10 L136,10 A12,12 0 0,1 148,22 L148,58 A12,12 0 0,1 136,70 L22,70 A12,12 0 0,1 10,58 L10,22 A12,12 0 0,1 22,10 Z" />
     <path
         android:fillColor="#94A3B8"
         android:pathData="M20,18 H58 V23 H20 Z" />
     <path
-        android:fillColor="#0576F8"
+        android:fillColor="#38BDF8"
         android:pathData="M118,18 H138 V23 H118 Z" />
     <path
-        android:fillColor="#FFFFFF"
+        android:fillColor="#F8FAFC"
         android:pathData="M20,28 H85 V46 H20 Z" />
     <path
-        android:fillColor="#39B14A"
+        android:fillColor="#10B981"
         android:pathData="M20,52 H76 V58 H20 Z" />
 
     <!-- Right Pane Pod (Est. Exit & Refresh) -->
     <path
-        android:fillColor="#08213D"
-        android:strokeColor="#164375"
+        android:fillColor="#171B24"
+        android:strokeColor="#263040"
         android:strokeWidth="1"
         android:pathData="M164,10 L278,10 A12,12 0 0,1 290,22 L290,58 A12,12 0 0,1 278,70 L164,70 A12,12 0 0,1 152,58 L152,22 A12,12 0 0,1 164,10 Z" />
     <path
-        android:fillColor="#39B14A"
+        android:fillColor="#10B981"
         android:pathData="M164,18 H206 V23 H164 Z" />
     <path
-        android:fillColor="#FFFFFF"
+        android:fillColor="#F8FAFC"
         android:pathData="M164,28 H228 V46 H164 Z" />
     <path
         android:fillColor="#94A3B8"
@@ -47,11 +47,11 @@
 
     <!-- Refresh FAB -->
     <path
-        android:fillColor="#041424"
-        android:strokeColor="#164375"
+        android:fillColor="#1E232E"
+        android:strokeColor="#2D3748"
         android:strokeWidth="1"
         android:pathData="M260,26 A11,11 0 1,1 282,26 A11,11 0 1,1 260,26 Z" />
     <path
-        android:fillColor="#0576F8"
+        android:fillColor="#38BDF8"
         android:pathData="M268,23 H274 V29 H268 Z" />
 </vector>
