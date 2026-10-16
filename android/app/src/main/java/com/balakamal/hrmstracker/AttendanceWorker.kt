@@ -144,30 +144,51 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                     val notifyPreExit = sharedPrefs.getBoolean("NotifPreExit", true)
                     val isWfh = sharedPrefs.getBoolean("WfhMode", false)
 
-                    if (!isWfh && (metrics.statusText == "Completed shift!" || metrics.statusText.contains("CONQUERED") || metrics.progressPercent >= 100)) {
-                        if (notifyShiftComplete) {
-                            val lastNotifiedDate = sharedPrefs.getString("LastNotificationDate", "")
-                            if (lastNotifiedDate != todayStr) {
+                    val isCompleted = metrics.statusText == "Completed shift!" || metrics.statusText.contains("CONQUERED") || metrics.progressPercent >= 100
+
+                    if (!isWfh && isCompleted) {
+                        if (metrics.isClockedIn) {
+                            if (notifyShiftComplete) {
+                                val lastNotifiedDate = sharedPrefs.getString("LastNotificationDate", "")
+                                if (lastNotifiedDate != todayStr) {
+                                    sendNotification(
+                                        "Shift Completed!", 
+                                        "You have completed ${metrics.workTime} of biometric office time. Time to head home!"
+                                    )
+                                    sharedPrefs.edit().putString("LastNotificationDate", todayStr).apply()
+                                }
+                            }
+                            // Start repeating leave office alerts if active & not dismissed
+                            ShiftAlertManager.checkAndTriggerNudge(applicationContext, metrics.workTime)
+                        } else {
+                            // Employee already punched out at the turnstile/portal; permanently silence alerts
+                            ShiftAlertManager.stopAlerts(applicationContext)
+                        }
+                    } else if (!isWfh) {
+                        if (metrics.isClockedIn && metrics.lastInTimestamp > 0) {
+                            // Schedule exact alarm for when shift goal will be reached while at desk
+                            val remainingMinutes = Math.max(0.0, metrics.targetMinutes - metrics.baseWorkMinutes)
+                            val targetExitTimestamp = metrics.lastInTimestamp + (remainingMinutes * 60000).toLong()
+                            ShiftAlertManager.scheduleShiftTargetAlarm(applicationContext, targetExitTimestamp)
+                        } else {
+                            ShiftAlertManager.stopAlerts(applicationContext)
+                        }
+
+                        if (notifyPreExit && metrics.progressPercent in 92..99) {
+                            val lastPreNotifiedDate = sharedPrefs.getString("LastPreNotificationDate", "")
+                            if (lastPreNotifiedDate != todayStr) {
                                 sendNotification(
-                                    "Shift Completed!", 
-                                    "You have completed ${metrics.workTime} of biometric office time. Time to head home!"
+                                    "Almost Done! (${metrics.progressRemaining})",
+                                    "Shift is at ${metrics.progressPercent}%. Wrap up tasks and get ready to pack up!"
                                 )
-                                sharedPrefs.edit().putString("LastNotificationDate", todayStr).apply()
+                                sharedPrefs.edit().putString("LastPreNotificationDate", todayStr).apply()
                             }
                         }
-                        // Start 2-minute repeating leave office alerts if active & not dismissed
-                        ShiftAlertManager.checkAndTriggerNudge(applicationContext, metrics.workTime)
-                    } else if (!isWfh && notifyPreExit && metrics.progressPercent in 92..99) {
-                        val lastPreNotifiedDate = sharedPrefs.getString("LastPreNotificationDate", "")
-                        if (lastPreNotifiedDate != todayStr) {
-                            sendNotification(
-                                "Almost Done! (${metrics.progressRemaining})",
-                                "Shift is at ${metrics.progressPercent}%. Wrap up tasks and get ready to pack up!"
-                            )
-                            sharedPrefs.edit().putString("LastPreNotificationDate", todayStr).apply()
-                        }
+                    } else {
+                        ShiftAlertManager.stopAlerts(applicationContext)
                     }
                 } else {
+                    ShiftAlertManager.stopAlerts(applicationContext)
                     val isWfh = sharedPrefs.getBoolean("WfhMode", false)
                     val isWeekendToday = AttendanceAppWidgetProvider.isWeekend()
                     val noLogsStatus = when {

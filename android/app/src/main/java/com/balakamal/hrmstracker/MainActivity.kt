@@ -537,8 +537,9 @@ class MainActivity : AppCompatActivity() {
         if (isActive) {
             val overtimeMins = ShiftAlertManager.getOvertimeMinutes(this)
             val overtimeStr = if (overtimeMins > 0) "+${overtimeMins}m Overtime" else "Shift Met"
+            val interval = ShiftAlertManager.getIntervalMinutes(this)
             txtNudgeTitle.text = "SHIFT COMPLETE • $overtimeStr 🚀"
-            txtNudgeMessage.text = "You've completed your daily shift! Step out and head home. Alerts repeat every 2 minutes until stopped."
+            txtNudgeMessage.text = "You've completed your daily shift! Step out and head home. Alerts repeat every $interval minutes until stopped."
 
             if (layoutShiftNudgeOverlay.visibility != View.VISIBLE) {
                 layoutShiftNudgeOverlay.visibility = View.VISIBLE
@@ -838,6 +839,7 @@ class MainActivity : AppCompatActivity() {
         val notifPre = sharedPrefs.getBoolean(KEY_NOTIF_PRE_EXIT, true)
         val wfh = sharedPrefs.getBoolean(KEY_WFH_MODE, false)
         val nudgeEnabled = ShiftAlertManager.isNudgeEnabled(this)
+        val nudgeInterval = ShiftAlertManager.getIntervalMinutes(this)
 
         val timesheetEnabled = sharedPrefs.getBoolean(TimesheetReminderWorker.KEY_REMINDER_ENABLED, true)
         val timesheetHour = sharedPrefs.getInt(TimesheetReminderWorker.KEY_REMINDER_HOUR, 21)
@@ -857,7 +859,7 @@ class MainActivity : AppCompatActivity() {
             if (lockscreenLiveEnabled) "Lock Screen Live Activity: Enabled" else "Lock Screen Live Activity: Disabled",
             "Lock Screen Setup & Help (Samsung & Android)",
             "Daily Timesheet Reminder: $timesheetStatus",
-            if (nudgeEnabled) "Leave Office Alerts: Every 2 Min (Enabled)" else "Leave Office Alerts: Every 2 Min (Disabled)",
+            "Leave Office Alerts: Every ${nudgeInterval} Min (${if (nudgeEnabled) "Enabled" else "Disabled"})",
             if (notifComplete) "Shift Complete Alerts: Enabled" else "Shift Complete Alerts: Disabled",
             if (notifPre) "15-Min Pre-Exit Alerts: Enabled" else "15-Min Pre-Exit Alerts: Disabled",
             if (wfh) "Workspace: Remote (Synced from HRMS)" else "Workspace: In-Office (Synced from HRMS)",
@@ -884,15 +886,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     3 -> showLockScreenHelpDialog()
                     4 -> showTimesheetReminderDialog()
-                    5 -> {
-                        val nextState = !nudgeEnabled
-                        ShiftAlertManager.setNudgeEnabled(this, nextState)
-                        Toast.makeText(
-                            this,
-                            if (nextState) "2-min Leave Office alerts enabled" else "Leave Office alerts disabled",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+                    5 -> showLeaveOfficeAlertDialog()
                     6 -> {
                         val nextState = !notifComplete
                         sharedPrefs.edit().putBoolean(KEY_NOTIF_SHIFT_COMPLETE, nextState).apply()
@@ -930,6 +924,58 @@ class MainActivity : AppCompatActivity() {
             }
             .setNegativeButton("Close", null)
             .show()
+    }
+
+    /**
+     * Apple-grade, polished dialog to configure Leave Office alerts & repeating frequency
+     */
+    private fun showLeaveOfficeAlertDialog() {
+        val isEnabled = ShiftAlertManager.isNudgeEnabled(this)
+        val currentInterval = ShiftAlertManager.getIntervalMinutes(this)
+
+        val options = arrayOf(
+            if (isEnabled) "Alerts: Enabled (Tap to Disable)" else "Alerts: Disabled (Tap to Enable)",
+            "Every 2 Minutes" + if (currentInterval == 2) "  ✓" else "",
+            "Every 5 Minutes (Default)" + if (currentInterval == 5) "  ✓" else "",
+            "Every 10 Minutes" + if (currentInterval == 10) "  ✓" else "",
+            "Every 15 Minutes" + if (currentInterval == 15) "  ✓" else "",
+            "Send Test Alert (Preview)"
+        )
+
+        AlertDialog.Builder(this, R.style.Theme_HRMS_Dialog)
+            .setTitle("Leave Office Repeating Alerts")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> {
+                        val next = !isEnabled
+                        ShiftAlertManager.setNudgeEnabled(this, next)
+                        Toast.makeText(
+                            this,
+                            if (next) "Leave Office alerts enabled (Every ${currentInterval}m)" else "Leave Office alerts disabled",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        updateNudgeOverlayState(animate = true)
+                        showLeaveOfficeAlertDialog()
+                    }
+                    1 -> setLeaveAlertInterval(2)
+                    2 -> setLeaveAlertInterval(5)
+                    3 -> setLeaveAlertInterval(10)
+                    4 -> setLeaveAlertInterval(15)
+                    5 -> {
+                        ShiftAlertManager.sendTestAlert(this)
+                        Toast.makeText(this, "Test leave office alert sent! Check your notification panel.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+            .setNegativeButton("Back", null)
+            .show()
+    }
+
+    private fun setLeaveAlertInterval(minutes: Int) {
+        ShiftAlertManager.setIntervalMinutes(this, minutes)
+        ShiftAlertManager.setNudgeEnabled(this, true)
+        Toast.makeText(this, "Alert frequency set to every $minutes minutes", Toast.LENGTH_SHORT).show()
+        updateNudgeOverlayState(animate = true)
     }
 
     private fun showLockScreenHelpDialog() {

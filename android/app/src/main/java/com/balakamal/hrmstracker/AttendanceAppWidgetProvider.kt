@@ -1125,6 +1125,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             }
 
             val isClockedIn = lastInTime != null
+            val baseWorkMinutes = workDurationMs / 60000.0
             if (isClockedIn) {
                 workDurationMs += (Date().time - lastInTime!!.time)
             }
@@ -1134,19 +1135,33 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             val completed = totalWorkMinutes >= targetMinutes
 
             if (completed) {
-                val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                val notifyShiftComplete = sharedPrefs.getBoolean("NotifShiftComplete", true)
-                val lastNotifiedDate = sharedPrefs.getString("LastNotificationDate", "")
-                if (notifyShiftComplete && lastNotifiedDate != todayStr) {
-                    sendNotification(
-                        context,
-                        "Shift Completed!",
-                        "You have completed ${formatMinutes(totalWorkMinutes)} of biometric office time. Time to head home!"
-                    )
-                    sharedPrefs.edit().putString("LastNotificationDate", todayStr).apply()
+                if (isClockedIn) {
+                    val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                    val notifyShiftComplete = sharedPrefs.getBoolean("NotifShiftComplete", true)
+                    val lastNotifiedDate = sharedPrefs.getString("LastNotificationDate", "")
+                    if (notifyShiftComplete && lastNotifiedDate != todayStr) {
+                        sendNotification(
+                            context,
+                            "Shift Completed!",
+                            "You have completed ${formatMinutes(totalWorkMinutes)} of biometric office time. Time to head home!"
+                        )
+                        sharedPrefs.edit().putString("LastNotificationDate", todayStr).apply()
+                    }
+                    // Start repeating leave office alerts if active & not dismissed
+                    ShiftAlertManager.checkAndTriggerNudge(context, formatMinutes(totalWorkMinutes))
+                } else {
+                    // Employee already punched out at the turnstile/portal; permanently silence alerts
+                    ShiftAlertManager.stopAlerts(context)
                 }
-                // Start 2-minute repeating leave office alerts if active & not dismissed
-                ShiftAlertManager.checkAndTriggerNudge(context, formatMinutes(totalWorkMinutes))
+            } else {
+                if (isClockedIn && lastInTime != null) {
+                    // Schedule exact alarm for when shift goal will be reached while at desk
+                    val remainingMinutes = Math.max(0.0, targetMinutes - baseWorkMinutes)
+                    val targetExitTimestamp = lastInTime.time + (remainingMinutes * 60000).toLong()
+                    ShiftAlertManager.scheduleShiftTargetAlarm(context, targetExitTimestamp)
+                } else {
+                    ShiftAlertManager.stopAlerts(context)
+                }
             }
         } catch (e: Exception) {
             android.util.Log.e("HRMSWidget", "checkAndSendNotification error: ${e.message}", e)

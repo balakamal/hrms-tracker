@@ -10,6 +10,7 @@ class ShiftAlertReceiver : BroadcastReceiver() {
         val action = intent.action ?: return
 
         when (action) {
+            ShiftAlertManager.ACTION_SHIFT_TARGET_REACHED,
             ShiftAlertManager.ACTION_ALARM_TICK -> {
                 if (ShiftAlertManager.isNudgeActive(context)) {
                     ShiftAlertManager.sendNudgeNotification(context)
