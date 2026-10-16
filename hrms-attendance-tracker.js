@@ -53,6 +53,13 @@
       top: auto !important;
       transform: translateX(-50%);
     }
+    #at-widget-container.at-in-app.at-minimized:not(.at-custom-pos) {
+      top: 14px !important;
+      bottom: auto !important;
+      left: 50% !important;
+      right: auto !important;
+      transform: translateX(-50%) !important;
+    }
     #at-widget-container.at-theme-light {
       --at-bg-card: linear-gradient(165deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.96) 100%);
       --at-bg-badge: linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(241, 245, 249, 0.96) 100%);
@@ -185,268 +192,365 @@
       letter-spacing: -0.01em;
     }
 
-    /* Main Dashboard Card (Apple iOS Sheet Aesthetic) */
-    .at-grab-handle-bar {
-      width: 36px;
-      height: 5px;
-      border-radius: 9999px;
-      background: rgba(255, 255, 255, 0.22);
-      margin: 0 auto 10px auto;
-      cursor: grab;
-      touch-action: none;
-      transition: background 0.2s ease, transform 0.2s ease;
-    }
-    .at-grab-handle-bar:active {
-      cursor: grabbing;
-      background: rgba(255, 255, 255, 0.45);
-      transform: scaleX(1.15);
-    }
-    #at-widget-container.at-theme-light .at-grab-handle-bar {
-      background: rgba(0, 0, 0, 0.15);
-    }
-    #at-widget-container.at-theme-light .at-grab-handle-bar:active {
-      background: rgba(0, 0, 0, 0.3);
-    }
+    /* Main Dashboard Card (macOS Sonoma / iOS 18 Frosted Glass) */
     .at-card {
-      width: 330px;
+      width: 380px;
       background: var(--at-bg-card);
-      backdrop-filter: blur(32px) saturate(190%);
-      -webkit-backdrop-filter: blur(32px) saturate(190%);
+      backdrop-filter: blur(28px) saturate(190%);
+      -webkit-backdrop-filter: blur(28px) saturate(190%);
       border: 1px solid var(--at-border);
       border-radius: 24px;
-      padding: 14px 18px 20px 18px;
-      box-shadow: 0 24px 50px -12px var(--at-shadow), 0 8px 20px -4px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+      padding: 12px 18px 18px 18px;
+      box-shadow: 0 24px 50px -12px var(--at-shadow), 0 8px 24px -4px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.16);
       position: relative;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 13px;
       transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
       color: var(--at-text-primary);
     }
     #at-widget-container.at-theme-light .at-card {
-      box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.14), 0 4px 12px -2px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255, 255, 255, 1);
+      box-shadow: 0 20px 45px -12px rgba(15, 23, 42, 0.15), 0 4px 12px -2px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255, 255, 255, 1);
     }
 
-    /* Integrated Header */
+    /* Seamless Inset Apple Grab Bar */
+    .at-grab-bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0;
+      margin: -2px 0 2px 0;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+    }
+    .at-grab-bar:active {
+      cursor: grabbing;
+    }
+    .at-grab-pill {
+      width: 36px;
+      height: 4px;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.2);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .at-grab-bar:hover .at-grab-pill {
+      background: rgba(255, 255, 255, 0.45);
+      transform: scaleX(1.15);
+    }
+    .at-grab-bar:active .at-grab-pill {
+      background: rgba(255, 255, 255, 0.7);
+      transform: scaleX(1.15);
+    }
+    #at-widget-container.at-theme-light .at-grab-pill {
+      background: rgba(0, 0, 0, 0.16);
+    }
+
+    /* Profile & Live Presence Header */
     .at-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      cursor: move;
       user-select: none;
-      padding-bottom: 2px;
+      padding: 0 2px;
+    }
+    .at-profile-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .at-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(16, 185, 129, 0.2) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+    }
+    #at-widget-container.at-theme-light .at-avatar {
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(16, 185, 129, 0.15) 100%);
+      border-color: rgba(0, 0, 0, 0.1);
+    }
+    .at-avatar-initials {
+      font-size: 13px;
+      font-weight: 700;
+      color: #FFFFFF;
+      letter-spacing: 0.02em;
+    }
+    #at-widget-container.at-theme-light .at-avatar-initials {
+      color: #1E293B;
     }
     .at-title-group {
       display: flex;
       flex-direction: column;
+      gap: 1px;
+      min-width: 0;
     }
     .at-title {
       font-weight: 700;
-      font-size: 15px;
+      font-size: 14.5px;
       letter-spacing: -0.01em;
       color: var(--at-title-color);
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    .at-subtitle {
+    .at-presence-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .at-status-indicator {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    .at-status-in {
+      background-color: #10B981;
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.7);
+    }
+    .at-status-out {
+      background-color: #F59E0B;
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.7);
+    }
+    .at-status-done {
+      background-color: #3B82F6;
+      box-shadow: 0 0 8px rgba(59, 130, 246, 0.7);
+    }
+    .at-status-text {
       font-size: 11.5px;
-      color: var(--at-text-secondary);
       font-weight: 500;
-      margin-top: 1px;
-      letter-spacing: 0.01em;
+      color: var(--at-text-secondary);
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .at-header-actions {
       display: flex;
       gap: 6px;
       align-items: center;
+      flex-shrink: 0;
     }
     .at-btn {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
       color: var(--at-text-secondary);
       cursor: pointer;
-      padding: 7px;
-      border-radius: 9px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      padding: 0;
     }
     .at-btn:hover {
-      background: rgba(255, 255, 255, 0.12);
-      border-color: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.14);
+      border-color: rgba(255, 255, 255, 0.24);
       color: var(--at-text-primary);
-      transform: translateY(-1px);
+      transform: scale(1.05);
+    }
+    .at-btn:active {
+      transform: scale(0.95);
     }
     #at-widget-container.at-theme-light .at-btn {
       background: rgba(0, 0, 0, 0.04);
-      border-color: rgba(0, 0, 0, 0.06);
+      border-color: rgba(0, 0, 0, 0.08);
     }
     #at-widget-container.at-theme-light .at-btn:hover {
       background: rgba(0, 0, 0, 0.08);
-      border-color: rgba(0, 0, 0, 0.12);
-      color: var(--at-text-primary);
+      border-color: rgba(0, 0, 0, 0.15);
+      color: #0F172A;
     }
     .at-btn svg {
-      width: 15px;
-      height: 15px;
-      fill: currentColor;
-    }
-    .at-drag-handle {
-      cursor: move;
-      color: var(--at-text-secondary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 7px;
-      border-radius: 9px;
-      transition: all 0.2s ease;
-      touch-action: none;
-    }
-    .at-drag-handle:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--at-text-primary);
-    }
-    #at-widget-container.at-theme-light .at-drag-handle:hover {
-      background: rgba(0, 0, 0, 0.06);
-      color: var(--at-text-primary);
-    }
-    .at-drag-handle svg {
-      width: 15px;
-      height: 15px;
+      width: 14px;
+      height: 14px;
       fill: currentColor;
     }
 
-    /* Status Banner (Capsule Style) */
-    .at-status-banner {
+    /* Hero Work Time & Progress Section */
+    .at-hero-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.015) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 16px;
+      padding: 12px 14px;
       display: flex;
-      align-items: center;
-      gap: 9px;
-      background: var(--at-bg-item);
-      border: 1px solid var(--at-border);
-      padding: 9px 13px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--at-text-primary);
-      letter-spacing: -0.01em;
-    }
-    #at-widget-container.at-theme-light .at-status-banner {
-      background: rgba(241, 245, 249, 0.7);
-    }
-    .at-status-indicator {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      display: inline-block;
-      flex-shrink: 0;
-    }
-    .at-status-in { background-color: #10B981; box-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
-    .at-status-out { background-color: #F59E0B; box-shadow: 0 0 10px rgba(245, 158, 11, 0.5); }
-    .at-status-done { background-color: #3B82F6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
-
-    /* Stats Grid */
-    .at-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      flex-direction: column;
       gap: 10px;
     }
-    .at-item {
-      background: var(--at-bg-item);
-      border: 1px solid var(--at-border);
-      padding: 12px 14px;
-      border-radius: 14px;
+    #at-widget-container.at-theme-light .at-hero-card {
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.03) 0%, rgba(0, 0, 0, 0.015) 100%);
+      border-color: rgba(0, 0, 0, 0.06);
+    }
+    .at-hero-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .at-hero-label-group {
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      color: var(--at-text-primary);
-      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, background 0.2s ease;
+      gap: 2px;
     }
-    .at-item:hover {
-      transform: translateY(-1.5px);
-      border-color: rgba(255, 255, 255, 0.14);
-      background: rgba(255, 255, 255, 0.05);
-    }
-    #at-widget-container.at-theme-light .at-item:hover {
-      border-color: rgba(0, 0, 0, 0.12);
-      background: #FFFFFF;
-      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
-    }
-    .at-label {
-      font-size: 10.5px;
-      color: var(--at-text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+    .at-hero-label {
+      font-size: 10px;
       font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--at-text-secondary);
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
     }
-    .at-label svg {
-      width: 13px;
-      height: 13px;
+    .at-hero-label svg {
+      width: 11px;
+      height: 11px;
       fill: currentColor;
-      opacity: 0.85;
     }
-    .at-val {
-      font-size: 17px;
+    .at-hero-val {
+      font-size: 24px;
       font-weight: 700;
+      color: #10B981;
       letter-spacing: -0.02em;
-      color: var(--at-text-primary);
       font-variant-numeric: tabular-nums;
+      line-height: 1.1;
+      text-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
     }
-    .highlight-work {
-      color: #10B981 !important;
-      text-shadow: 0 0 14px rgba(16, 185, 129, 0.25);
+    #at-widget-container.at-theme-light .at-hero-val {
+      color: #059669;
+      text-shadow: none;
     }
-    .highlight-exit {
-      color: #3B82F6 !important;
-      text-shadow: 0 0 14px rgba(59, 130, 246, 0.25);
-    }
-    .highlight-actual {
-      color: #818CF8 !important;
-      text-shadow: 0 0 14px rgba(129, 140, 248, 0.25);
-    }
-    .at-item-break {
-      grid-column: span 2;
-    }
-    .at-subtext {
-      font-size: 10.5px;
-      color: var(--at-text-secondary);
-      font-weight: 500;
-      letter-spacing: 0.01em;
-      margin-top: 2px;
-    }
-
-    /* Progress Section */
-    .at-progress-sec {
+    .at-hero-progress-group {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      align-items: flex-end;
+      gap: 2px;
+    }
+    .at-progress-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: #38BDF8;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      padding: 2px 7px;
+      border-radius: 9999px;
+      letter-spacing: -0.01em;
+      font-variant-numeric: tabular-nums;
+    }
+    #at-widget-container.at-theme-light .at-progress-badge {
+      color: #0284C7;
+      background: rgba(2, 132, 199, 0.08);
+      border-color: rgba(2, 132, 199, 0.2);
+    }
+    .at-progress-rem {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--at-text-secondary);
+      font-variant-numeric: tabular-nums;
     }
     .at-progress-track {
-      height: 7px;
-      background: rgba(255, 255, 255, 0.07);
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
       border-radius: 9999px;
       overflow: hidden;
+      position: relative;
     }
     #at-widget-container.at-theme-light .at-progress-track {
-      background: rgba(0, 0, 0, 0.06);
+      background: rgba(0, 0, 0, 0.08);
     }
     .at-progress-fill {
       height: 100%;
       width: 0%;
-      background: linear-gradient(90deg, #3B82F6 0%, #10B981 100%);
+      background: linear-gradient(90deg, #10B981 0%, #38BDF8 100%);
       border-radius: 9999px;
-      box-shadow: 0 0 10px rgba(16, 185, 129, 0.35);
-      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+      transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .at-progress-labels {
+
+    /* 4-Quadrant Frosted Data Shelf */
+    .at-data-shelf {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--at-bg-item);
+      border: 1px solid var(--at-border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    #at-widget-container.at-theme-light .at-data-shelf {
+      background: rgba(241, 245, 249, 0.6);
+      border-color: rgba(0, 0, 0, 0.07);
+    }
+    .at-shelf-cell {
+      padding: 10px 14px;
       display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      font-weight: 600;
+      flex-direction: column;
+      gap: 2px;
+      position: relative;
+    }
+    .at-shelf-cell:nth-child(1) {
+      border-right: 1px solid var(--at-border);
+      border-bottom: 1px solid var(--at-border);
+    }
+    .at-shelf-cell:nth-child(2) {
+      border-bottom: 1px solid var(--at-border);
+    }
+    .at-shelf-cell:nth-child(3) {
+      border-right: 1px solid var(--at-border);
+    }
+    .at-shelf-label {
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
       color: var(--at-text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .at-shelf-label svg {
+      width: 10px;
+      height: 10px;
+      fill: currentColor;
+    }
+    .at-shelf-val {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--at-text-primary);
       letter-spacing: -0.01em;
+      font-variant-numeric: tabular-nums;
+      margin-top: 1px;
+    }
+    .highlight-exit {
+      color: #3B82F6 !important;
+      text-shadow: 0 0 12px rgba(59, 130, 246, 0.25);
+    }
+    .highlight-actual {
+      color: #818CF8 !important;
+      text-shadow: 0 0 12px rgba(129, 140, 248, 0.25);
+    }
+    .at-shelf-sub {
+      font-size: 10px;
+      color: var(--at-text-secondary);
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* Settings Subpanel */
@@ -558,25 +662,71 @@
     input:checked + .at-slider:before {
       transform: translateX(18px);
     }
-    .at-btn-save {
-      background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
-      color: #FFFFFF;
-      border: none;
-      border-radius: 12px;
-      padding: 12px;
+    .at-settings-section-title {
+      font-size: 10px;
       font-weight: 700;
-      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--at-text-secondary);
+      margin-top: 12px;
+      margin-bottom: 2px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--at-border);
+    }
+    .at-save-indicator {
+      font-size: 11px;
+      font-weight: 600;
+      color: #10B981;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      letter-spacing: -0.01em;
+    }
+    .at-btn-action {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--at-border);
+      border-radius: 10px;
+      padding: 9px 12px;
+      color: var(--at-text-primary);
+      font-size: 12px;
+      font-weight: 600;
       cursor: pointer;
-      margin-top: auto;
-      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
-      transition: opacity 0.2s, transform 0.1s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      box-sizing: border-box;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      font-family: inherit;
     }
-    .at-btn-save:hover {
-      opacity: 0.95;
-      transform: translateY(-1px);
+    .at-btn-action:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
     }
-    .at-btn-save:active {
+    .at-btn-action:active {
       transform: scale(0.98);
+    }
+    .at-btn-logout {
+      color: #EF4444 !important;
+      border-color: rgba(239, 68, 68, 0.25) !important;
+      background: rgba(239, 68, 68, 0.06) !important;
+      justify-content: center !important;
+    }
+    .at-btn-logout:hover {
+      background: rgba(239, 68, 68, 0.14) !important;
+      border-color: rgba(239, 68, 68, 0.4) !important;
+    }
+    #at-widget-container.at-theme-light .at-btn-action {
+      background: rgba(0, 0, 0, 0.03);
+      border-color: rgba(0, 0, 0, 0.08);
+      color: #0F172A;
+    }
+    #at-widget-container.at-theme-light .at-btn-action:hover {
+      background: rgba(0, 0, 0, 0.06);
+    }
+    #at-widget-container.at-theme-light .at-btn-logout {
+      color: #DC2626 !important;
+      background: #FEF2F2 !important;
+      border-color: #FECACA !important;
     }
 
     /* Loading Overlay */
@@ -630,7 +780,14 @@
     
     @media (max-width: 600px) {
       #at-widget-container {
-        max-width: calc(100vw - 24px);
+        max-width: calc(100vw - 20px);
+      }
+      #at-widget-container.at-minimized:not(.at-custom-pos) {
+        top: 14px !important;
+        bottom: auto !important;
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%) !important;
       }
       #at-widget-container.at-expanded:not(.at-custom-pos) {
         bottom: 16px;
@@ -639,9 +796,10 @@
         transform: translateX(-50%);
       }
       #at-widget-container.at-expanded .at-card {
-        width: calc(100vw - 28px);
+        width: calc(100vw - 24px);
         max-width: 360px;
-        border-radius: 26px;
+        border-radius: 24px;
+        padding: 12px 14px 16px 14px;
       }
     }
   `;
@@ -658,6 +816,7 @@
     minimize: `<svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg>`,
     phone: `<svg viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg>`,
     drag: `<svg viewBox="0 0 24 24"><path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>`,
+    chevron: `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor;"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>`,
   };
 
   // --- STATE MANAGEMENT ---
@@ -673,18 +832,45 @@
     userAvatar: localStorage.getItem("at_user_avatar") || null,
     userAvatarOriginal: localStorage.getItem("at_user_avatar_orig") || null,
     isWfh: localStorage.getItem("at_wfh_mode") === "true",
+    leaveAlertsEnabled: localStorage.getItem("at_leave_alerts") !== "false",
+    leaveInterval: parseInt(localStorage.getItem("at_leave_interval") || "5", 10),
+    preExitEnabled: localStorage.getItem("at_pre_exit_notif") !== "false",
+    timesheetEnabled: localStorage.getItem("at_timesheet_enabled") !== "false",
+    timesheetTime: localStorage.getItem("at_timesheet_time") || "21:00",
+    liveCardEnabled: localStorage.getItem("at_live_card_enabled") !== "false",
     imageMap: {},
     attendanceData: null,
     lastNotificationTime: 0,
-    notificationInterval: 5 * 60 * 1000, // 5 minutes in milliseconds
+    notificationInterval: (parseInt(localStorage.getItem("at_leave_interval") || "5", 10)) * 60 * 1000,
     loading: false,
   };
 
-  // Sync initial WFH state from Android native bridge if present
-  if (window.AndroidApp && typeof window.AndroidApp.getWfhMode === "function") {
-    try {
-      state.isWfh = window.AndroidApp.getWfhMode();
-    } catch (_) {}
+  // Sync initial WFH state and native settings from Android bridge if present
+  if (window.AndroidApp) {
+    if (typeof window.AndroidApp.getWfhMode === "function") {
+      try {
+        state.isWfh = window.AndroidApp.getWfhMode();
+      } catch (_) {}
+    }
+    if (typeof window.AndroidApp.getNativeSettings === "function") {
+      try {
+        const raw = window.AndroidApp.getNativeSettings();
+        if (raw) {
+          const nativeData = JSON.parse(raw);
+          if (typeof nativeData.leaveAlertEnabled === "boolean") state.leaveAlertsEnabled = nativeData.leaveAlertEnabled;
+          if (typeof nativeData.leaveAlertInterval === "number") {
+            state.leaveInterval = nativeData.leaveAlertInterval;
+            state.notificationInterval = state.leaveInterval * 60 * 1000;
+          }
+          if (typeof nativeData.notifPreExit === "boolean") state.preExitEnabled = nativeData.notifPreExit;
+          if (typeof nativeData.liveCardEnabled === "boolean") state.liveCardEnabled = nativeData.liveCardEnabled;
+          if (typeof nativeData.timesheetEnabled === "boolean") state.timesheetEnabled = nativeData.timesheetEnabled;
+          if (typeof nativeData.timesheetHour === "number" && typeof nativeData.timesheetMinute === "number") {
+            state.timesheetTime = `${String(nativeData.timesheetHour).padStart(2, "0")}:${String(nativeData.timesheetMinute).padStart(2, "0")}`;
+          }
+        }
+      } catch (_) {}
+    }
   }
 
   // --- UTILS ---
@@ -692,6 +878,13 @@
     const h = Math.floor(totalMin / 60);
     const m = Math.floor(totalMin % 60);
     return `${h}h ${m}m`;
+  };
+
+  const getUserInitials = (name) => {
+    if (!name || name === "User") return "HR";
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
   const getTodayLocalDateStr = () => {
@@ -823,8 +1016,16 @@
           }
         }
 
-        const subtitleEl = document.querySelector(".at-subtitle");
-        if (subtitleEl) subtitleEl.innerText = state.userName;
+        const nameEl = document.querySelector("#at-user-name");
+        if (nameEl) nameEl.innerText = state.userName;
+        const avatarEl = document.querySelector("#at-user-avatar");
+        if (avatarEl) {
+          if (state.userAvatar) {
+            avatarEl.innerHTML = `<img src="${state.userAvatar}" alt="${state.userName}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />`;
+          } else {
+            avatarEl.innerHTML = `<span class="at-avatar-initials">${getUserInitials(state.userName)}</span>`;
+          }
+        }
       }
     } catch (e) {
       console.error("Error fetching user details in tracker script:", e);
@@ -1264,6 +1465,9 @@
     // Create Main Container
     const container = document.createElement("div");
     container.id = "at-widget-container";
+    if (window.AndroidApp) {
+      container.classList.add("at-in-app");
+    }
     if (state.theme === "light") {
       container.classList.add("at-theme-light");
     }
@@ -1289,80 +1493,99 @@
     container.appendChild(badge);
     elements.badge = badge;
 
-    // 2. Card View (Expanded iOS Sheet)
+    // 2. Card View (Expanded macOS/iOS Frosted Glass)
     const card = document.createElement("div");
     card.className = "at-card";
     card.style.display = "none";
     card.innerHTML = `
-      <!-- Apple Sheet Drag Grabber Handle -->
-      <div class="at-grab-handle-bar" id="at-grab-handle-bar" title="Swipe down to minimize"></div>
-
       <!-- Loading Overlay -->
       <div class="at-loading-overlay" id="at-loading-overlay">
         <div class="at-spinner"></div>
         <span class="at-loading-text">Fetching Live Logs...</span>
       </div>
 
+      <!-- Inset Apple Grab Bar -->
+      <div class="at-grab-bar" id="at-drag-handle" title="Drag to move widget">
+        <div class="at-grab-pill"></div>
+      </div>
+
+      <!-- Profile & Live Presence Header -->
       <div class="at-header">
-        <div class="at-title-group">
-          <span class="at-title">Attendance Insights</span>
-          <span class="at-subtitle">${state.userName}</span>
+        <div class="at-profile-group">
+          <div class="at-avatar" id="at-user-avatar">
+            ${state.userAvatar 
+              ? `<img src="${state.userAvatar}" alt="${state.userName}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />`
+              : `<span class="at-avatar-initials">${getUserInitials(state.userName)}</span>`
+            }
+          </div>
+          <div class="at-title-group">
+            <span class="at-title" id="at-user-name">${state.userName}</span>
+            <div class="at-presence-row">
+              <span class="at-status-indicator at-status-out" id="at-status-indicator"></span>
+              <span class="at-status-text" id="at-status-text">Determining status...</span>
+              <span id="at-wfh-badge" style="display:${state.isWfh ? "inline-flex" : "none"}; align-items:center; gap:4px; font-size:9.5px; font-weight:700; color:#F59E0B; background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.35); padding: 1px 7px; border-radius: 12px; margin-left: 4px;"><span style="display:inline-block; width:10px; height:10px; fill:#F59E0B;">${ICONS.home}</span> WFH</span>
+            </div>
+          </div>
         </div>
         <div class="at-header-actions">
-          <div class="at-drag-handle" id="at-drag-handle" title="Drag Widget">${ICONS.drag}</div>
           <button class="at-btn" id="at-btn-settings" title="Settings">${ICONS.gear}</button>
           <button class="at-btn" id="at-btn-minimize" title="Minimize">${ICONS.minimize}</button>
         </div>
       </div>
 
-      <div class="at-status-banner">
-        <span class="at-status-indicator at-status-out" id="at-status-indicator"></span>
-        <span id="at-status-text">Determining status...</span>
-        <span id="at-wfh-badge" style="display:${state.isWfh ? "inline-flex" : "none"}; align-items:center; gap:5px; margin-left:auto; font-size:10px; font-weight:700; color:#F59E0B; background: rgba(245, 158, 11, 0.14); border: 1px solid rgba(245, 158, 11, 0.35); padding: 3px 9px; border-radius: 20px; vertical-align:middle;"><span style="display:inline-block; width:12px; height:12px; fill:#F59E0B;">${ICONS.home}</span> Remote Workspace</span>
-      </div>
-
-      <div class="at-grid">
-        <div class="at-item">
-          <span class="at-label">${ICONS.login} First In</span>
-          <span class="at-val" id="at-val-first-in">--:--</span>
+      <!-- Hero Work Time & Shift Progress Section -->
+      <div class="at-hero-card">
+        <div class="at-hero-header">
+          <div class="at-hero-label-group">
+            <span class="at-hero-label">${ICONS.work} WORK TIME</span>
+            <span class="at-hero-val" id="at-val-work-time">--h --m</span>
+          </div>
+          <div class="at-hero-progress-group">
+            <span class="at-progress-badge" id="at-progress-percentage">0% Completed</span>
+            <span class="at-progress-rem" id="at-progress-remaining">--h --m left</span>
+          </div>
         </div>
-        <div class="at-item">
-          <span class="at-label">${ICONS.work} Work Time</span>
-          <span class="at-val highlight-work" id="at-val-work-time">--h --m</span>
-        </div>
-        <div class="at-item at-item-break">
-          <span class="at-label">${ICONS.coffee} Total Break</span>
-          <span class="at-val" id="at-val-break-time">--h --m</span>
-          <span class="at-subtext" id="at-sub-break-avg">30d Avg: ~60m</span>
-        </div>
-        <div class="at-item">
-          <span class="at-label">${ICONS.exit} Est. Exit</span>
-          <span class="at-val highlight-exit" id="at-val-exit-time">--:--</span>
-          <span class="at-subtext" id="at-sub-exit-desc">with est. break</span>
-        </div>
-        <div class="at-item">
-          <span class="at-label">${ICONS.clock} Actual Exit</span>
-          <span class="at-val highlight-actual" id="at-val-actual-exit-time">--:--</span>
-          <span class="at-subtext">no extra break</span>
-        </div>
-      </div>
-
-      <div class="at-progress-sec">
         <div class="at-progress-track">
           <div class="at-progress-fill" id="at-progress-fill"></div>
         </div>
-        <div class="at-progress-labels">
-          <span id="at-progress-percentage">0% Completed</span>
-          <span id="at-progress-remaining">--h --m left</span>
+      </div>
+
+      <!-- 4-Quadrant Frosted Data Shelf with Hairline Dividers -->
+      <div class="at-data-shelf">
+        <div class="at-shelf-cell">
+          <span class="at-shelf-label">${ICONS.login} FIRST IN</span>
+          <span class="at-shelf-val" id="at-val-first-in">--:--</span>
+          <span class="at-shelf-sub">First entry</span>
+        </div>
+        <div class="at-shelf-cell">
+          <span class="at-shelf-label">${ICONS.coffee} TOTAL BREAK</span>
+          <span class="at-shelf-val" id="at-val-break-time">--h --m</span>
+          <span class="at-shelf-sub" id="at-sub-break-avg">30d Avg: ~60m</span>
+        </div>
+        <div class="at-shelf-cell">
+          <span class="at-shelf-label">${ICONS.exit} EST. EXIT</span>
+          <span class="at-shelf-val highlight-exit" id="at-val-exit-time">--:--</span>
+          <span class="at-shelf-sub" id="at-sub-exit-desc">with est. break</span>
+        </div>
+        <div class="at-shelf-cell">
+          <span class="at-shelf-label">${ICONS.clock} ACTUAL EXIT</span>
+          <span class="at-shelf-val highlight-actual" id="at-val-actual-exit-time">--:--</span>
+          <span class="at-shelf-sub">no extra break</span>
         </div>
       </div>
 
       <!-- Settings Subpanel -->
       <div class="at-settings" id="at-settings-panel">
         <div class="at-settings-header">
-          <span class="at-settings-title">Tracker Settings</span>
-          <button class="at-btn" id="at-btn-close-settings">${ICONS.minimize}</button>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="at-settings-title">Tracker Settings</span>
+            <span class="at-save-indicator" id="at-save-indicator">Auto-saved ✓</span>
+          </div>
+          <button class="at-btn" id="at-btn-close-settings" title="Close Settings">${ICONS.minimize}</button>
         </div>
+
+        <!-- Section: Shift Target -->
+        <div class="at-settings-section-title">Shift Target</div>
         <div class="at-form-group">
           <label>Target Work (Hours / Minutes)</label>
           <div style="display: flex; gap: 8px; align-items: center;">
@@ -1390,19 +1613,56 @@
             ~${state.avgBreakMinutes || 60}m per day
           </span>
         </div>
+
+        <!-- Section: Smart Alerts & Reminders -->
+        <div class="at-settings-section-title">Smart Alerts & Reminders</div>
         <div class="at-form-group row">
-          <label>Workspace Mode</label>
-          <span id="at-setting-workspace-mode" style="font-size:11px; font-weight:700; color:${state.isWfh ? "var(--at-accent-gold)" : "var(--at-text-secondary)"};">
-            ${state.isWfh ? "Remote Workspace (Synced)" : "In-Office (Synced)"}
-          </span>
-        </div>
-        <div class="at-form-group row">
-          <label>Enable Notifications</label>
+          <div>
+            <div style="font-size:12px; font-weight:600; color:var(--at-text-primary);">Leave Office Alerts</div>
+            <div style="font-size:10px; color:var(--at-text-secondary);">Repeats when shift is done</div>
+          </div>
           <label class="at-toggle">
-            <input type="checkbox" id="at-setting-notify" ${state.notifyEnabled ? "checked" : ""}>
+            <input type="checkbox" id="at-setting-leave-alerts" ${state.leaveAlertsEnabled ? "checked" : ""}>
             <span class="at-slider"></span>
           </label>
         </div>
+        <div class="at-form-group row" id="at-row-leave-interval">
+          <label>Alert Repeat Frequency</label>
+          <select class="at-input" id="at-setting-leave-interval" style="padding: 4px 8px; font-size: 12px; border-radius: 8px;">
+            <option value="2" ${state.leaveInterval === 2 ? "selected" : ""}>Every 2 min</option>
+            <option value="5" ${state.leaveInterval === 5 || !state.leaveInterval ? "selected" : ""}>Every 5 min (Default)</option>
+            <option value="10" ${state.leaveInterval === 10 ? "selected" : ""}>Every 10 min</option>
+            <option value="15" ${state.leaveInterval === 15 ? "selected" : ""}>Every 15 min</option>
+            <option value="30" ${state.leaveInterval === 30 ? "selected" : ""}>Every 30 min</option>
+          </select>
+        </div>
+        <div class="at-form-group row">
+          <div>
+            <div style="font-size:12px; font-weight:600; color:var(--at-text-primary);">15-Min Pre-Exit Alert</div>
+            <div style="font-size:10px; color:var(--at-text-secondary);">Advance reminder before exit</div>
+          </div>
+          <label class="at-toggle">
+            <input type="checkbox" id="at-setting-pre-exit" ${state.preExitEnabled ? "checked" : ""}>
+            <span class="at-slider"></span>
+          </label>
+        </div>
+        <div class="at-form-group row">
+          <div>
+            <div style="font-size:12px; font-weight:600; color:var(--at-text-primary);">Daily Timesheet Reminder</div>
+            <div style="font-size:10px; color:var(--at-text-secondary);">Evening submission prompt</div>
+          </div>
+          <label class="at-toggle">
+            <input type="checkbox" id="at-setting-timesheet" ${state.timesheetEnabled ? "checked" : ""}>
+            <span class="at-slider"></span>
+          </label>
+        </div>
+        <div class="at-form-group row" id="at-row-timesheet-time">
+          <label>Reminder Time</label>
+          <input type="time" class="at-input" id="at-setting-timesheet-time" value="${state.timesheetTime || "21:00"}" style="padding: 4px 8px; font-size: 12px; border-radius: 8px;">
+        </div>
+
+        <!-- Section: Display & Widgets -->
+        <div class="at-settings-section-title">Display & Widgets</div>
         <div class="at-form-group row">
           <label>Light Theme</label>
           <label class="at-toggle">
@@ -1410,8 +1670,36 @@
             <span class="at-slider"></span>
           </label>
         </div>
+        <div class="at-form-group row" id="at-row-live-card" style="display:${window.AndroidApp ? "flex" : "none"};">
+          <div>
+            <div style="font-size:12px; font-weight:600; color:var(--at-text-primary);">Lock Screen Live Activity</div>
+            <div style="font-size:10px; color:var(--at-text-secondary);">Real-time clock on lock screen</div>
+          </div>
+          <label class="at-toggle">
+            <input type="checkbox" id="at-setting-live-card" ${state.liveCardEnabled ? "checked" : ""}>
+            <span class="at-slider"></span>
+          </label>
+        </div>
+        <div class="at-form-group" id="at-row-widget-config" style="display:${window.AndroidApp ? "block" : "none"}; margin-top: 4px;">
+          <button type="button" class="at-btn-action" id="at-btn-widget-config">
+            <span>Customize Home Screen Widgets</span>
+            ${ICONS.chevron}
+          </button>
+        </div>
 
-        <button class="at-btn-save" id="at-btn-save-settings">Save & Apply</button>
+        <!-- Section: Workspace & Account -->
+        <div class="at-settings-section-title">Workspace & Account</div>
+        <div class="at-form-group row">
+          <label>Workspace Mode</label>
+          <span id="at-setting-workspace-mode" style="font-size:11px; font-weight:700; color:${state.isWfh ? "var(--at-accent-gold)" : "var(--at-text-secondary)"};">
+            ${state.isWfh ? "Remote Workspace (Synced)" : "In-Office (Synced)"}
+          </span>
+        </div>
+        <div class="at-form-group" style="margin-top: 6px; margin-bottom: 8px;">
+          <button type="button" class="at-btn-action at-btn-logout" id="at-btn-logout">
+            Sign Out of Account
+          </button>
+        </div>
       </div>
     `;
     container.appendChild(card);
@@ -1427,9 +1715,10 @@
     }
 
     // Restore dragged position
+    const isInApp = Boolean(window.AndroidApp) || window.innerWidth <= 600;
     const savedX = localStorage.getItem("at_widget_x");
     const savedBottom = localStorage.getItem("at_widget_bottom");
-    if (savedX !== null && savedBottom !== null) {
+    if (savedX !== null && savedBottom !== null && !(isInApp && state.isMinimized)) {
       container.classList.add("at-custom-pos");
       container.style.left = savedX;
       container.style.bottom = savedBottom;
@@ -1443,9 +1732,11 @@
     card
       .querySelector("#at-btn-minimize")
       .addEventListener("click", toggleCollapse);
-    const grabBar = card.querySelector("#at-grab-handle-bar");
-    if (grabBar) {
-      grabBar.addEventListener("click", toggleCollapse);
+    const dragPill = card.querySelector("#at-drag-handle");
+    if (dragPill) {
+      dragPill.addEventListener("click", () => {
+        if (!wasDragging) toggleCollapse();
+      });
     }
     card
       .querySelector("#at-btn-settings")
@@ -1453,19 +1744,25 @@
     card
       .querySelector("#at-btn-close-settings")
       .addEventListener("click", closeSettings);
-    card
-      .querySelector("#at-btn-save-settings")
-      .addEventListener("click", saveSettings);
-
-    // Sync dropdowns with formula input
+    // Auto-save event bindings
     const hoursSelect = card.querySelector("#at-setting-hours-select");
     const minutesSelect = card.querySelector("#at-setting-minutes-select");
     const minutesInput = card.querySelector("#at-setting-minutes-input");
+    const leaveAlertsToggle = card.querySelector("#at-setting-leave-alerts");
+    const leaveIntervalSelect = card.querySelector("#at-setting-leave-interval");
+    const preExitToggle = card.querySelector("#at-setting-pre-exit");
+    const timesheetToggle = card.querySelector("#at-setting-timesheet");
+    const timesheetTimeInput = card.querySelector("#at-setting-timesheet-time");
+    const themeToggle = card.querySelector("#at-setting-theme");
+    const liveCardToggle = card.querySelector("#at-setting-live-card");
+    const widgetConfigBtn = card.querySelector("#at-btn-widget-config");
+    const logoutBtn = card.querySelector("#at-btn-logout");
 
     function syncDropdownsToInput() {
       const h = parseInt(hoursSelect.value, 10);
       const m = parseInt(minutesSelect.value, 10);
       minutesInput.value = h * 60 + m;
+      autoSaveSettings();
     }
 
     function syncInputToDropdowns() {
@@ -1476,18 +1773,45 @@
         hoursSelect.value = h;
         minutesSelect.value = m;
       }
+      debounceAutoSave();
     }
 
-    hoursSelect.addEventListener("change", syncDropdownsToInput);
-    minutesSelect.addEventListener("change", syncDropdownsToInput);
-    minutesInput.addEventListener("input", syncInputToDropdowns);
+    hoursSelect?.addEventListener("change", syncDropdownsToInput);
+    minutesSelect?.addEventListener("change", syncDropdownsToInput);
+    minutesInput?.addEventListener("input", syncInputToDropdowns);
+    minutesInput?.addEventListener("change", autoSaveSettings);
+
+    leaveAlertsToggle?.addEventListener("change", autoSaveSettings);
+    leaveIntervalSelect?.addEventListener("change", autoSaveSettings);
+    preExitToggle?.addEventListener("change", autoSaveSettings);
+    timesheetToggle?.addEventListener("change", autoSaveSettings);
+    timesheetTimeInput?.addEventListener("change", autoSaveSettings);
+    themeToggle?.addEventListener("change", autoSaveSettings);
+    liveCardToggle?.addEventListener("change", autoSaveSettings);
+
+    widgetConfigBtn?.addEventListener("click", () => {
+      if (window.AndroidApp && typeof window.AndroidApp.openWidgetConfig === "function") {
+        window.AndroidApp.openWidgetConfig();
+      }
+    });
+
+    logoutBtn?.addEventListener("click", () => {
+      if (confirm("Are you sure you want to sign out?")) {
+        if (window.AndroidApp && typeof window.AndroidApp.logout === "function") {
+          window.AndroidApp.logout();
+        } else {
+          localStorage.clear();
+          sessionStorage.clear();
+          window.location.reload();
+        }
+      }
+    });
   }
 
   function setupDragging() {
     const container = elements.container;
     const badge = elements.badge;
     const dragHandle = elements.card.querySelector("#at-drag-handle");
-    const grabBar = elements.card.querySelector("#at-grab-handle-bar");
 
     let active = false;
     let currentX;
@@ -1594,20 +1918,26 @@
           return;
         }
 
-        // Apple magnetic snap: If dropped near bottom-center, snap to middle bottom
+        // Apple magnetic snap: If dropped near dock target, snap cleanly
         const rect = container.getBoundingClientRect();
         const screenW = window.innerWidth;
         const screenH = window.innerHeight;
         const distFromBottom = screenH - rect.bottom;
+        const distFromTop = rect.top;
         const centerX = rect.left + rect.width / 2;
         const distFromCenter = Math.abs(centerX - screenW / 2);
 
-        if (state.isMinimized && distFromBottom < 75 && distFromCenter < 100) {
+        const isInApp = Boolean(window.AndroidApp) || window.innerWidth <= 600;
+        const isNearSnapTarget = state.isMinimized
+          ? ((isInApp && distFromTop < 75 && distFromCenter < 100) || (!isInApp && distFromBottom < 75 && distFromCenter < 100))
+          : (distFromBottom < 75 && distFromCenter < 100);
+
+        if (isNearSnapTarget) {
           container.classList.remove("at-custom-pos");
           container.style.left = "";
           container.style.bottom = "";
-          container.style.top = "auto";
-          container.style.right = "auto";
+          container.style.top = "";
+          container.style.right = "";
           localStorage.removeItem("at_widget_x");
           localStorage.removeItem("at_widget_bottom");
         } else {
@@ -1615,14 +1945,14 @@
         }
       } else {
         // Tap/click fallback
-        if (initialTarget && (initialTarget.closest(".at-badge") || initialTarget.closest("#at-grab-handle-bar"))) {
+        if (initialTarget && (initialTarget.closest(".at-badge") || initialTarget.closest("#at-drag-handle"))) {
           toggleCollapse();
         }
       }
       initialTarget = null;
     }
 
-    const dragElements = [badge, dragHandle, grabBar].filter(Boolean);
+    const dragElements = [badge, dragHandle].filter(Boolean);
     dragElements.forEach((el) => {
       el.addEventListener("pointerdown", (e) => {
         if (e.pointerId && el.setPointerCapture) {
@@ -1699,12 +2029,13 @@
       if (container) {
         container.classList.add("at-minimized");
         container.classList.remove("at-expanded");
-        if (!localStorage.getItem("at_widget_x")) {
+        const isInApp = Boolean(window.AndroidApp) || window.innerWidth <= 600;
+        if (isInApp || !localStorage.getItem("at_widget_x")) {
           container.classList.remove("at-custom-pos");
           container.style.left = "";
           container.style.bottom = "";
-          container.style.top = "auto";
-          container.style.right = "auto";
+          container.style.top = "";
+          container.style.right = "";
         }
       }
       elements.card.style.opacity = "0";
@@ -1720,6 +2051,14 @@
       if (container) {
         container.classList.add("at-expanded");
         container.classList.remove("at-minimized");
+        const isInApp = Boolean(window.AndroidApp) || window.innerWidth <= 600;
+        if (isInApp && !localStorage.getItem("at_widget_x")) {
+          container.classList.remove("at-custom-pos");
+          container.style.left = "";
+          container.style.bottom = "";
+          container.style.top = "";
+          container.style.right = "";
+        }
       }
       elements.badge.style.opacity = "0";
       setTimeout(() => {
@@ -1734,13 +2073,161 @@
     }
   }
 
-  function openSettings() {
+  let autoSaveTimeout = null;
+  let saveIndicatorTimeout = null;
+
+  function flashSaveIndicator() {
+    const indicator = elements.card?.querySelector("#at-save-indicator");
+    if (!indicator) return;
+    indicator.style.opacity = "1";
+    if (saveIndicatorTimeout) clearTimeout(saveIndicatorTimeout);
+    saveIndicatorTimeout = setTimeout(() => {
+      indicator.style.opacity = "0";
+    }, 1800);
+  }
+
+  function autoSaveSettings() {
+    if (!elements.card) return;
+
     const hoursSelect = elements.card.querySelector("#at-setting-hours-select");
     const minutesSelect = elements.card.querySelector("#at-setting-minutes-select");
     const minutesInput = elements.card.querySelector("#at-setting-minutes-input");
-    const policyRateEl = elements.card.querySelector("#at-setting-policy-rate");
-    const breakAvgEl = elements.card.querySelector("#at-setting-break-avg");
-    const wsModeEl = elements.card.querySelector("#at-setting-workspace-mode");
+    const leaveAlertsToggle = elements.card.querySelector("#at-setting-leave-alerts");
+    const leaveIntervalSelect = elements.card.querySelector("#at-setting-leave-interval");
+    const preExitToggle = elements.card.querySelector("#at-setting-pre-exit");
+    const timesheetToggle = elements.card.querySelector("#at-setting-timesheet");
+    const timesheetTimeInput = elements.card.querySelector("#at-setting-timesheet-time");
+    const themeToggle = elements.card.querySelector("#at-setting-theme");
+    const liveCardToggle = elements.card.querySelector("#at-setting-live-card");
+
+    if (minutesInput) {
+      const parsedMinutes = parseWorkTimeInput(minutesInput.value);
+      state.targetHours = parsedMinutes === null || parsedMinutes <= 0 ? 8.5 : parsedMinutes / 60;
+      localStorage.setItem("at_target_hours", state.targetHours.toString());
+      if (window.AndroidApp && typeof window.AndroidApp.saveSettings === "function") {
+        window.AndroidApp.saveSettings(state.targetHours);
+      }
+    }
+
+    if (leaveAlertsToggle && leaveIntervalSelect) {
+      state.leaveAlertsEnabled = leaveAlertsToggle.checked;
+      state.leaveInterval = parseInt(leaveIntervalSelect.value, 10) || 5;
+      state.notificationInterval = state.leaveInterval * 60 * 1000;
+      state.notifyEnabled = state.leaveAlertsEnabled;
+      localStorage.setItem("at_leave_alerts", state.leaveAlertsEnabled ? "true" : "false");
+      localStorage.setItem("at_leave_interval", state.leaveInterval.toString());
+      localStorage.setItem("at_notify_enabled", state.notifyEnabled ? "true" : "false");
+
+      if (window.AndroidApp && typeof window.AndroidApp.setLeaveAlerts === "function") {
+        window.AndroidApp.setLeaveAlerts(state.leaveAlertsEnabled, state.leaveInterval);
+      }
+    }
+
+    if (preExitToggle) {
+      state.preExitEnabled = preExitToggle.checked;
+      localStorage.setItem("at_pre_exit_notif", state.preExitEnabled ? "true" : "false");
+      if (window.AndroidApp && typeof window.AndroidApp.setPreExitAlerts === "function") {
+        window.AndroidApp.setPreExitAlerts(state.preExitEnabled);
+      }
+    }
+
+    if (timesheetToggle && timesheetTimeInput) {
+      state.timesheetEnabled = timesheetToggle.checked;
+      state.timesheetTime = timesheetTimeInput.value || "21:00";
+      localStorage.setItem("at_timesheet_enabled", state.timesheetEnabled ? "true" : "false");
+      localStorage.setItem("at_timesheet_time", state.timesheetTime);
+
+      const parts = state.timesheetTime.split(":");
+      const hour = parseInt(parts[0], 10) || 21;
+      const min = parseInt(parts[1], 10) || 0;
+      if (window.AndroidApp && typeof window.AndroidApp.setTimesheetReminder === "function") {
+        window.AndroidApp.setTimesheetReminder(state.timesheetEnabled, hour, min);
+      }
+    }
+
+    if (themeToggle) {
+      state.theme = themeToggle.checked ? "light" : "dark";
+      localStorage.setItem("at_theme", state.theme);
+      if (state.theme === "light") {
+        elements.container.classList.add("at-theme-light");
+      } else {
+        elements.container.classList.remove("at-theme-light");
+      }
+    }
+
+    if (liveCardToggle && window.AndroidApp && typeof window.AndroidApp.setLiveCardEnabled === "function") {
+      state.liveCardEnabled = liveCardToggle.checked;
+      localStorage.setItem("at_live_card_enabled", state.liveCardEnabled ? "true" : "false");
+      window.AndroidApp.setLiveCardEnabled(state.liveCardEnabled);
+    }
+
+    flashSaveIndicator();
+    updateUI();
+  }
+
+  function debounceAutoSave() {
+    if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
+    autoSaveTimeout = setTimeout(() => {
+      autoSaveSettings();
+    }, 400);
+  }
+
+  function saveSettings() {
+    autoSaveSettings();
+  }
+
+  function openSettings() {
+    const card = elements.card;
+    if (!card) return;
+
+    // Sync from Android bridge if running in app
+    if (window.AndroidApp && typeof window.AndroidApp.getNativeSettings === "function") {
+      try {
+        const raw = window.AndroidApp.getNativeSettings();
+        if (raw) {
+          const nativeData = JSON.parse(raw);
+          if (typeof nativeData.leaveAlertEnabled === "boolean") {
+            state.leaveAlertsEnabled = nativeData.leaveAlertEnabled;
+          }
+          if (typeof nativeData.leaveAlertInterval === "number") {
+            state.leaveInterval = nativeData.leaveAlertInterval;
+            state.notificationInterval = state.leaveInterval * 60 * 1000;
+          }
+          if (typeof nativeData.notifPreExit === "boolean") {
+            state.preExitEnabled = nativeData.notifPreExit;
+          }
+          if (typeof nativeData.liveCardEnabled === "boolean") {
+            state.liveCardEnabled = nativeData.liveCardEnabled;
+          }
+          if (typeof nativeData.timesheetEnabled === "boolean") {
+            state.timesheetEnabled = nativeData.timesheetEnabled;
+          }
+          if (typeof nativeData.timesheetHour === "number" && typeof nativeData.timesheetMinute === "number") {
+            const hStr = String(nativeData.timesheetHour).padStart(2, "0");
+            const mStr = String(nativeData.timesheetMinute).padStart(2, "0");
+            state.timesheetTime = `${hStr}:${mStr}`;
+          }
+        }
+      } catch (e) {
+        console.error("Error reading native settings in openSettings:", e);
+      }
+    }
+
+    const hoursSelect = card.querySelector("#at-setting-hours-select");
+    const minutesSelect = card.querySelector("#at-setting-minutes-select");
+    const minutesInput = card.querySelector("#at-setting-minutes-input");
+    const policyRateEl = card.querySelector("#at-setting-policy-rate");
+    const breakAvgEl = card.querySelector("#at-setting-break-avg");
+    const wsModeEl = card.querySelector("#at-setting-workspace-mode");
+    const leaveAlertsToggle = card.querySelector("#at-setting-leave-alerts");
+    const leaveIntervalSelect = card.querySelector("#at-setting-leave-interval");
+    const preExitToggle = card.querySelector("#at-setting-pre-exit");
+    const timesheetToggle = card.querySelector("#at-setting-timesheet");
+    const timesheetTimeInput = card.querySelector("#at-setting-timesheet-time");
+    const themeToggle = card.querySelector("#at-setting-theme");
+    const liveCardToggle = card.querySelector("#at-setting-live-card");
+    const rowLiveCard = card.querySelector("#at-row-live-card");
+    const rowWidgetConfig = card.querySelector("#at-row-widget-config");
 
     if (hoursSelect && minutesSelect && minutesInput) {
       const totalMinutes = Math.round(state.targetHours * 60);
@@ -1762,14 +2249,41 @@
       wsModeEl.innerText = state.isWfh ? "Remote Workspace (Synced)" : "In-Office (Synced)";
       wsModeEl.style.color = state.isWfh ? "var(--at-accent-gold)" : "var(--at-text-secondary)";
     }
+    if (leaveAlertsToggle) {
+      leaveAlertsToggle.checked = Boolean(state.leaveAlertsEnabled);
+    }
+    if (leaveIntervalSelect) {
+      leaveIntervalSelect.value = String(state.leaveInterval || 5);
+    }
+    if (preExitToggle) {
+      preExitToggle.checked = Boolean(state.preExitEnabled);
+    }
+    if (timesheetToggle) {
+      timesheetToggle.checked = Boolean(state.timesheetEnabled);
+    }
+    if (timesheetTimeInput) {
+      timesheetTimeInput.value = state.timesheetTime || "21:00";
+    }
+    if (themeToggle) {
+      themeToggle.checked = state.theme === "light";
+    }
+    if (liveCardToggle) {
+      liveCardToggle.checked = Boolean(state.liveCardEnabled);
+    }
+    if (rowLiveCard) {
+      rowLiveCard.style.display = window.AndroidApp ? "flex" : "none";
+    }
+    if (rowWidgetConfig) {
+      rowWidgetConfig.style.display = window.AndroidApp ? "block" : "none";
+    }
 
-    elements.card.querySelector("#at-settings-panel").classList.add("active");
+    card.querySelector("#at-settings-panel").classList.add("active");
   }
 
   function closeSettings() {
     elements.card
-      .querySelector("#at-settings-panel")
-      .classList.remove("active");
+      ?.querySelector("#at-settings-panel")
+      ?.classList.remove("active");
   }
 
   function parseWorkTimeInput(inputStr) {
@@ -1814,39 +2328,6 @@
     }
 
     return null;
-  }
-
-  function saveSettings() {
-    const minutesValStr = elements.card.querySelector(
-      "#at-setting-minutes-input",
-    ).value;
-    const parsedMinutes = parseWorkTimeInput(minutesValStr);
-    const notifyVal = elements.card.querySelector("#at-setting-notify").checked;
-
-    state.targetHours =
-      parsedMinutes === null || parsedMinutes <= 0 ? 8.5 : parsedMinutes / 60;
-    state.notifyEnabled = notifyVal;
-    state.theme = elements.card.querySelector("#at-setting-theme").checked
-      ? "light"
-      : "dark";
-
-
-    localStorage.setItem("at_target_hours", state.targetHours);
-    localStorage.setItem("at_notify_enabled", state.notifyEnabled);
-    localStorage.setItem("at_theme", state.theme);
-    if (window.AndroidApp) {
-      window.AndroidApp.saveSettings(state.targetHours);
-    }
-
-    if (state.theme === "light") {
-      elements.container.classList.add("at-theme-light");
-    } else {
-      elements.container.classList.remove("at-theme-light");
-    }
-
-    closeSettings();
-    updateUI();
-    fetchAttendanceLogs();
   }
 
   function updateUI() {
@@ -1914,21 +2395,22 @@
       indicator.className = "at-status-indicator";
       if (metrics.completed) {
         indicator.classList.add("at-status-done");
-        textNode.innerText = "Completed shift! Time to leave.";
+        textNode.innerText = "Shift Completed";
       } else if (metrics.isClockedIn) {
         indicator.classList.add("at-status-in");
         const today = new Date();
         const isWeekend = today.getDay() === 0 || today.getDay() === 6;
+        const loc = metrics.lastLocation ? ` (${metrics.lastLocation})` : "";
         if (state.isWfh) {
-          textNode.innerText = `Clocked In (${metrics.lastLocation}) • WFH`;
+          textNode.innerText = `In Office${loc} • WFH`;
         } else if (isWeekend) {
-          textNode.innerText = `Clocked In (${metrics.lastLocation}) • Weekend`;
+          textNode.innerText = `In Office${loc} • Weekend`;
         } else {
-          textNode.innerText = `Clocked In (${metrics.lastLocation})`;
+          textNode.innerText = `In Office${loc}`;
         }
       } else {
         indicator.classList.add("at-status-out");
-        textNode.innerText = state.isWfh ? "Working from Home (Break)" : "Clocked Out / Break";
+        textNode.innerText = state.isWfh ? "WFH (Break)" : "Clocked Out / Break";
       }
     }
 
@@ -1947,8 +2429,30 @@
       breakTimeEl.innerText = formatMinutes(metrics.breakMinutes);
     if (exitTimeEl) exitTimeEl.innerText = metrics.exitTime;
     if (actualExitTimeEl) actualExitTimeEl.innerText = metrics.actualExitTime;
-    if (subBreakAvgEl) subBreakAvgEl.innerText = `30d Avg: ~${metrics.avgBreakMinutes}m`;
-    if (subExitDescEl) subExitDescEl.innerText = metrics.completed ? "Goal Met" : `+${metrics.remainingBreakMinutes}m break remaining`;
+    if (subBreakAvgEl) {
+      const avgMin = Math.round(metrics.avgBreakMinutes || 0);
+      subBreakAvgEl.innerText = avgMin >= 60 ? `30d Avg: ~${formatMinutes(avgMin)}` : `30d Avg: ~${avgMin}m`;
+    }
+    if (subExitDescEl) {
+      if (metrics.completed) {
+        subExitDescEl.innerText = "Goal Met";
+      } else {
+        const remBreak = Math.round(metrics.remainingBreakMinutes || 0);
+        subExitDescEl.innerText = remBreak > 0 ? `+${remBreak}m avg break` : "on track";
+      }
+    }
+
+    // Update avatar and name
+    const avatarEl = elements.card.querySelector("#at-user-avatar");
+    if (avatarEl) {
+      if (state.userAvatar) {
+        avatarEl.innerHTML = `<img src="${state.userAvatar}" alt="${state.userName}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />`;
+      } else {
+        avatarEl.innerHTML = `<span class="at-avatar-initials">${getUserInitials(state.userName)}</span>`;
+      }
+    }
+    const nameEl = elements.card.querySelector("#at-user-name");
+    if (nameEl) nameEl.innerText = state.userName;
 
     // Update progress bar
     const targetMin = state.targetHours * 60;
@@ -1969,9 +2473,14 @@
         : `${formatMinutes(metrics.remainingMinutes)} remaining`;
     }
 
-    // Handle Completed Notifications (shown every 5 minutes while shift is completed and user is still clocked in)
-    if (metrics.completed && metrics.isClockedIn && state.notifyEnabled) {
+    // Handle Completed Notifications (shown repeating at state.notificationInterval while shift is completed and user is still clocked in)
+    if (metrics.completed && metrics.isClockedIn && state.leaveAlertsEnabled) {
       triggerNotificationOnce(metrics.workMinutes);
+    }
+
+    // Handle 15-Minute Pre-Exit Advance Notification
+    if (!metrics.completed && metrics.isClockedIn && state.preExitEnabled && metrics.remainingMinutes <= 15 && metrics.remainingMinutes > 0) {
+      triggerPreExitNotificationOnce();
     }
   }
 
@@ -1987,8 +2496,8 @@
 
   function triggerNotificationOnce(workMinutes) {
     const now = Date.now();
-    // Throttle notifications to run every 5 minutes (or whatever is in state.notificationInterval)
-    if (now - state.lastNotificationTime > state.notificationInterval) {
+    const interval = state.notificationInterval || (state.leaveInterval * 60 * 1000) || (5 * 60 * 1000);
+    if (now - state.lastNotificationTime > interval) {
       if (typeof Notification !== "undefined") {
         if (Notification.permission === "default") {
           Notification.requestPermission();
@@ -1998,10 +2507,23 @@
           if (state.userAvatar) {
             options.icon = state.userAvatar;
           }
-          new Notification("Shift Completed!", options);
+          new Notification("Shift Completed! 🚀", options);
           state.lastNotificationTime = now;
         }
       }
+    }
+  }
+
+  let preExitNotifiedDate = null;
+  function triggerPreExitNotificationOnce() {
+    const todayStr = getTodayLocalDateStr();
+    if (preExitNotifiedDate === todayStr) return;
+    if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+      new Notification("15 Minutes Remaining ⏳", {
+        body: "Almost time to head out! You have approximately 15 minutes left in today's biometric shift.",
+        icon: state.userAvatar || undefined,
+      });
+      preExitNotifiedDate = todayStr;
     }
   }
 
@@ -2462,6 +2984,25 @@
         window.AndroidApp.saveUserData(state.userId, state.userName);
       }
       window.AndroidApp.saveSettings(state.targetHours);
+      if (typeof window.AndroidApp.getNativeSettings === "function") {
+        try {
+          const raw = window.AndroidApp.getNativeSettings();
+          if (raw) {
+            const nativeData = JSON.parse(raw);
+            if (typeof nativeData.leaveAlertEnabled === "boolean") state.leaveAlertsEnabled = nativeData.leaveAlertEnabled;
+            if (typeof nativeData.leaveAlertInterval === "number") {
+              state.leaveInterval = nativeData.leaveAlertInterval;
+              state.notificationInterval = state.leaveInterval * 60 * 1000;
+            }
+            if (typeof nativeData.notifPreExit === "boolean") state.preExitEnabled = nativeData.notifPreExit;
+            if (typeof nativeData.liveCardEnabled === "boolean") state.liveCardEnabled = nativeData.liveCardEnabled;
+            if (typeof nativeData.timesheetEnabled === "boolean") state.timesheetEnabled = nativeData.timesheetEnabled;
+            if (typeof nativeData.timesheetHour === "number" && typeof nativeData.timesheetMinute === "number") {
+              state.timesheetTime = `${String(nativeData.timesheetHour).padStart(2, "0")}:${String(nativeData.timesheetMinute).padStart(2, "0")}`;
+            }
+          }
+        } catch (_) {}
+      }
       syncTokensToAndroid();
     }
 

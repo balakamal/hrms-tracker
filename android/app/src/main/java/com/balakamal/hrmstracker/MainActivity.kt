@@ -49,7 +49,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var layoutTopBar: View
     private lateinit var btnDesktopMode: ImageButton
     private lateinit var btnRefresh: ImageButton
-    private lateinit var btnSettings: ImageButton
     private lateinit var appTitle: TextView
     private lateinit var layoutNowBar: View
     private lateinit var imgNowBarIcon: ImageView
@@ -150,7 +149,6 @@ class MainActivity : AppCompatActivity() {
         layoutTopBar = findViewById(R.id.layout_top_bar)
         btnDesktopMode = findViewById(R.id.btn_desktop_mode)
         btnRefresh = findViewById(R.id.btn_refresh)
-        btnSettings = findViewById(R.id.btn_settings)
         appTitle = findViewById(R.id.app_title)
         layoutNowBar = findViewById(R.id.layout_now_bar)
         imgNowBarIcon = findViewById(R.id.img_now_bar_icon)
@@ -438,18 +436,6 @@ class MainActivity : AppCompatActivity() {
             webView.reload()
         }
 
-        // Dedicated Settings & Preferences button with One UI micro-rotation
-        btnSettings.setOnClickListener {
-            btnSettings.animate()
-                .scaleX(0.88f).scaleY(0.88f)
-                .rotationBy(45f)
-                .setDuration(120)
-                .withEndAction {
-                    btnSettings.animate().scaleX(1f).scaleY(1f).setDuration(120).start()
-                }
-                .start()
-            showSettingsDialog()
-        }
 
         // Long click on Title opens Settings & Preferences Dialog
         appTitle.setOnLongClickListener {
@@ -1473,6 +1459,85 @@ class MainActivity : AppCompatActivity() {
         @JavascriptInterface
         fun toggleFullscreenBars() {
             this@MainActivity.toggleFullscreenBars()
+        }
+
+        @JavascriptInterface
+        fun getNativeSettings(): String {
+            val nudgeEnabled = ShiftAlertManager.isNudgeEnabled(this@MainActivity)
+            val nudgeInterval = ShiftAlertManager.getIntervalMinutes(this@MainActivity)
+            val notifComplete = sharedPrefs.getBoolean(KEY_NOTIF_SHIFT_COMPLETE, true)
+            val notifPre = sharedPrefs.getBoolean(KEY_NOTIF_PRE_EXIT, true)
+            val liveCard = LockScreenLiveCardManager.isLiveCardEnabled(this@MainActivity)
+            val timesheetEnabled = sharedPrefs.getBoolean(TimesheetReminderWorker.KEY_REMINDER_ENABLED, true)
+            val timesheetHour = sharedPrefs.getInt(TimesheetReminderWorker.KEY_REMINDER_HOUR, 21)
+            val timesheetMinute = sharedPrefs.getInt(TimesheetReminderWorker.KEY_REMINDER_MINUTE, 0)
+            val casual = sharedPrefs.getString(KEY_LEAVE_CASUAL, "—") ?: "—"
+            val sick = sharedPrefs.getString(KEY_LEAVE_SICK, "—") ?: "—"
+            val earned = sharedPrefs.getString(KEY_LEAVE_EARNED, "—") ?: "—"
+
+            val json = org.json.JSONObject().apply {
+                put("leaveAlertEnabled", nudgeEnabled)
+                put("leaveAlertInterval", nudgeInterval)
+                put("notifShiftComplete", notifComplete)
+                put("notifPreExit", notifPre)
+                put("liveCardEnabled", liveCard)
+                put("timesheetEnabled", timesheetEnabled)
+                put("timesheetHour", timesheetHour)
+                put("timesheetMinute", timesheetMinute)
+                put("leaveCasual", casual)
+                put("leaveSick", sick)
+                put("leaveEarned", earned)
+            }
+            return json.toString()
+        }
+
+        @JavascriptInterface
+        fun setLeaveAlerts(enabled: Boolean, interval: Int) {
+            ShiftAlertManager.setIntervalMinutes(this@MainActivity, interval)
+            ShiftAlertManager.setNudgeEnabled(this@MainActivity, enabled)
+            runOnUiThread {
+                updateNudgeOverlayState(animate = true)
+            }
+        }
+
+        @JavascriptInterface
+        fun setPreExitAlerts(enabled: Boolean) {
+            sharedPrefs.edit().putBoolean(KEY_NOTIF_PRE_EXIT, enabled).apply()
+        }
+
+        @JavascriptInterface
+        fun setShiftCompleteAlerts(enabled: Boolean) {
+            sharedPrefs.edit().putBoolean(KEY_NOTIF_SHIFT_COMPLETE, enabled).apply()
+        }
+
+        @JavascriptInterface
+        fun setLiveCardEnabled(enabled: Boolean) {
+            LockScreenLiveCardManager.setLiveCardEnabled(this@MainActivity, enabled)
+            LockScreenLiveCardManager.updateLiveCard(this@MainActivity)
+        }
+
+        @JavascriptInterface
+        fun setTimesheetReminder(enabled: Boolean, hour: Int, minute: Int) {
+            sharedPrefs.edit()
+                .putBoolean(TimesheetReminderWorker.KEY_REMINDER_ENABLED, enabled)
+                .putInt(TimesheetReminderWorker.KEY_REMINDER_HOUR, hour)
+                .putInt(TimesheetReminderWorker.KEY_REMINDER_MINUTE, minute)
+                .apply()
+            TimesheetReminderWorker.schedule(applicationContext)
+        }
+
+        @JavascriptInterface
+        fun openWidgetConfig() {
+            runOnUiThread {
+                startActivity(Intent(this@MainActivity, WidgetConfigureActivity::class.java))
+            }
+        }
+
+        @JavascriptInterface
+        fun logout() {
+            runOnUiThread {
+                clearTokensAndShowLogin()
+            }
         }
     }
 
