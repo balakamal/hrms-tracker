@@ -168,7 +168,6 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 val heroCardBg = if (isEffectiveDark) R.drawable.widget_card_hero_dark else R.drawable.widget_card_hero_light
                 val statCellBg = if (isEffectiveDark) R.drawable.widget_card_cell_dark else R.drawable.widget_card_cell_light
                 val refreshBtnBg = if (isEffectiveDark) R.drawable.widget_btn_refresh_dark else R.drawable.widget_btn_refresh_light
-                val progressDrawable = if (isEffectiveDark) R.drawable.widget_m3_progress_drawable else R.drawable.widget_progress_drawable_light
 
                 // Apply User's Custom Background & Transparency
                 views.setInt(R.id.widget_root, "setBackgroundResource", getWidgetBackground(context))
@@ -315,7 +314,6 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     views.setImageViewResource(R.id.dot_4, if (page == 3) R.drawable.widget_dot_active else R.drawable.widget_dot_inactive)
 
                     views.setProgressBar(R.id.widget_progress_bar, 100, progressPercent, false)
-                    views.setInt(R.id.widget_progress_bar, "setProgressDrawable", progressDrawable)
                 } else if (layoutId == R.layout.attendance_widget_medium) {
                     views.setInt(R.id.widget_hero_card, "setBackgroundResource", heroCardBg)
                     views.setInt(R.id.widget_cell_exit, "setBackgroundResource", statCellBg)
@@ -425,7 +423,6 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     views.setTextColor(R.id.widget_label_actual, colorTextLabel)
 
                     views.setProgressBar(R.id.widget_progress_bar, 100, progressPercent, false)
-                    views.setInt(R.id.widget_progress_bar, "setProgressDrawable", progressDrawable)
 
                     views.setTextViewText(R.id.widget_progress_percent, "$progressPercent% Goal")
                     views.setTextColor(R.id.widget_progress_percent, colorSkyAccent)
@@ -1042,6 +1039,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     val layoutId = getLayoutForWidgetSize(appWidgetManager, appWidgetId, defaultLayout)
                     val views = RemoteViews(context.packageName, layoutId)
                     views.setTextViewText(R.id.widget_status_text, "Syncing...")
+                    views.setTextViewText(R.id.txt_widget_status, "SYNCING...")
                     appWidgetManager.updateAppWidget(appWidgetId, views)
                 }
             }
