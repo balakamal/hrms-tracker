@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_bg_transparent"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <!-- Top Header: Title, Glowing Status Pill & Refresh Button -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/widget_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:letterSpacing="0.08"
+                android:text="HRMS"
+                android:textColor="#94A3B8"
+                android:textSize="9sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_status_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/widget_oneui_status_pill"
+                android:letterSpacing="0.04"
+                android:paddingStart="7dp"
+                android:paddingEnd="7dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:text="CLOCKED IN"
+                android:textColor="#10B981"
+                android:textSize="8sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/widget_btn_refresh"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/widget_oneui_btn_refresh"
+            android:contentDescription="Refresh attendance stats"
+            android:padding="4dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_refresh" />
+    </RelativeLayout>
+
+    <!-- Center: Modern Radial Ring Dial -->
+    <LinearLayout
+        android:id="@+id/widget_oneui_dial_container"
+        android:layout_width="92dp"
+        android:layout_height="92dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="6dp"
+        android:background="@drawable/widget_oneui_radial_ring"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/widget_progress_percent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:letterSpacing="-0.03"
+            android:text="85%"
+            android:textColor="#38BDF8"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/widget_work_time_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="7h 15m"
+            android:textColor="#F8FAFC"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/widget_work_subtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Time at Desk"
+            android:textColor="#94A3B8"
+            android:textSize="7sp" />
+    </LinearLayout>
+
+    <!-- Bottom: Glass Pill with Est. Exit & Remaining Status -->
+    <LinearLayout
+        android:id="@+id/widget_oneui_bottom_pill"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/widget_oneui_bg_pod"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp">
+
+        <TextView
+            android:id="@+id/widget_exit_time_value"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Exit: 06:30 PM"
+            android:textColor="#F8FAFC"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/widget_progress_remaining"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1h 15m left"
+            android:textColor="#38BDF8"
+            android:textSize="9sp" />
+    </LinearLayout>
+
+</LinearLayout>

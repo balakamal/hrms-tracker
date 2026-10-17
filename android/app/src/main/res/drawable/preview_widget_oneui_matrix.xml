@@ -1,0 +1,49 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="300dp"
+    android:height="160dp"
+    android:viewportWidth="300"
+    android:viewportHeight="160">
+    <!-- Card Squircle (Glass Transparent Background) -->
+    <path
+        android:fillColor="#141A26"
+        android:strokeColor="#33FFFFFF"
+        android:strokeWidth="1.2"
+        android:pathData="M26,2 L274,2 A24,24 0 0,1 298,26 L298,134 A24,24 0 0,1 274,158 L26,158 A24,24 0 0,1 2,134 L2,26 A24,24 0 0,1 26,2 Z" />
+    <!-- Header -->
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M16,12 H42 V18 H16 Z" />
+    <path
+        android:fillColor="#20FFFFFF"
+        android:strokeColor="#33FFFFFF"
+        android:strokeWidth="1"
+        android:pathData="M272,8 A8,8 0 1,1 288,8 A8,8 0 1,1 272,8 Z" />
+    <!-- Hero Pod (Glass Pod) -->
+    <path
+        android:fillColor="#1AFFFFFF"
+        android:strokeColor="#26FFFFFF"
+        android:strokeWidth="1"
+        android:pathData="M28,26 L272,26 A14,14 0 0,1 286,40 L286,90 A14,14 0 0,1 272,104 L28,104 A14,14 0 0,1 14,90 L14,40 A14,14 0 0,1 28,26 Z" />
+    <path
+        android:fillColor="#F8FAFC"
+        android:pathData="M28,48 H115 V66 H28 Z" />
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M28,74 H220 V79 H28 Z" />
+    <!-- 3 Bottom Glass Pods -->
+    <path
+        android:fillColor="#1AFFFFFF"
+        android:strokeColor="#26FFFFFF"
+        android:strokeWidth="1"
+        android:pathData="M24,114 L98,114 A10,10 0 0,1 108,124 L108,140 A10,10 0 0,1 98,150 L24,150 A10,10 0 0,1 14,140 L14,124 A10,10 0 0,1 24,114 Z" />
+    <path
+        android:fillColor="#1AFFFFFF"
+        android:strokeColor="#26FFFFFF"
+        android:strokeWidth="1"
+        android:pathData="M116,114 L188,114 A10,10 0 0,1 198,124 L198,140 A10,10 0 0,1 188,150 L116,150 A10,10 0 0,1 106,140 L106,124 A10,10 0 0,1 116,114 Z" />
+    <path
+        android:fillColor="#1AFFFFFF"
+        android:strokeColor="#26FFFFFF"
+        android:strokeWidth="1"
+        android:pathData="M206,114 L278,114 A10,10 0 0,1 288,124 L288,140 A10,10 0 0,1 278,150 L206,150 A10,10 0 0,1 196,140 L196,124 A10,10 0 0,1 206,114 Z" />
+</vector>

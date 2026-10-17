@@ -209,7 +209,10 @@ class WidgetConfigureActivity : AppCompatActivity() {
                 "HRMS Timesheet Companion (4x1)",
                 "HRMS Interactive Carousel (Small 2x2)",
                 "HRMS Wellbeing Dial (2x2)",
-                "HRMS Lockscreen Pill (2x1)"
+                "HRMS Lockscreen Pill (2x1)",
+                "One UI 9: Live Island Capsule (4x1)",
+                "One UI 9: Dual-Pod Radial Glass (2x2)",
+                "One UI 9: Glass Matrix Dashboard (4x2)"
             )
             val providerClasses = arrayOf(
                 AttendanceAppWidgetProvider::class.java,
@@ -218,7 +221,10 @@ class WidgetConfigureActivity : AppCompatActivity() {
                 WidgetTimesheetProvider::class.java,
                 AttendanceAppWidgetProviderSmall::class.java,
                 WidgetDialProvider::class.java,
-                WidgetLockScreenProvider::class.java
+                WidgetLockScreenProvider::class.java,
+                WidgetOneUiCapsuleProvider::class.java,
+                WidgetOneUiDualPodProvider::class.java,
+                WidgetOneUiMatrixProvider::class.java
             )
 
             AlertDialog.Builder(this, R.style.Theme_HRMS_Dialog)

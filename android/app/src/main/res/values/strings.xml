@@ -21,4 +21,10 @@
     <string name="timesheet_reminder_title">Daily Timesheet Reminder</string>
     <string name="timesheet_reminder_channel_name">Timesheet Reminders</string>
     <string name="timesheet_reminder_channel_desc">Daily reminders to submit your work timesheet</string>
+    <string name="widget_title_oneui_capsule">HRMS One UI 9 Live Capsule</string>
+    <string name="widget_description_oneui_capsule">Ultra-sleek One UI 9 status capsule with glowing beacon, duration bar, and exit time.</string>
+    <string name="widget_title_oneui_dualpod">HRMS One UI 9 Radial Glass</string>
+    <string name="widget_description_oneui_dualpod">Modern One UI 9 squircle card with glowing radial percentage dial and exit pill.</string>
+    <string name="widget_title_oneui_matrix">HRMS One UI 9 Glass Matrix</string>
+    <string name="widget_description_oneui_matrix">Premium One UI 9 executive dashboard with floating frosted glass pods.</string>
 </resources>

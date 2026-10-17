@@ -164,6 +164,57 @@
                 android:value="true" />
         </receiver>
 
+        <!-- Samsung One UI 9 Live Island Capsule Widget (4x1) -->
+        <receiver android:name=".WidgetOneUiCapsuleProvider"
+            android:exported="true"
+            android:label="@string/widget_title_oneui_capsule">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
+                <action android:name="com.samsung.android.intent.action.REQUEST_SERVICEBOX_REMOTEVIEWS" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/attendance_widget_info_oneui_capsule" />
+            <meta-data
+                android:name="com.samsung.systemui.facewidget.executable"
+                android:value="true" />
+        </receiver>
+
+        <!-- Samsung One UI 9 Dual-Pod Radial Glass Widget (2x2) -->
+        <receiver android:name=".WidgetOneUiDualPodProvider"
+            android:exported="true"
+            android:label="@string/widget_title_oneui_dualpod">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
+                <action android:name="com.samsung.android.intent.action.REQUEST_SERVICEBOX_REMOTEVIEWS" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/attendance_widget_info_oneui_dualpod" />
+            <meta-data
+                android:name="com.samsung.systemui.facewidget.executable"
+                android:value="true" />
+        </receiver>
+
+        <!-- Samsung One UI 9 Glass Matrix Dashboard Widget (4x2) -->
+        <receiver android:name=".WidgetOneUiMatrixProvider"
+            android:exported="true"
+            android:label="@string/widget_title_oneui_matrix">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
+                <action android:name="com.samsung.android.intent.action.REQUEST_SERVICEBOX_REMOTEVIEWS" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/attendance_widget_info_oneui_matrix" />
+            <meta-data
+                android:name="com.samsung.systemui.facewidget.executable"
+                android:value="true" />
+        </receiver>
+
         <activity
             android:name=".WidgetConfigureActivity"
             android:label="@string/title_widget_configure"

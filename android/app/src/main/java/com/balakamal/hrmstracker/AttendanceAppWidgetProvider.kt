@@ -170,7 +170,14 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 val refreshBtnBg = if (isEffectiveDark) R.drawable.widget_btn_refresh_dark else R.drawable.widget_btn_refresh_light
 
                 // Apply User's Custom Background & Transparency
-                views.setInt(R.id.widget_root, "setBackgroundResource", getWidgetBackground(context))
+                val isOneUiLayout = layoutId == R.layout.attendance_widget_oneui_capsule ||
+                                    layoutId == R.layout.attendance_widget_oneui_dualpod ||
+                                    layoutId == R.layout.attendance_widget_oneui_matrix
+                if (!isOneUiLayout) {
+                    views.setInt(R.id.widget_root, "setBackgroundResource", getWidgetBackground(context))
+                } else {
+                    views.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.widget_bg_transparent)
+                }
 
                 // Common view updates
                 views.setTextViewText(R.id.widget_status_text, displayStatus)
@@ -429,6 +436,55 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
 
                     views.setTextViewText(R.id.widget_progress_remaining, if (isWfh) "Biometrics Paused" else if (isWeekOff) "Rest & Recharge" else progressRemaining)
                     views.setTextColor(R.id.widget_progress_remaining, colorTextSubtle)
+                } else if (layoutId == R.layout.attendance_widget_oneui_capsule) {
+                    views.setTextViewText(R.id.widget_work_time_value, if (isWeekOff && workTime == "0h 00m") "Week Off" else workTime)
+                    views.setTextViewText(R.id.widget_progress_percent, "$progressPercent%")
+                    views.setProgressBar(R.id.widget_progress_bar, 100, progressPercent, false)
+                    views.setTextViewText(R.id.widget_exit_time_value, if (isWeekOff && exitTime == "--:--") "Weekend" else exitTime)
+                    views.setTextViewText(R.id.widget_progress_remaining, if (isWfh) "Remote" else if (isWeekOff) "Enjoy" else progressRemaining)
+                    val capsuleStatus = when {
+                        isWfh -> "WFH ACTIVE"
+                        isCompleted -> "GOAL MET"
+                        isWeekOff -> "WEEK OFF"
+                        else -> displayStatus.uppercase()
+                    }
+                    views.setTextViewText(R.id.widget_status_text, capsuleStatus)
+                    views.setTextColor(R.id.widget_status_text, statusColor)
+                    views.setInt(R.id.widget_status_text, "setBackgroundResource", 0)
+                    views.setInt(R.id.img_oneui_status_dot, "setColorFilter", statusColor)
+                } else if (layoutId == R.layout.attendance_widget_oneui_dualpod) {
+                    val dualPodStatus = when {
+                        isWfh -> "WFH"
+                        isWeekOff -> "WEEK OFF"
+                        isCompleted -> "COMPLETE"
+                        else -> displayStatus.uppercase()
+                    }
+                    views.setTextViewText(R.id.widget_status_text, dualPodStatus)
+                    views.setInt(R.id.widget_status_text, "setBackgroundResource", if (isWfh) R.drawable.widget_oneui_status_pill_wfh else R.drawable.widget_oneui_status_pill)
+                    views.setTextColor(R.id.widget_status_text, if (isWfh) 0xFFF59E0B.toInt() else 0xFF10B981.toInt())
+                    views.setTextViewText(R.id.widget_progress_percent, "$progressPercent%")
+                    views.setTextViewText(R.id.widget_work_time_value, if (isWeekOff && workTime == "0h 00m") "Week Off" else workTime)
+                    views.setTextViewText(R.id.widget_work_subtitle, if (isCompleted) "Goal Met 🚀" else if (isWfh) "Remote Shift" else "Target: 8.5h")
+                    views.setTextViewText(R.id.widget_exit_time_value, if (isWeekOff) "Enjoy Weekend" else "Exit: $exitTime")
+                    views.setTextViewText(R.id.widget_progress_remaining, if (isWfh) "Biometrics Paused" else if (isWeekOff) "Rest & Recharge" else progressRemaining)
+                } else if (layoutId == R.layout.attendance_widget_oneui_matrix) {
+                    views.setTextViewText(R.id.widget_work_subtitle, if (isWfh) "REMOTE WORKDAY" else if (isWeekOff) "WEEK OFF" else "TIME AT DESK")
+                    val matrixStatus = when {
+                        isWfh -> "WFH ACTIVE"
+                        isWeekOff -> "WEEK OFF"
+                        isCompleted -> "GOAL MET 🚀"
+                        else -> displayStatus.uppercase()
+                    }
+                    views.setTextViewText(R.id.widget_status_text, matrixStatus)
+                    views.setInt(R.id.widget_status_text, "setBackgroundResource", if (isWfh) R.drawable.widget_oneui_status_pill_wfh else R.drawable.widget_oneui_status_pill)
+                    views.setTextColor(R.id.widget_status_text, if (isWfh) 0xFFF59E0B.toInt() else 0xFF10B981.toInt())
+                    views.setTextViewText(R.id.widget_work_time_value, if (isWeekOff && workTime == "0h 00m") "Week Off" else workTime)
+                    views.setProgressBar(R.id.widget_progress_bar, 100, progressPercent, false)
+                    views.setTextViewText(R.id.widget_progress_percent, "$progressPercent% Goal")
+                    views.setTextViewText(R.id.widget_progress_remaining, if (isWfh) "Remote Workspace" else if (isWeekOff) "Rest & Recharge" else progressRemaining)
+                    views.setTextViewText(R.id.widget_first_in_value, firstIn)
+                    views.setTextViewText(R.id.widget_break_time_value, breakTime)
+                    views.setTextViewText(R.id.widget_exit_time_value, if (isWeekOff && exitTime == "--:--") "Weekend" else exitTime)
                 }
                 
                 appWidgetManager.updateAppWidget(appWidgetId, views)
@@ -479,7 +535,10 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             if (defaultLayoutId == R.layout.attendance_widget_countdown ||
                 defaultLayoutId == R.layout.attendance_widget_timesheet ||
                 defaultLayoutId == R.layout.attendance_widget_dial ||
-                defaultLayoutId == R.layout.attendance_widget_lockscreen) {
+                defaultLayoutId == R.layout.attendance_widget_lockscreen ||
+                defaultLayoutId == R.layout.attendance_widget_oneui_capsule ||
+                defaultLayoutId == R.layout.attendance_widget_oneui_dualpod ||
+                defaultLayoutId == R.layout.attendance_widget_oneui_matrix) {
                 return defaultLayoutId
             }
 
@@ -583,6 +642,27 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             val lockscreenIds = appWidgetManager.getAppWidgetIds(lockscreenComponent)
             for (id in lockscreenIds) {
                 updateAppWidget(context, appWidgetManager, id, R.layout.attendance_widget_lockscreen)
+            }
+
+            // One UI 9 Live Island Capsule
+            val oneUiCapsuleComponent = ComponentName(context, WidgetOneUiCapsuleProvider::class.java)
+            val oneUiCapsuleIds = appWidgetManager.getAppWidgetIds(oneUiCapsuleComponent)
+            for (id in oneUiCapsuleIds) {
+                updateAppWidget(context, appWidgetManager, id, R.layout.attendance_widget_oneui_capsule)
+            }
+
+            // One UI 9 Dual-Pod Radial Glass Card
+            val oneUiDualPodComponent = ComponentName(context, WidgetOneUiDualPodProvider::class.java)
+            val oneUiDualPodIds = appWidgetManager.getAppWidgetIds(oneUiDualPodComponent)
+            for (id in oneUiDualPodIds) {
+                updateAppWidget(context, appWidgetManager, id, R.layout.attendance_widget_oneui_dualpod)
+            }
+
+            // One UI 9 Glass Matrix Dashboard
+            val oneUiMatrixComponent = ComponentName(context, WidgetOneUiMatrixProvider::class.java)
+            val oneUiMatrixIds = appWidgetManager.getAppWidgetIds(oneUiMatrixComponent)
+            for (id in oneUiMatrixIds) {
+                updateAppWidget(context, appWidgetManager, id, R.layout.attendance_widget_oneui_matrix)
             }
 
             // Sync Universal Lock Screen Live Activity Card
@@ -1029,7 +1109,10 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 WidgetCountdownProvider::class.java to R.layout.attendance_widget_countdown,
                 WidgetTimesheetProvider::class.java to R.layout.attendance_widget_timesheet,
                 WidgetDialProvider::class.java to R.layout.attendance_widget_dial,
-                WidgetLockScreenProvider::class.java to R.layout.attendance_widget_lockscreen
+                WidgetLockScreenProvider::class.java to R.layout.attendance_widget_lockscreen,
+                WidgetOneUiCapsuleProvider::class.java to R.layout.attendance_widget_oneui_capsule,
+                WidgetOneUiDualPodProvider::class.java to R.layout.attendance_widget_oneui_dualpod,
+                WidgetOneUiMatrixProvider::class.java to R.layout.attendance_widget_oneui_matrix
             )
 
             for ((providerClass, defaultLayout) in providers) {
@@ -1356,5 +1439,17 @@ class WidgetDialProvider : AttendanceAppWidgetProvider() {
 
 class WidgetLockScreenProvider : AttendanceAppWidgetProvider() {
     override val defaultLayoutId: Int = R.layout.attendance_widget_lockscreen
+}
+
+class WidgetOneUiCapsuleProvider : AttendanceAppWidgetProvider() {
+    override val defaultLayoutId: Int = R.layout.attendance_widget_oneui_capsule
+}
+
+class WidgetOneUiDualPodProvider : AttendanceAppWidgetProvider() {
+    override val defaultLayoutId: Int = R.layout.attendance_widget_oneui_dualpod
+}
+
+class WidgetOneUiMatrixProvider : AttendanceAppWidgetProvider() {
+    override val defaultLayoutId: Int = R.layout.attendance_widget_oneui_matrix
 }
 

@@ -1,0 +1,34 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    <!-- Card Squircle (Glass Transparent Background) -->
+    <path
+        android:fillColor="#141A26"
+        android:strokeColor="#33FFFFFF"
+        android:strokeWidth="1.2"
+        android:pathData="M22,2 L98,2 A20,20 0 0,1 118,22 L118,98 A20,20 0 0,1 98,118 L22,118 A20,20 0 0,1 2,98 L2,22 A20,20 0 0,1 22,2 Z" />
+    <!-- Header -->
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M14,10 H36 V14 H14 Z" />
+    <path
+        android:fillColor="#10B981"
+        android:pathData="M42,9 H78 V15 H42 Z" />
+    <!-- Radial Ring (Cobalt & Sky Blue) -->
+    <path
+        android:fillColor="#1A3B82F6"
+        android:strokeColor="#3B82F6"
+        android:strokeWidth="2.5"
+        android:pathData="M35,60 A25,25 0 1,1 85,60 A25,25 0 1,1 35,60 Z" />
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M48,50 H72 V62 H48 Z" />
+    <!-- Bottom Glass Pod -->
+    <path
+        android:fillColor="#1AFFFFFF"
+        android:strokeColor="#26FFFFFF"
+        android:strokeWidth="1"
+        android:pathData="M18,96 L102,96 A6,6 0 0,1 108,102 L108,104 A6,6 0 0,1 102,110 L18,110 A6,6 0 0,1 12,104 L12,102 A6,6 0 0,1 18,96 Z" />
+</vector>

@@ -1,0 +1,43 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="50dp"
+    android:viewportWidth="200"
+    android:viewportHeight="50">
+    <!-- Capsule Body (Glass Transparent Card) -->
+    <path
+        android:fillColor="#141A26"
+        android:strokeColor="#33FFFFFF"
+        android:strokeWidth="1.2"
+        android:pathData="M25,2 L175,2 A23,23 0 0,1 198,25 A23,23 0 0,1 175,48 L25,48 A23,23 0 0,1 2,25 A23,23 0 0,1 25,2 Z" />
+    <!-- Status Beacon (Website Emerald) -->
+    <path
+        android:fillColor="#10B981"
+        android:pathData="M16,25 A4,4 0 1,1 24,25 A4,4 0 1,1 16,25 Z" />
+    <path
+        android:fillColor="#10B981"
+        android:pathData="M28,18 H70 V22 H28 Z" />
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M28,26 H62 V29 H28 Z" />
+    <!-- Center Metric -->
+    <path
+        android:fillColor="#F8FAFC"
+        android:pathData="M85,16 H125 V26 H85 Z" />
+    <!-- Progress Bar (Website Cobalt/Sky) -->
+    <path
+        android:fillColor="#26FFFFFF"
+        android:pathData="M85,31 H150 V34 H85 Z" />
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M85,31 H135 V34 H85 Z" />
+    <!-- Right Exit -->
+    <path
+        android:fillColor="#F8FAFC"
+        android:pathData="M156,17 H178 V23 H156 Z" />
+    <!-- Refresh Button (Translucent Glass) -->
+    <path
+        android:fillColor="#20FFFFFF"
+        android:strokeColor="#33FFFFFF"
+        android:strokeWidth="1"
+        android:pathData="M180,18 A7,7 0 1,1 194,18 A7,7 0 1,1 180,18 Z" />
+</vector>

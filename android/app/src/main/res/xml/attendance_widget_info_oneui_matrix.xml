@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="250dp"
+    android:minHeight="110dp"
+    android:minResizeWidth="110dp"
+    android:minResizeHeight="50dp"
+    android:targetCellWidth="4"
+    android:targetCellHeight="2"
+    android:updatePeriodMillis="1800000"
+    android:initialLayout="@layout/attendance_widget_oneui_matrix"
+    android:initialKeyguardLayout="@layout/attendance_widget_oneui_matrix"
+    android:previewLayout="@layout/attendance_widget_oneui_matrix"
+    android:previewImage="@drawable/preview_widget_oneui_matrix"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen|keyguard"
+    android:widgetFeatures="reconfigurable|configuration_optional"
+    android:configure="com.balakamal.hrmstracker.WidgetConfigureActivity"
+    android:description="@string/widget_description_oneui_matrix" />
