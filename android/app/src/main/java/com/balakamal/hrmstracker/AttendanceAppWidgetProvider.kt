@@ -830,7 +830,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             )
         }
 
-        fun checkEmployeeWfhStatus(context: Context, accessToken: String, userId: String): Boolean? {
+        fun checkEmployeeWfhStatus(context: Context, accessToken: String?, userId: String): Boolean? {
             try {
                 val statusUrl = "https://apps.pal.tech/hrms-backend/api/Employee/GetEmployeeStatus?employeeIds=$userId"
                 val connection = TokenManager.openAuthenticatedConnection(context, statusUrl, accessToken)
@@ -863,7 +863,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             return null
         }
 
-        fun fetchRequiredWorkingHours(context: Context, accessToken: String, userId: String): Float? {
+        fun fetchRequiredWorkingHours(context: Context, accessToken: String?, userId: String): Float? {
             val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             val cachedTarget = sharedPrefs.getFloat("TargetHours", -1f)
             val lastFetch = sharedPrefs.getLong("LastPolicyFetchTimestamp", 0L)
@@ -909,7 +909,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             return if (cachedTarget > 0) cachedTarget else null
         }
 
-        fun fetchAverageBreakMinutes(context: Context, accessToken: String, userId: String): Int {
+        fun fetchAverageBreakMinutes(context: Context, accessToken: String?, userId: String): Int {
             val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             val cachedAvgBreak = sharedPrefs.getInt("AvgBreakMinutes", -1)
             val lastFetch = sharedPrefs.getLong("LastAvgBreakFetchTimestamp", 0L)
