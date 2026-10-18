@@ -11,7 +11,7 @@ android {
         applicationId "com.balakamal.hrmsinsights"
         minSdk 21
         targetSdk 34
-        versionCode 21
+        versionCode System.getenv("GITHUB_RUN_NUMBER") ? (100 + System.getenv("GITHUB_RUN_NUMBER").toInteger()) : 21
         versionName "4.1"
     }
 
