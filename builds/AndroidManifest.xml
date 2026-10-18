@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:versionCode="20"
-    android:versionName="4.0"
+    android:versionCode="21"
+    android:versionName="4.1"
     android:compileSdkVersion="34"
     android:compileSdkVersionCodename="14"
     package="com.balakamal.hrmsinsights"
@@ -89,7 +89,7 @@
         </activity-alias>
 
         <receiver
-            android:label="HRMS Dashboard (Large)"
+            android:label="@ref/0x7f1000b0"
             android:name="com.balakamal.hrmstracker.AttendanceAppWidgetProvider"
             android:exported="true">
 
@@ -124,7 +124,7 @@
         </receiver>
 
         <receiver
-            android:label="HRMS Row (Medium)"
+            android:label="@ref/0x7f1000b2"
             android:name="com.balakamal.hrmstracker.AttendanceAppWidgetProviderMedium"
             android:exported="true">
 
@@ -150,7 +150,7 @@
         </receiver>
 
         <receiver
-            android:label="HRMS Interactive Carousel (Small)"
+            android:label="@ref/0x7f1000b6"
             android:name="com.balakamal.hrmstracker.AttendanceAppWidgetProviderSmall"
             android:exported="true">
 
@@ -211,7 +211,7 @@
         </receiver>
 
         <receiver
-            android:label="@ref/0x7f1000b4"
+            android:label="@ref/0x7f1000b7"
             android:name="com.balakamal.hrmstracker.WidgetTimesheetProvider"
             android:exported="true">
 
@@ -263,7 +263,7 @@
         </receiver>
 
         <receiver
-            android:label="@ref/0x7f1000b0"
+            android:label="@ref/0x7f1000b1"
             android:name="com.balakamal.hrmstracker.WidgetLockScreenProvider"
             android:exported="true">
 
@@ -289,7 +289,7 @@
         </receiver>
 
         <receiver
-            android:label="@ref/0x7f1000b1"
+            android:label="@ref/0x7f1000b3"
             android:name="com.balakamal.hrmstracker.WidgetOneUiCapsuleProvider"
             android:exported="true">
 
@@ -315,7 +315,7 @@
         </receiver>
 
         <receiver
-            android:label="@ref/0x7f1000b2"
+            android:label="@ref/0x7f1000b4"
             android:name="com.balakamal.hrmstracker.WidgetOneUiDualPodProvider"
             android:exported="true">
 
@@ -341,7 +341,7 @@
         </receiver>
 
         <receiver
-            android:label="@ref/0x7f1000b3"
+            android:label="@ref/0x7f1000b5"
             android:name="com.balakamal.hrmstracker.WidgetOneUiMatrixProvider"
             android:exported="true">
 
