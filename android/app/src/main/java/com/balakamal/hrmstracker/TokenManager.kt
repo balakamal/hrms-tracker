@@ -25,7 +25,9 @@ object TokenManager {
     const val PREFS_NAME = "HRMS_PREFS"
     const val KEY_ACCESS_TOKEN = "AccessToken"
     const val KEY_REFRESH_TOKEN = "RefreshToken"
-    private const val REFRESH_ENDPOINT = "https://apps.pal.tech/hrms-backend/api/Account/RefreshToken"
+    const val KEY_AUTH_COOKIES = "AuthCookies"
+    private const val SSO_TOKEN_ENDPOINT = "https://sso.pal.tech/token"
+    private const val SSO_CLIENT_ID = "sso_prod"
 
     const val KEY_USER_ID = "UserId"
     const val KEY_USER_NAME = "UserName"
@@ -35,6 +37,84 @@ object TokenManager {
         data class Success(val accessToken: String, val refreshToken: String) : RefreshResult()
         data class SessionExpired(val reason: String) : RefreshResult()
         data class NetworkError(val message: String) : RefreshResult()
+    }
+
+    /**
+     * Parses the value of a specific cookie key from a raw Cookie header string.
+     */
+    fun extractCookieValue(cookieHeader: String?, cookieName: String): String? {
+        if (cookieHeader.isNullOrBlank()) return null
+        val cookies = cookieHeader.split(";")
+        for (c in cookies) {
+            val trimmed = c.trim()
+            val eqIdx = trimmed.indexOf('=')
+            if (eqIdx > 0) {
+                val name = trimmed.substring(0, eqIdx).trim()
+                if (name.equals(cookieName, ignoreCase = true)) {
+                    return trimmed.substring(eqIdx + 1).trim()
+                }
+            }
+        }
+        return null
+    }
+
+    /**
+     * Reads all cookies from android.webkit.CookieManager for apps.pal.tech (and sso.pal.tech),
+     * extracts prod_access_token / prod_refresh_token, and caches both tokens and cookie headers.
+     */
+    @Synchronized
+    fun extractCookiesAndTokensFromManager(context: Context): Triple<String?, String?, String?> {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return try {
+            val cookieManager = android.webkit.CookieManager.getInstance()
+            val appCookies = cookieManager.getCookie("https://apps.pal.tech") ?: ""
+            val ssoCookies = cookieManager.getCookie("https://sso.pal.tech") ?: ""
+
+            val combinedCookies = when {
+                appCookies.isNotBlank() && ssoCookies.isNotBlank() -> "$appCookies; $ssoCookies"
+                appCookies.isNotBlank() -> appCookies
+                else -> ssoCookies
+            }
+
+            val accessToken = extractCookieValue(combinedCookies, "prod_access_token")
+                ?: extractCookieValue(combinedCookies, "AccessToken")
+            val refreshToken = extractCookieValue(combinedCookies, "prod_refresh_token")
+                ?: extractCookieValue(combinedCookies, "RefreshToken")
+
+            val editor = prefs.edit()
+            if (combinedCookies.isNotBlank()) {
+                editor.putString(KEY_AUTH_COOKIES, combinedCookies)
+            }
+            if (!accessToken.isNullOrBlank()) {
+                editor.putString(KEY_ACCESS_TOKEN, accessToken)
+            }
+            if (!refreshToken.isNullOrBlank()) {
+                editor.putString(KEY_REFRESH_TOKEN, refreshToken)
+            }
+            editor.apply()
+
+            Triple(accessToken, refreshToken, combinedCookies.takeIf { it.isNotBlank() })
+        } catch (e: Exception) {
+            Log.e(TAG, "Error extracting cookies from CookieManager: ${e.message}")
+            Triple(null, null, prefs.getString(KEY_AUTH_COOKIES, null))
+        }
+    }
+
+    /**
+     * Retrieves the latest active session cookies from CookieManager with SharedPreferences fallback.
+     */
+    fun getValidCookies(context: Context): String? {
+        try {
+            val cookieManager = android.webkit.CookieManager.getInstance()
+            val cookies = cookieManager.getCookie("https://apps.pal.tech")
+            if (!cookies.isNullOrBlank()) {
+                return cookies
+            }
+        } catch (e: Exception) {
+            // Fallback to prefs
+        }
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getString(KEY_AUTH_COOKIES, null)
     }
 
     /**
@@ -85,7 +165,7 @@ object TokenManager {
      */
     fun extractIdentityFromJwt(token: String?): Pair<String, String>? {
         val payload = decodeJwtPayload(token) ?: return null
-        val id = listOf("nameid", "sub", "id", "employeeId", "name_id", "userId")
+        val id = listOf("nameid", "sub", "id", "employeeId", "EmployeeNumber", "name_id", "userId")
             .firstNotNullOfOrNull { key -> payload.optString(key).takeIf { it.isNotBlank() && it != "null" } }
         val name = listOf("name", "unique_name", "fullName", "given_name", "email")
             .firstNotNullOfOrNull { key -> payload.optString(key).takeIf { it.isNotBlank() && it != "null" } }
@@ -99,17 +179,15 @@ object TokenManager {
      * Falls back to offline JWT claims parsing if network or endpoint fails.
      */
     @Synchronized
-    fun fetchUserIdentity(context: Context, accessToken: String): Pair<String, String>? {
-        if (accessToken.isBlank()) return null
+    fun fetchUserIdentity(context: Context, accessToken: String? = null): Pair<String, String>? {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val token = accessToken ?: getValidAccessToken(context)
 
         var connection: HttpURLConnection? = null
         try {
             Log.d(TAG, "Resolving user identity natively from: $GET_MY_DETAILS_ENDPOINT")
-            connection = openConnection(context, GET_MY_DETAILS_ENDPOINT)
+            connection = openAuthenticatedConnection(context, GET_MY_DETAILS_ENDPOINT, token)
             connection.requestMethod = "GET"
-            connection.setRequestProperty("Authorization", "Bearer $accessToken")
-            connection.setRequestProperty("Accept", "application/json")
             connection.connectTimeout = 8000
             connection.readTimeout = 8000
             connection.connect()
@@ -148,14 +226,16 @@ object TokenManager {
         }
 
         // Fallback: Extract from JWT token claims
-        val jwtIdentity = extractIdentityFromJwt(accessToken)
-        if (jwtIdentity != null) {
-            prefs.edit()
-                .putString(KEY_USER_ID, jwtIdentity.first)
-                .putString(KEY_USER_NAME, jwtIdentity.second)
-                .apply()
-            Log.i(TAG, "Resolved user identity from JWT payload: id=${jwtIdentity.first}, name=${jwtIdentity.second}")
-            return jwtIdentity
+        if (!token.isNullOrBlank()) {
+            val jwtIdentity = extractIdentityFromJwt(token)
+            if (jwtIdentity != null) {
+                prefs.edit()
+                    .putString(KEY_USER_ID, jwtIdentity.first)
+                    .putString(KEY_USER_NAME, jwtIdentity.second)
+                    .apply()
+                Log.i(TAG, "Resolved user identity from JWT payload: id=${jwtIdentity.first}, name=${jwtIdentity.second}")
+                return jwtIdentity
+            }
         }
 
         return null
@@ -174,8 +254,7 @@ object TokenManager {
             return Pair(existingId, existingName)
         }
 
-        val token = getValidAccessToken(context) ?: return null
-        return fetchUserIdentity(context, token)
+        return fetchUserIdentity(context)
     }
 
     /**
@@ -194,21 +273,55 @@ object TokenManager {
     }
 
     /**
+     * Opens an HttpURLConnection and automatically attaches both:
+     * 1) Cookie header (from CookieManager / SharedPreferences)
+     * 2) Authorization: Bearer <token> (if available)
+     * 3) Standard browser/client headers
+     */
+    fun openAuthenticatedConnection(context: Context, apiUrl: String, accessToken: String? = null): HttpURLConnection {
+        val connection = openConnection(context, apiUrl)
+        connection.setRequestProperty("Accept", "application/json")
+        connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36")
+
+        // 1. Attach cookies
+        val cookies = getValidCookies(context)
+        if (!cookies.isNullOrBlank()) {
+            connection.setRequestProperty("Cookie", cookies)
+        }
+
+        // 2. Attach Bearer token
+        val token = accessToken ?: getValidAccessToken(context)
+        if (!token.isNullOrBlank()) {
+            connection.setRequestProperty("Authorization", "Bearer $token")
+        }
+
+        return connection
+    }
+
+    /**
      * Retrieves the current AccessToken, proactively refreshing it if it has expired.
      */
     @Synchronized
     fun getValidAccessToken(context: Context): String? {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val currentToken = prefs.getString(KEY_ACCESS_TOKEN, null)
-        val refreshToken = prefs.getString(KEY_REFRESH_TOKEN, null)
+        var currentToken = prefs.getString(KEY_ACCESS_TOKEN, null)
 
+        // If missing or expired, attempt extraction from CookieManager first
+        if (currentToken.isNullOrEmpty() || isTokenExpired(currentToken)) {
+            val (extractedToken, _, _) = extractCookiesAndTokensFromManager(context)
+            if (!extractedToken.isNullOrEmpty() && !isTokenExpired(extractedToken)) {
+                currentToken = extractedToken
+            }
+        }
+
+        val refreshToken = prefs.getString(KEY_REFRESH_TOKEN, null)
         if (currentToken.isNullOrEmpty() && refreshToken.isNullOrEmpty()) {
             return null
         }
 
-        // If the current token is missing or expired, attempt silent rotation proactively
+        // If the current token is missing or expired, attempt silent rotation proactively via SSO
         if (isTokenExpired(currentToken)) {
-            Log.d(TAG, "AccessToken is expired or expiring soon. Performing proactive rotation...")
+            Log.d(TAG, "AccessToken is expired or expiring soon. Performing proactive rotation via SSO...")
             val result = refreshTokens(context)
             if (result is RefreshResult.Success) {
                 return result.accessToken
@@ -216,7 +329,6 @@ object TokenManager {
                 Log.w(TAG, "Proactive token refresh rejected: ${result.reason}")
                 return null
             }
-            // In case of NetworkError, return existing token as best-effort fallback
             return currentToken
         }
 
@@ -224,41 +336,46 @@ object TokenManager {
     }
 
     /**
-     * Executes the silent token refresh request against HRMS SSO endpoint.
+     * Executes the silent token refresh request against HRMS SSO endpoint (https://sso.pal.tech/token).
      * Synchronized to prevent duplicate parallel refresh requests from widgets and background workers.
      */
     @Synchronized
     fun refreshTokens(context: Context): RefreshResult {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val refreshToken = prefs.getString(KEY_REFRESH_TOKEN, null)
+        var refreshToken = prefs.getString(KEY_REFRESH_TOKEN, null)
 
         if (refreshToken.isNullOrEmpty()) {
-            return RefreshResult.SessionExpired("No RefreshToken found in SharedPreferences")
+            val (_, extractedRefresh, _) = extractCookiesAndTokensFromManager(context)
+            refreshToken = extractedRefresh ?: prefs.getString(KEY_REFRESH_TOKEN, null)
         }
 
-        Log.d(TAG, "Calling SSO token refresh endpoint: $REFRESH_ENDPOINT")
+        if (refreshToken.isNullOrEmpty()) {
+            return RefreshResult.SessionExpired("No RefreshToken found in SharedPreferences or CookieManager")
+        }
+
+        Log.d(TAG, "Calling SSO token refresh endpoint: $SSO_TOKEN_ENDPOINT")
         var connection: HttpURLConnection? = null
         return try {
-            connection = openConnection(context, REFRESH_ENDPOINT)
+            connection = openConnection(context, SSO_TOKEN_ENDPOINT)
             connection.requestMethod = "POST"
-            connection.setRequestProperty("Content-Type", "application/json")
+            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
             connection.setRequestProperty("Accept", "application/json")
             connection.connectTimeout = 10000
             connection.readTimeout = 10000
             connection.doOutput = true
 
-            // Send payload {"refreshToken": "..."}
-            val requestBody = JSONObject().apply {
-                put("refreshToken", refreshToken)
-            }.toString()
+            // Send OAuth 2.0 / OIDC refresh token parameters
+            val postData = "grant_type=" + java.net.URLEncoder.encode("refresh_token", "UTF-8") +
+                    "&client_id=" + java.net.URLEncoder.encode(SSO_CLIENT_ID, "UTF-8") +
+                    "&refresh_token=" + java.net.URLEncoder.encode(refreshToken, "UTF-8")
 
             OutputStreamWriter(connection.outputStream, StandardCharsets.UTF_8).use { writer ->
-                writer.write(requestBody)
+                writer.write(postData)
                 writer.flush()
             }
 
             val responseCode = connection.responseCode
-            Log.d(TAG, "Token refresh response code: $responseCode")
+            Log.d(TAG, "SSO token refresh response code: $responseCode")
 
             if (responseCode == 200) {
                 val responseString = BufferedReader(InputStreamReader(connection.inputStream, StandardCharsets.UTF_8)).use { reader ->
@@ -266,18 +383,15 @@ object TokenManager {
                 }
 
                 val jsonResponse = JSONObject(responseString)
-                val dataObj = jsonResponse.optJSONObject("data") ?: jsonResponse
-
-                val newAccessToken = (dataObj.optString("access_token").takeIf { it.isNotEmpty() }
-                    ?: dataObj.optString("accessToken")).trim()
-                val newRefreshToken = (dataObj.optString("refresh_token").takeIf { it.isNotEmpty() }
-                    ?: dataObj.optString("refreshToken")).trim()
+                val newAccessToken = (jsonResponse.optString("access_token").takeIf { it.isNotEmpty() }
+                    ?: jsonResponse.optString("accessToken")).trim()
+                val newRefreshToken = (jsonResponse.optString("refresh_token").takeIf { it.isNotEmpty() }
+                    ?: jsonResponse.optString("refreshToken")).trim()
 
                 if (newAccessToken.isNotEmpty() && newAccessToken != "null") {
                     val editor = prefs.edit()
                     editor.putString(KEY_ACCESS_TOKEN, newAccessToken)
 
-                    // If a newly rotated refresh token is returned, update it; otherwise preserve old one
                     val finalRefresh = if (newRefreshToken.isNotEmpty() && newRefreshToken != "null") {
                         editor.putString(KEY_REFRESH_TOKEN, newRefreshToken)
                         newRefreshToken
@@ -286,21 +400,32 @@ object TokenManager {
                     }
                     editor.apply()
 
-                    Log.i(TAG, "Successfully refreshed and rotated HRMS auth tokens.")
+                    // Sync rotated token into native CookieManager
+                    try {
+                        val cookieManager = android.webkit.CookieManager.getInstance()
+                        cookieManager.setCookie("https://apps.pal.tech", "prod_access_token=$newAccessToken; Domain=.pal.tech; Path=/; Secure; HttpOnly")
+                        if (newRefreshToken.isNotEmpty() && newRefreshToken != "null") {
+                            cookieManager.setCookie("https://apps.pal.tech", "prod_refresh_token=$newRefreshToken; Domain=.pal.tech; Path=/; Secure; HttpOnly")
+                        }
+                        cookieManager.flush()
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Could not sync rotated token to CookieManager: ${e.message}")
+                    }
+
+                    Log.i(TAG, "Successfully refreshed and rotated HRMS SSO tokens.")
                     RefreshResult.Success(newAccessToken, finalRefresh)
                 } else {
-                    Log.e(TAG, "Token refresh response missing access_token: $responseString")
+                    Log.e(TAG, "SSO token refresh response missing access_token: $responseString")
                     RefreshResult.SessionExpired("Invalid token refresh response payload")
                 }
             } else if (responseCode == 400 || responseCode == 401 || responseCode == 403) {
-                // Refresh token is revoked or permanently expired
-                Log.w(TAG, "Refresh token expired or rejected by server: HTTP $responseCode")
-                RefreshResult.SessionExpired("Refresh token rejected (HTTP $responseCode)")
+                Log.w(TAG, "Refresh token expired or rejected by SSO: HTTP $responseCode")
+                RefreshResult.SessionExpired("Refresh token rejected by SSO (HTTP $responseCode)")
             } else {
-                RefreshResult.NetworkError("Server returned HTTP $responseCode")
+                RefreshResult.NetworkError("SSO server returned HTTP $responseCode")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Network error during token refresh: ${e.message}", e)
+            Log.e(TAG, "Network error during SSO token refresh: ${e.message}", e)
             RefreshResult.NetworkError(e.message ?: "Unknown network exception")
         } finally {
             connection?.disconnect()

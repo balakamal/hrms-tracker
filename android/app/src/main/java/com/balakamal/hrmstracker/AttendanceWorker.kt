@@ -23,10 +23,14 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
     private val sharedPrefs: SharedPreferences = context.getSharedPreferences("HRMS_PREFS", Context.MODE_PRIVATE)
 
     override fun doWork(): Result {
-        var accessToken = TokenManager.getValidAccessToken(applicationContext) ?: return Result.failure()
+        var accessToken = TokenManager.getValidAccessToken(applicationContext)
+        val cookies = TokenManager.getValidCookies(applicationContext)
+        if (accessToken.isNullOrEmpty() && cookies.isNullOrEmpty()) {
+            return Result.failure()
+        }
         var userId = sharedPrefs.getString("UserId", null)
         if (userId.isNullOrEmpty()) {
-            val identity = TokenManager.fetchUserIdentity(applicationContext, accessToken)
+            val identity = TokenManager.ensureUserIdentity(applicationContext)
             if (identity != null) {
                 userId = identity.first
             } else {
@@ -58,10 +62,8 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
         val apiUrl = "https://apps.pal.tech/hrms-backend/api/Attendance/GetDailyLog?date=$todayISO&userId=$userId"
         
         try {
-            var connection = TokenManager.openConnection(applicationContext, apiUrl)
+            var connection = TokenManager.openAuthenticatedConnection(applicationContext, apiUrl, accessToken)
             connection.requestMethod = "GET"
-            connection.setRequestProperty("Authorization", "Bearer $accessToken")
-            connection.setRequestProperty("Accept", "application/json")
             connection.connectTimeout = 10000
             connection.readTimeout = 10000
 
@@ -72,10 +74,8 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                     is TokenManager.RefreshResult.Success -> {
                         accessToken = refreshResult.accessToken
                         connection.disconnect()
-                        connection = TokenManager.openConnection(applicationContext, apiUrl)
+                        connection = TokenManager.openAuthenticatedConnection(applicationContext, apiUrl, accessToken)
                         connection.requestMethod = "GET"
-                        connection.setRequestProperty("Authorization", "Bearer $accessToken")
-                        connection.setRequestProperty("Accept", "application/json")
                         connection.connectTimeout = 10000
                         connection.readTimeout = 10000
                     }

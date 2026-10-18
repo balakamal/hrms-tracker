@@ -866,14 +866,19 @@
     if (!refreshToken) return false;
 
     try {
-      const refreshUrl = "https://apps.pal.tech/hrms-backend/api/Account/RefreshToken";
+      const refreshUrl = "https://sso.pal.tech/token";
+      const params = new URLSearchParams();
+      params.append("grant_type", "refresh_token");
+      params.append("client_id", "sso_prod");
+      params.append("refresh_token", refreshToken);
+
       const res = await fetch(refreshUrl, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
           "Accept": "application/json",
         },
-        body: JSON.stringify({ refreshToken }),
+        body: params.toString(),
       });
 
       if (!res.ok) return false;
@@ -896,20 +901,25 @@
     return false;
   }
 
+  function getAuthHeaders(token) {
+    const h = { Accept: "application/json" };
+    if (token && token !== "null") {
+      h["Authorization"] = `Bearer ${token}`;
+    }
+    return h;
+  }
+
   async function fetchUserIdentity() {
     if (state.userId) return; // Custom ID override already set
     const url = "https://apps.pal.tech/hrms-backend/api/Employee/GetMyDetails";
     let token = localStorage.getItem("AccessToken");
-    if (!token) return;
 
     state.loading = true;
     updateLoadingUI();
     try {
       let response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
+        credentials: "include",
+        headers: getAuthHeaders(token),
       });
 
       if (response.status === 401) {
@@ -917,10 +927,8 @@
         if (refreshed) {
           token = localStorage.getItem("AccessToken");
           response = await fetch(url, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              Accept: "application/json",
-            },
+            credentials: "include",
+            headers: getAuthHeaders(token),
           });
         }
       }
@@ -1065,14 +1073,11 @@
 
     const url = `https://apps.pal.tech/hrms-backend/api/Employee/GetEmployeeStatus?employeeIds=${state.userId}`;
     let token = localStorage.getItem("AccessToken");
-    if (!token) return;
 
     try {
       let response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
+        credentials: "include",
+        headers: getAuthHeaders(token),
       });
 
       if (response.status === 401) {
@@ -1080,10 +1085,8 @@
         if (refreshed) {
           token = localStorage.getItem("AccessToken");
           response = await fetch(url, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              Accept: "application/json",
-            },
+            credentials: "include",
+            headers: getAuthHeaders(token),
           });
         }
       }
@@ -1114,14 +1117,11 @@
 
     const url = `https://apps.pal.tech/hrms-backend/api/OrganizationPolicy/GetMyPolicies?schemeId=3&policyId=0&employeeId=${state.userId}`;
     let token = localStorage.getItem("AccessToken");
-    if (!token) return;
 
     try {
       let response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
+        credentials: "include",
+        headers: getAuthHeaders(token),
       });
 
       if (response.status === 401) {
@@ -1129,10 +1129,8 @@
         if (refreshed) {
           token = localStorage.getItem("AccessToken");
           response = await fetch(url, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              Accept: "application/json",
-            },
+            credentials: "include",
+            headers: getAuthHeaders(token),
           });
         }
       }
@@ -1175,14 +1173,11 @@
 
     const url = `https://apps.pal.tech/hrms-backend/api/Attendance/GetDailySummaryLog?startDate=${startDate}&endDate=${endDate}&userId=${state.userId}`;
     let token = localStorage.getItem("AccessToken");
-    if (!token) return;
 
     try {
       let response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
+        credentials: "include",
+        headers: getAuthHeaders(token),
       });
 
       if (response.status === 401) {
@@ -1190,10 +1185,8 @@
         if (refreshed) {
           token = localStorage.getItem("AccessToken");
           response = await fetch(url, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              Accept: "application/json",
-            },
+            credentials: "include",
+            headers: getAuthHeaders(token),
           });
         }
       }
@@ -1256,16 +1249,13 @@
     const todayDate = getTodayISO();
     const url = `https://apps.pal.tech/hrms-backend/api/Attendance/GetDailyLog?date=${todayDate}&userId=${state.userId}`;
     let token = localStorage.getItem("AccessToken");
-    if (!token) return;
 
     state.loading = true;
     updateLoadingUI();
     try {
       let response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
+        credentials: "include",
+        headers: getAuthHeaders(token),
       });
 
       if (response.status === 401) {
@@ -1273,10 +1263,8 @@
         if (refreshed) {
           token = localStorage.getItem("AccessToken");
           response = await fetch(url, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              Accept: "application/json",
-            },
+            credentials: "include",
+            headers: getAuthHeaders(token),
           });
         } else {
           state.userId = null;

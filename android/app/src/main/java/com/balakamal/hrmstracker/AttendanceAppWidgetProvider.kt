@@ -833,10 +833,8 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
         fun checkEmployeeWfhStatus(context: Context, accessToken: String, userId: String): Boolean? {
             try {
                 val statusUrl = "https://apps.pal.tech/hrms-backend/api/Employee/GetEmployeeStatus?employeeIds=$userId"
-                val connection = TokenManager.openConnection(context, statusUrl)
+                val connection = TokenManager.openAuthenticatedConnection(context, statusUrl, accessToken)
                 connection.requestMethod = "GET"
-                connection.setRequestProperty("Authorization", "Bearer $accessToken")
-                connection.setRequestProperty("Accept", "application/json")
                 connection.connectTimeout = 6000
                 connection.readTimeout = 6000
                 connection.connect()
@@ -876,10 +874,8 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
 
             try {
                 val policyUrl = "https://apps.pal.tech/hrms-backend/api/OrganizationPolicy/GetMyPolicies?schemeId=3&policyId=0&employeeId=$userId"
-                val connection = TokenManager.openConnection(context, policyUrl)
+                val connection = TokenManager.openAuthenticatedConnection(context, policyUrl, accessToken)
                 connection.requestMethod = "GET"
-                connection.setRequestProperty("Authorization", "Bearer $accessToken")
-                connection.setRequestProperty("Accept", "application/json")
                 connection.connectTimeout = 6000
                 connection.readTimeout = 6000
                 connection.connect()
@@ -933,10 +929,8 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 val startIso = sdfIso.format(cal.time)
 
                 val summaryUrl = "https://apps.pal.tech/hrms-backend/api/Attendance/GetDailySummaryLog?startDate=$startIso&endDate=$endIso&userId=$userId"
-                val connection = TokenManager.openConnection(context, summaryUrl)
+                val connection = TokenManager.openAuthenticatedConnection(context, summaryUrl, accessToken)
                 connection.requestMethod = "GET"
-                connection.setRequestProperty("Authorization", "Bearer $accessToken")
-                connection.setRequestProperty("Accept", "application/json")
                 connection.connectTimeout = 6000
                 connection.readTimeout = 6000
                 connection.connect()
@@ -1145,18 +1139,19 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
     private fun fetchAndRefreshWidget(context: Context) {
         val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         var accessToken = TokenManager.getValidAccessToken(context)
+        val cookies = TokenManager.getValidCookies(context)
         var userId = sharedPrefs.getString("UserId", null)
         val targetHours = sharedPrefs.getFloat("TargetHours", 8.5f)
         val isWfh = sharedPrefs.getBoolean("WfhMode", false)
 
-        if (userId.isNullOrEmpty() && !accessToken.isNullOrEmpty()) {
-            val identity = TokenManager.fetchUserIdentity(context, accessToken)
+        if (userId.isNullOrEmpty()) {
+            val identity = TokenManager.ensureUserIdentity(context)
             if (identity != null) {
                 userId = identity.first
             }
         }
         
-        if (accessToken == null || userId == null) {
+        if ((accessToken == null && cookies == null) || userId == null) {
             val isWeekendToday = isWeekend()
             val defaultStatus = when {
                 isWfh -> "Working from Home"
@@ -1191,10 +1186,8 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
         val apiUrl = "https://apps.pal.tech/hrms-backend/api/Attendance/GetDailyLog?date=$todayISO&userId=$userId"
 
         try {
-            var connection = TokenManager.openConnection(context, apiUrl)
+            var connection = TokenManager.openAuthenticatedConnection(context, apiUrl, accessToken)
             connection.requestMethod = "GET"
-            connection.setRequestProperty("Authorization", "Bearer $accessToken")
-            connection.setRequestProperty("Accept", "application/json")
             connection.connectTimeout = 8000
             connection.readTimeout = 8000
             connection.connect()
@@ -1205,10 +1198,8 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 if (refreshResult is TokenManager.RefreshResult.Success) {
                     accessToken = refreshResult.accessToken
                     connection.disconnect()
-                    connection = TokenManager.openConnection(context, apiUrl)
+                    connection = TokenManager.openAuthenticatedConnection(context, apiUrl, accessToken)
                     connection.requestMethod = "GET"
-                    connection.setRequestProperty("Authorization", "Bearer $accessToken")
-                    connection.setRequestProperty("Accept", "application/json")
                     connection.connectTimeout = 8000
                     connection.readTimeout = 8000
                     connection.connect()

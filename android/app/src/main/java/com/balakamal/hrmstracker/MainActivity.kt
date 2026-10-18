@@ -362,7 +362,10 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 if (url != null && url.contains("apps.pal.tech")) {
-                    // Push rotated tokens from native storage into WebView localStorage
+                    // Extract SSO v2 cookies and tokens natively from CookieManager
+                    syncCookiesAndTokensFromManager()
+
+                    // Push active tokens from native storage into WebView localStorage
                     TokenManager.syncTokensToWebView(webView, applicationContext)
 
                     // Inject localStorage hook to catch silent Angular token refreshes in real time
@@ -1236,15 +1239,47 @@ class MainActivity : AppCompatActivity() {
         webView.evaluateJavascript(hookJs, null)
     }
 
+    private fun syncCookiesAndTokensFromManager() {
+        try {
+            val (accessToken, _, cookies) = TokenManager.extractCookiesAndTokensFromManager(applicationContext)
+            val hasToken = !accessToken.isNullOrBlank()
+            val currentUserId = sharedPrefs.getString(KEY_USER_ID, null)
+
+            if (hasToken || !cookies.isNullOrBlank()) {
+                if (currentUserId.isNullOrBlank()) {
+                    Thread {
+                        TokenManager.fetchUserIdentity(applicationContext, accessToken)
+                        runOnUiThread {
+                            triggerWidgetRefresh()
+                        }
+                    }.start()
+                }
+                scheduleBackgroundWorker()
+                triggerWidgetRefresh()
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("HRMSWidget", "Error syncing cookies from manager: ${e.message}")
+        }
+    }
+
     private fun extractTokensForBackgroundWorker() {
+        // Sync native cookies and tokens directly from CookieManager
+        syncCookiesAndTokensFromManager()
+
         val jsQuery = """
             (function() {
                 try {
+                    var chatbotInfo = {};
+                    try {
+                        var rawChat = localStorage.getItem('CHATBOT_WIDGET_USER_INFO');
+                        if (rawChat) chatbotInfo = JSON.parse(rawChat);
+                    } catch(e) {}
+
                     return JSON.stringify({
                         accessToken: localStorage.getItem('AccessToken') || '',
                         refreshToken: localStorage.getItem('RefreshToken') || '',
-                        userId: localStorage.getItem('at_user_id') || '',
-                        userName: localStorage.getItem('at_user_name') || '',
+                        userId: localStorage.getItem('at_user_id') || chatbotInfo.employeeId || '',
+                        userName: localStorage.getItem('at_user_name') || chatbotInfo.name || '',
                         targetHours: localStorage.getItem('at_target_hours') || '',
                         policyWorkingRate: localStorage.getItem('at_policy_rate') || '',
                         avgBreakMinutes: localStorage.getItem('at_avg_break_min') || ''
@@ -1269,51 +1304,49 @@ class MainActivity : AppCompatActivity() {
                     val policyRateStr = jsonObject.optString("policyWorkingRate").trim()
                     val avgBreakStr = jsonObject.optString("avgBreakMinutes").trim()
 
+                    val editor = sharedPrefs.edit()
                     if (accessToken.isNotEmpty() && accessToken != "null") {
-                        val editor = sharedPrefs.edit()
                         editor.putString(KEY_ACCESS_TOKEN, accessToken)
-                        
-                        if (refreshToken.isNotEmpty() && refreshToken != "null") {
-                            editor.putString(KEY_REFRESH_TOKEN, refreshToken)
-                        }
-                        if (userId.isNotEmpty() && userId != "null") {
-                            editor.putString(KEY_USER_ID, userId)
-                        }
-                        if (userName.isNotEmpty() && userName != "null") {
-                            editor.putString(KEY_USER_NAME, userName)
-                        }
-                        if (targetHoursStr.isNotEmpty() && targetHoursStr != "null") {
-                            val targetHours = targetHoursStr.toFloatOrNull() ?: 8.5f
-                            editor.putFloat(KEY_TARGET_HOURS, targetHours)
-                        }
-                        if (policyRateStr.isNotEmpty() && policyRateStr != "null") {
-                            val rate = policyRateStr.toIntOrNull()
-                            if (rate != null) {
-                                editor.putInt("PolicyWorkingRate", rate)
-                            }
-                        }
-                        if (avgBreakStr.isNotEmpty() && avgBreakStr != "null") {
-                            val avgBreak = avgBreakStr.toIntOrNull()
-                            if (avgBreak != null) {
-                                editor.putInt("AvgBreakMinutes", avgBreak)
-                            }
-                        }
-                        
-                        editor.apply()
-                        
-                        val currentUserId = sharedPrefs.getString(KEY_USER_ID, null)
-                        if (currentUserId.isNullOrBlank() && accessToken.isNotEmpty() && accessToken != "null") {
-                            Thread {
-                                TokenManager.fetchUserIdentity(applicationContext, accessToken)
-                                runOnUiThread {
-                                    triggerWidgetRefresh()
-                                }
-                            }.start()
-                        }
-
-                        scheduleBackgroundWorker()
-                        triggerWidgetRefresh()
                     }
+                    if (refreshToken.isNotEmpty() && refreshToken != "null") {
+                        editor.putString(KEY_REFRESH_TOKEN, refreshToken)
+                    }
+                    if (userId.isNotEmpty() && userId != "null") {
+                        editor.putString(KEY_USER_ID, userId)
+                    }
+                    if (userName.isNotEmpty() && userName != "null") {
+                        editor.putString(KEY_USER_NAME, userName)
+                    }
+                    if (targetHoursStr.isNotEmpty() && targetHoursStr != "null") {
+                        val targetHours = targetHoursStr.toFloatOrNull() ?: 8.5f
+                        editor.putFloat(KEY_TARGET_HOURS, targetHours)
+                    }
+                    if (policyRateStr.isNotEmpty() && policyRateStr != "null") {
+                        val rate = policyRateStr.toIntOrNull()
+                        if (rate != null) {
+                            editor.putInt("PolicyWorkingRate", rate)
+                        }
+                    }
+                    if (avgBreakStr.isNotEmpty() && avgBreakStr != "null") {
+                        val avgBreak = avgBreakStr.toIntOrNull()
+                        if (avgBreak != null) {
+                            editor.putInt("AvgBreakMinutes", avgBreak)
+                        }
+                    }
+                    editor.apply()
+
+                    val currentUserId = sharedPrefs.getString(KEY_USER_ID, null)
+                    if (currentUserId.isNullOrBlank()) {
+                        Thread {
+                            TokenManager.fetchUserIdentity(applicationContext)
+                            runOnUiThread {
+                                triggerWidgetRefresh()
+                            }
+                        }.start()
+                    }
+
+                    scheduleBackgroundWorker()
+                    triggerWidgetRefresh()
                 }
             } catch (e: Exception) {
                 android.util.Log.e("HRMSWidget", "Error parsing extracted JSON: ${e.message}", e)
@@ -1327,7 +1360,9 @@ class MainActivity : AppCompatActivity() {
         
         // Clear WebView Cookies & Storage
         webView.clearCache(true)
-        CookieManager.getInstance().removeAllCookies(null)
+        val cookieManager = CookieManager.getInstance()
+        cookieManager.removeAllCookies(null)
+        cookieManager.flush()
         
         webView.loadUrl(LOGIN_URL)
         triggerWidgetRefresh()
