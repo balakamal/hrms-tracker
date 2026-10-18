@@ -203,32 +203,32 @@ class WidgetConfigureActivity : AppCompatActivity() {
 
         btnPinWidget.setOnClickListener {
             val widgetOptions = arrayOf(
-                "HRMS Dashboard (Large 4x2)",
-                "HRMS Row (Medium 4x1)",
-                "HRMS Pack-up Clock (3x1)",
-                "HRMS Timesheet Companion (4x1)",
-                "HRMS Interactive Carousel (Small 2x2)",
-                "HRMS Wellbeing Dial (2x2)",
-                "HRMS Lockscreen Pill (2x1)",
+                "One UI 9: Glass Matrix Dashboard (4x2)",
                 "One UI 9: Live Island Capsule (4x1)",
+                "One UI 9: Freedom O'Clock Countdown (3x1)",
+                "One UI 9: Shift Battery & Energy Dial (2x2)",
+                "One UI 9: Interactive Carousel (2x2)",
                 "One UI 9: Dual-Pod Radial Glass (2x2)",
-                "One UI 9: Glass Matrix Dashboard (4x2)"
+                "One UI 9: Timesheet Companion (4x1)",
+                "One UI 9: Row Capsule (Medium 4x1)",
+                "One UI 9: Large Dashboard (4x2)",
+                "One UI 9: Lockscreen Live Pill (2x1)"
             )
             val providerClasses = arrayOf(
-                AttendanceAppWidgetProvider::class.java,
-                AttendanceAppWidgetProviderMedium::class.java,
-                WidgetCountdownProvider::class.java,
-                WidgetTimesheetProvider::class.java,
-                AttendanceAppWidgetProviderSmall::class.java,
-                WidgetDialProvider::class.java,
-                WidgetLockScreenProvider::class.java,
+                WidgetOneUiMatrixProvider::class.java,
                 WidgetOneUiCapsuleProvider::class.java,
+                WidgetCountdownProvider::class.java,
+                WidgetDialProvider::class.java,
+                AttendanceAppWidgetProviderSmall::class.java,
                 WidgetOneUiDualPodProvider::class.java,
-                WidgetOneUiMatrixProvider::class.java
+                WidgetTimesheetProvider::class.java,
+                AttendanceAppWidgetProviderMedium::class.java,
+                AttendanceAppWidgetProvider::class.java,
+                WidgetLockScreenProvider::class.java
             )
 
             AlertDialog.Builder(this, R.style.Theme_HRMS_Dialog)
-                .setTitle("Select Widget to Add")
+                .setTitle("Select One UI 9 Widget to Add")
                 .setItems(widgetOptions) { _, which ->
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         val appWidgetManager = AppWidgetManager.getInstance(this)
@@ -326,8 +326,8 @@ class WidgetConfigureActivity : AppCompatActivity() {
         previewWidgetCard.setBackgroundResource(backgroundRes)
 
         // Live preview inner card surfaces & high-contrast typography
-        previewHeroCard.setBackgroundResource(if (isEffectiveDark) R.drawable.widget_card_hero_dark else R.drawable.widget_card_hero_light)
-        previewCellExit.setBackgroundResource(if (isEffectiveDark) R.drawable.widget_card_cell_dark else R.drawable.widget_card_cell_light)
+        previewHeroCard.setBackgroundResource(if (isEffectiveDark) R.drawable.widget_oneui_bg_pod else R.drawable.widget_oneui_bg_pod_light)
+        previewCellExit.setBackgroundResource(if (isEffectiveDark) R.drawable.widget_oneui_bg_pod else R.drawable.widget_oneui_bg_pod_light)
 
         previewLabelWork.setTextColor(if (isEffectiveDark) 0xFF94A3B8.toInt() else 0xFF64748B.toInt())
         previewWorkTime.setTextColor(if (isEffectiveDark) 0xFFF8FAFC.toInt() else 0xFF0F172A.toInt())

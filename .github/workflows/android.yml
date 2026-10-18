@@ -33,6 +33,17 @@ jobs:
         python3 -m pip install pillow
         python3 scripts/generate_icons.py
 
+    - name: Ensure Persistent Keystore
+      run: |
+        mkdir -p android/keystore
+        if [ ! -f android/keystore/debug.keystore ]; then
+          echo "Generating persistent debug keystore for consistent APK signatures..."
+          keytool -genkeypair -v -keystore android/keystore/debug.keystore \
+            -storepass android -alias androiddebugkey -keypass android \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US" -deststoretype pkcs12
+        fi
+
     - name: Build with Gradle
       run: |
         set -eo pipefail
@@ -67,7 +78,7 @@ jobs:
         $ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer manifest print builds/app-debug.apk > builds/AndroidManifest.xml || true
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git add builds/ android/app/src/main/res/
+        git add builds/ android/app/src/main/res/ android/keystore/
         git commit -m "build: compile, extract manifest and update builds/ [skip ci]" || true
         git pull --rebase origin main || true
         git push origin HEAD:main
