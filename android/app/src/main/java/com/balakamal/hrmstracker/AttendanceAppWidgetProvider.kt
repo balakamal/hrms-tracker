@@ -316,7 +316,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             // Freedom O'Clock Apple Live Activity Chronometer Countdown
             if (layoutId == R.layout.attendance_widget_countdown) {
                 if (isClockedIn && lastInTimestamp > 0 && baseWorkMinutes >= 0 && isCacheFromToday && !isCompleted) {
-                    val remainingMinutes = Math.max(0.0, targetMinutes - baseWorkMinutes)
+                    val remainingMinutes = Math.max(0.0, (targetMinutes - baseWorkMinutes).toDouble())
                     val targetExitTimestamp = lastInTimestamp + (remainingMinutes * 60000).toLong()
                     if (targetExitTimestamp > System.currentTimeMillis()) {
                         views.setViewVisibility(R.id.widget_chronometer, android.view.View.VISIBLE)
@@ -1334,12 +1334,9 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
 
     private fun sendNotification(context: Context, title: String, message: String) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val channelId = "hrms_tracker_channel"
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, "Shift Alerts", NotificationManager.IMPORTANCE_HIGH)
-            notificationManager.createNotificationChannel(channel)
-        }
+        val channelId = NotificationHelper.CHANNEL_SHIFT_ALERTS
+        NotificationHelper.initChannels(context)
+        if (!NotificationHelper.isChannelEnabled(context, channelId)) return
 
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

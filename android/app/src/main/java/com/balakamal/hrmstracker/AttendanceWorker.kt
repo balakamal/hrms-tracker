@@ -224,12 +224,9 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
 
     private fun sendNotification(title: String, message: String) {
         val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val channelId = "hrms_tracker_channel"
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, "Shift Alerts", NotificationManager.IMPORTANCE_HIGH)
-            notificationManager.createNotificationChannel(channel)
-        }
+        val channelId = NotificationHelper.CHANNEL_SHIFT_ALERTS
+        NotificationHelper.initChannels(applicationContext)
+        if (!NotificationHelper.isChannelEnabled(applicationContext, channelId)) return
 
         val intent = Intent(applicationContext, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

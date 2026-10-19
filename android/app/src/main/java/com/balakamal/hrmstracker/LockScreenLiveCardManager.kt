@@ -14,7 +14,8 @@ object LockScreenLiveCardManager {
 
     private const val PREFS_NAME = "HRMS_PREFS"
     const val KEY_LOCKSCREEN_LIVE_ENABLED = "LockScreenLiveCardEnabled"
-    const val CHANNEL_ID = "hrms_lockscreen_live_channel"
+    const val KEY_LOCKSCREEN_LIVE_ONGOING = "LockScreenLiveCardOngoing"
+    const val CHANNEL_ID = NotificationHelper.CHANNEL_LIVE_CARD
     const val NOTIFICATION_ID = 1004
 
     private const val REQ_REFRESH = 4001
@@ -36,11 +37,26 @@ object LockScreenLiveCardManager {
         }
     }
 
+    fun isLiveCardOngoing(context: Context): Boolean {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getBoolean(KEY_LOCKSCREEN_LIVE_ONGOING, true)
+    }
+
+    fun setLiveCardOngoing(context: Context, ongoing: Boolean) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putBoolean(KEY_LOCKSCREEN_LIVE_ONGOING, ongoing).apply()
+        if (isLiveCardEnabled(context)) {
+            updateLiveCard(context)
+        }
+    }
+
     fun updateLiveCard(context: Context) {
-        if (!isLiveCardEnabled(context)) {
+        if (!isLiveCardEnabled(context) || !NotificationHelper.isChannelEnabled(context, CHANNEL_ID)) {
             clearLiveCard(context)
             return
         }
+
+        NotificationHelper.initChannels(context)
 
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val isWfh = prefs.getBoolean("WfhMode", false)
@@ -53,24 +69,6 @@ object LockScreenLiveCardManager {
         val statusTextRaw = prefs.getString("WidgetStatusText", "Clocked In") ?: "Clocked In"
         val progressPercent = prefs.getInt("WidgetProgressPercent", 0)
         val remaining = prefs.getString("WidgetProgressRemaining", "-- left") ?: "-- left"
-
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-        // Create low-priority silent channel with zero vibrations
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                "Lock Screen Live Activity",
-                NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                description = "Live attendance status displayed on your Lock Screen and Always On Display"
-                setShowBadge(false)
-                enableVibration(false)
-                enableLights(false)
-                lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
-            }
-            notificationManager.createNotificationChannel(channel)
-        }
 
         val views = RemoteViews(context.packageName, R.layout.layout_lockscreen_live_card)
 
@@ -156,7 +154,7 @@ object LockScreenLiveCardManager {
             .setCustomBigContentView(views)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setOngoing(true)
+            .setOngoing(isLiveCardOngoing(context))
             .setOnlyAlertOnce(true)
             .setContentIntent(openAppPendingIntent)
             .build()

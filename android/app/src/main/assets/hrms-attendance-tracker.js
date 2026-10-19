@@ -838,6 +838,8 @@
     timesheetEnabled: localStorage.getItem("at_timesheet_enabled") !== "false",
     timesheetTime: localStorage.getItem("at_timesheet_time") || "21:00",
     liveCardEnabled: localStorage.getItem("at_live_card_enabled") !== "false",
+    liveCardOngoing: localStorage.getItem("at_live_card_ongoing") !== "false",
+    channelLiveEnabled: true,
     imageMap: {},
     attendanceData: null,
     lastNotificationTime: 0,
@@ -864,6 +866,8 @@
           }
           if (typeof nativeData.notifPreExit === "boolean") state.preExitEnabled = nativeData.notifPreExit;
           if (typeof nativeData.liveCardEnabled === "boolean") state.liveCardEnabled = nativeData.liveCardEnabled;
+          if (typeof nativeData.liveCardOngoing === "boolean") state.liveCardOngoing = nativeData.liveCardOngoing;
+          if (typeof nativeData.channelLiveEnabled === "boolean") state.channelLiveEnabled = nativeData.channelLiveEnabled;
           if (typeof nativeData.timesheetEnabled === "boolean") state.timesheetEnabled = nativeData.timesheetEnabled;
           if (typeof nativeData.timesheetHour === "number" && typeof nativeData.timesheetMinute === "number") {
             state.timesheetTime = `${String(nativeData.timesheetHour).padStart(2, "0")}:${String(nativeData.timesheetMinute).padStart(2, "0")}`;
@@ -1661,12 +1665,28 @@
         <div class="at-form-group row" id="at-row-live-card" style="display:${window.AndroidApp ? "flex" : "none"};">
           <div>
             <div style="font-size:12px; font-weight:600; color:var(--at-text-primary);">Lock Screen Live Activity</div>
-            <div style="font-size:10px; color:var(--at-text-secondary);">Real-time clock on lock screen</div>
+            <div style="font-size:10px; color:var(--at-text-secondary);">Real-time clock on lock screen & shade</div>
           </div>
           <label class="at-toggle">
             <input type="checkbox" id="at-setting-live-card" ${state.liveCardEnabled ? "checked" : ""}>
             <span class="at-slider"></span>
           </label>
+        </div>
+        <div class="at-form-group row" id="at-row-live-ongoing" style="display:${(window.AndroidApp && state.liveCardEnabled) ? "flex" : "none"}; padding-left: 10px; border-left: 2px solid var(--at-accent-blue); margin-top: -4px;">
+          <div>
+            <div style="font-size:11px; font-weight:600; color:var(--at-text-primary);">Keep Notification Pinned</div>
+            <div style="font-size:9.5px; color:var(--at-text-secondary);">Uncheck to allow swipe to dismiss</div>
+          </div>
+          <label class="at-toggle" style="transform: scale(0.85); transform-origin: right center;">
+            <input type="checkbox" id="at-setting-live-ongoing" ${state.liveCardOngoing !== false ? "checked" : ""}>
+            <span class="at-slider"></span>
+          </label>
+        </div>
+        <div class="at-form-group" id="at-row-notif-settings" style="display:${window.AndroidApp ? "block" : "none"}; margin-top: 4px;">
+          <button type="button" class="at-btn-action" id="at-btn-notif-settings">
+            <span>Notification Categories (Android Settings)</span>
+            ${ICONS.chevron}
+          </button>
         </div>
         <div class="at-form-group" id="at-row-widget-config" style="display:${window.AndroidApp ? "block" : "none"}; margin-top: 4px;">
           <button type="button" class="at-btn-action" id="at-btn-widget-config">
@@ -1732,7 +1752,6 @@
     card
       .querySelector("#at-btn-close-settings")
       .addEventListener("click", closeSettings);
-
     // Auto-save event bindings
     const hoursSelect = card.querySelector("#at-setting-hours-select");
     const minutesSelect = card.querySelector("#at-setting-minutes-select");
@@ -1744,6 +1763,8 @@
     const timesheetTimeInput = card.querySelector("#at-setting-timesheet-time");
     const themeToggle = card.querySelector("#at-setting-theme");
     const liveCardToggle = card.querySelector("#at-setting-live-card");
+    const liveOngoingToggle = card.querySelector("#at-setting-live-ongoing");
+    const notifSettingsBtn = card.querySelector("#at-btn-notif-settings");
     const widgetConfigBtn = card.querySelector("#at-btn-widget-config");
     const logoutBtn = card.querySelector("#at-btn-logout");
 
@@ -1777,6 +1798,13 @@
     timesheetTimeInput?.addEventListener("change", autoSaveSettings);
     themeToggle?.addEventListener("change", autoSaveSettings);
     liveCardToggle?.addEventListener("change", autoSaveSettings);
+    liveOngoingToggle?.addEventListener("change", autoSaveSettings);
+
+    notifSettingsBtn?.addEventListener("click", () => {
+      if (window.AndroidApp && typeof window.AndroidApp.openNotificationSettings === "function") {
+        window.AndroidApp.openNotificationSettings();
+      }
+    });
 
     widgetConfigBtn?.addEventListener("click", () => {
       if (window.AndroidApp && typeof window.AndroidApp.openWidgetConfig === "function") {
@@ -2088,6 +2116,7 @@
     const timesheetTimeInput = elements.card.querySelector("#at-setting-timesheet-time");
     const themeToggle = elements.card.querySelector("#at-setting-theme");
     const liveCardToggle = elements.card.querySelector("#at-setting-live-card");
+    const liveOngoingToggle = elements.card.querySelector("#at-setting-live-ongoing");
 
     if (minutesInput) {
       const parsedMinutes = parseWorkTimeInput(minutesInput.value);
@@ -2148,6 +2177,16 @@
       state.liveCardEnabled = liveCardToggle.checked;
       localStorage.setItem("at_live_card_enabled", state.liveCardEnabled ? "true" : "false");
       window.AndroidApp.setLiveCardEnabled(state.liveCardEnabled);
+      const rowOngoing = elements.card?.querySelector("#at-row-live-ongoing");
+      if (rowOngoing) {
+        rowOngoing.style.display = (window.AndroidApp && state.liveCardEnabled) ? "flex" : "none";
+      }
+    }
+
+    if (liveOngoingToggle && window.AndroidApp && typeof window.AndroidApp.setLiveCardOngoing === "function") {
+      state.liveCardOngoing = liveOngoingToggle.checked;
+      localStorage.setItem("at_live_card_ongoing", state.liveCardOngoing ? "true" : "false");
+      window.AndroidApp.setLiveCardOngoing(state.liveCardOngoing);
     }
 
     flashSaveIndicator();
@@ -2188,6 +2227,12 @@
           if (typeof nativeData.liveCardEnabled === "boolean") {
             state.liveCardEnabled = nativeData.liveCardEnabled;
           }
+          if (typeof nativeData.liveCardOngoing === "boolean") {
+            state.liveCardOngoing = nativeData.liveCardOngoing;
+          }
+          if (typeof nativeData.channelLiveEnabled === "boolean") {
+            state.channelLiveEnabled = nativeData.channelLiveEnabled;
+          }
           if (typeof nativeData.timesheetEnabled === "boolean") {
             state.timesheetEnabled = nativeData.timesheetEnabled;
           }
@@ -2215,7 +2260,10 @@
     const timesheetTimeInput = card.querySelector("#at-setting-timesheet-time");
     const themeToggle = card.querySelector("#at-setting-theme");
     const liveCardToggle = card.querySelector("#at-setting-live-card");
+    const liveOngoingToggle = card.querySelector("#at-setting-live-ongoing");
     const rowLiveCard = card.querySelector("#at-row-live-card");
+    const rowLiveOngoing = card.querySelector("#at-row-live-ongoing");
+    const rowNotifSettings = card.querySelector("#at-row-notif-settings");
     const rowWidgetConfig = card.querySelector("#at-row-widget-config");
 
     if (hoursSelect && minutesSelect && minutesInput) {
@@ -2259,8 +2307,17 @@
     if (liveCardToggle) {
       liveCardToggle.checked = Boolean(state.liveCardEnabled);
     }
+    if (liveOngoingToggle) {
+      liveOngoingToggle.checked = state.liveCardOngoing !== false;
+    }
     if (rowLiveCard) {
       rowLiveCard.style.display = window.AndroidApp ? "flex" : "none";
+    }
+    if (rowLiveOngoing) {
+      rowLiveOngoing.style.display = (window.AndroidApp && state.liveCardEnabled) ? "flex" : "none";
+    }
+    if (rowNotifSettings) {
+      rowNotifSettings.style.display = window.AndroidApp ? "block" : "none";
     }
     if (rowWidgetConfig) {
       rowWidgetConfig.style.display = window.AndroidApp ? "block" : "none";

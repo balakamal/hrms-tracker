@@ -210,6 +210,7 @@ class MainActivity : AppCompatActivity() {
         setupSummaryCard()
         setupBackNavigation()
 
+        NotificationHelper.initChannels(this)
         requestNotificationPermissions()
 
         // Initialize / schedule Daily Timesheet Submission Reminder (default 9:00 PM IST)
@@ -841,11 +842,18 @@ class MainActivity : AppCompatActivity() {
         val timesheetStatus = if (timesheetEnabled) "Daily ($timesheetFormatted)" else "Disabled"
 
         val lockscreenLiveEnabled = LockScreenLiveCardManager.isLiveCardEnabled(this)
+        val lockscreenOngoing = LockScreenLiveCardManager.isLiveCardOngoing(this)
+        val liveStatusSummary = if (lockscreenLiveEnabled) {
+            if (lockscreenOngoing) "Enabled • Pinned" else "Enabled • Dismissable"
+        } else {
+            "Disabled"
+        }
 
         val options = arrayOf(
             "Shift Target Hours (Current: ${targetHours}h)",
             "Customize Home Screen Widgets (Theme & Transparency)",
-            if (lockscreenLiveEnabled) "Lock Screen Live Activity: Enabled" else "Lock Screen Live Activity: Disabled",
+            "Notification Categories & Permissions (Android System)",
+            "Lock Screen Live Activity ($liveStatusSummary)",
             "Lock Screen Setup & Help (Samsung & Android)",
             "Daily Timesheet Reminder: $timesheetStatus",
             "Leave Office Alerts: Every ${nudgeInterval} Min (${if (nudgeEnabled) "Enabled" else "Disabled"})",
@@ -864,19 +872,12 @@ class MainActivity : AppCompatActivity() {
                 when (which) {
                     0 -> showTargetHoursDialog()
                     1 -> startActivity(Intent(this, WidgetConfigureActivity::class.java))
-                    2 -> {
-                        val nextState = !lockscreenLiveEnabled
-                        LockScreenLiveCardManager.setLiveCardEnabled(this, nextState)
-                        Toast.makeText(
-                            this,
-                            if (nextState) "Lock Screen Live Activity enabled" else "Lock Screen Live Activity disabled",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                    3 -> showLockScreenHelpDialog()
-                    4 -> showTimesheetReminderDialog()
-                    5 -> showLeaveOfficeAlertDialog()
-                    6 -> {
+                    2 -> NotificationHelper.openAppNotificationSettings(this)
+                    3 -> showLockScreenLiveActivitySettingsDialog()
+                    4 -> showLockScreenHelpDialog()
+                    5 -> showTimesheetReminderDialog()
+                    6 -> showLeaveOfficeAlertDialog()
+                    7 -> {
                         val nextState = !notifComplete
                         sharedPrefs.edit().putBoolean(KEY_NOTIF_SHIFT_COMPLETE, nextState).apply()
                         Toast.makeText(
@@ -885,7 +886,7 @@ class MainActivity : AppCompatActivity() {
                             Toast.LENGTH_SHORT
                         ).show()
                     }
-                    7 -> {
+                    8 -> {
                         val nextState = !notifPre
                         sharedPrefs.edit().putBoolean(KEY_NOTIF_PRE_EXIT, nextState).apply()
                         Toast.makeText(
@@ -894,7 +895,7 @@ class MainActivity : AppCompatActivity() {
                             Toast.LENGTH_SHORT
                         ).show()
                     }
-                    8 -> {
+                    9 -> {
                         val msg = if (wfh) {
                             "Your workspace is set to Remote (WFH) according to official HRMS records."
                         } else {
@@ -902,16 +903,58 @@ class MainActivity : AppCompatActivity() {
                         }
                         Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
                     }
-                    9 -> showLeaveBalanceDialog()
-                    10 -> {
+                    10 -> showLeaveBalanceDialog()
+                    11 -> {
                         injectScriptFromAssets()
                         Toast.makeText(this, "Insights Widget re-injected!", Toast.LENGTH_SHORT).show()
                     }
-                    11 -> clearTokensAndShowLogin()
-                    12 -> showAboutDialog()
+                    12 -> clearTokensAndShowLogin()
+                    13 -> showAboutDialog()
                 }
             }
             .setNegativeButton("Close", null)
+            .show()
+    }
+
+    private fun showLockScreenLiveActivitySettingsDialog() {
+        val enabled = LockScreenLiveCardManager.isLiveCardEnabled(this)
+        val ongoing = LockScreenLiveCardManager.isLiveCardOngoing(this)
+        val channelEnabled = NotificationHelper.isChannelEnabled(this, NotificationHelper.CHANNEL_LIVE_CARD)
+
+        val items = arrayOf(
+            if (enabled) "Live Status Notification: Enabled (Tap to turn OFF)" else "Live Status Notification: Disabled (Tap to turn ON)",
+            if (ongoing) "Behavior: Pinned / Ongoing (Tap for Dismissable / Swipeable)" else "Behavior: Dismissable / Swipeable (Tap for Pinned)",
+            if (channelEnabled) "Manage Category in Android Settings (Allowed)" else "Manage Category in Android Settings (⚠️ Blocked in System Settings)"
+        )
+
+        AlertDialog.Builder(this, R.style.Theme_HRMS_Dialog)
+            .setTitle("Lock Screen Live Activity")
+            .setItems(items) { _, which ->
+                when (which) {
+                    0 -> {
+                        val next = !enabled
+                        LockScreenLiveCardManager.setLiveCardEnabled(this, next)
+                        Toast.makeText(
+                            this,
+                            if (next) "Live lock screen activity enabled" else "Live lock screen activity disabled",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    1 -> {
+                        val nextOngoing = !ongoing
+                        LockScreenLiveCardManager.setLiveCardOngoing(this, nextOngoing)
+                        Toast.makeText(
+                            this,
+                            if (nextOngoing) "Live notification is now Pinned (Ongoing)" else "Live notification is now Dismissable (Swipe to Remove)",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    2 -> {
+                        NotificationHelper.openChannelSettings(this, NotificationHelper.CHANNEL_LIVE_CARD)
+                    }
+                }
+            }
+            .setNegativeButton("Done", null)
             .show()
     }
 
@@ -1503,6 +1546,8 @@ class MainActivity : AppCompatActivity() {
             val notifComplete = sharedPrefs.getBoolean(KEY_NOTIF_SHIFT_COMPLETE, true)
             val notifPre = sharedPrefs.getBoolean(KEY_NOTIF_PRE_EXIT, true)
             val liveCard = LockScreenLiveCardManager.isLiveCardEnabled(this@MainActivity)
+            val liveOngoing = LockScreenLiveCardManager.isLiveCardOngoing(this@MainActivity)
+            val channelLiveEnabled = NotificationHelper.isChannelEnabled(this@MainActivity, NotificationHelper.CHANNEL_LIVE_CARD)
             val timesheetEnabled = sharedPrefs.getBoolean(TimesheetReminderWorker.KEY_REMINDER_ENABLED, true)
             val timesheetHour = sharedPrefs.getInt(TimesheetReminderWorker.KEY_REMINDER_HOUR, 21)
             val timesheetMinute = sharedPrefs.getInt(TimesheetReminderWorker.KEY_REMINDER_MINUTE, 0)
@@ -1516,6 +1561,8 @@ class MainActivity : AppCompatActivity() {
                 put("notifShiftComplete", notifComplete)
                 put("notifPreExit", notifPre)
                 put("liveCardEnabled", liveCard)
+                put("liveCardOngoing", liveOngoing)
+                put("channelLiveEnabled", channelLiveEnabled)
                 put("timesheetEnabled", timesheetEnabled)
                 put("timesheetHour", timesheetHour)
                 put("timesheetMinute", timesheetMinute)
@@ -1549,6 +1596,26 @@ class MainActivity : AppCompatActivity() {
         fun setLiveCardEnabled(enabled: Boolean) {
             LockScreenLiveCardManager.setLiveCardEnabled(this@MainActivity, enabled)
             LockScreenLiveCardManager.updateLiveCard(this@MainActivity)
+        }
+
+        @JavascriptInterface
+        fun setLiveCardOngoing(ongoing: Boolean) {
+            LockScreenLiveCardManager.setLiveCardOngoing(this@MainActivity, ongoing)
+        }
+
+        @JavascriptInterface
+        fun openNotificationSettings() {
+            runOnUiThread {
+                NotificationHelper.openAppNotificationSettings(this@MainActivity)
+            }
+        }
+
+        @JavascriptInterface
+        fun openNotificationChannelSettings(channelId: String) {
+            runOnUiThread {
+                val target = if (channelId.isBlank()) NotificationHelper.CHANNEL_LIVE_CARD else channelId
+                NotificationHelper.openChannelSettings(this@MainActivity, target)
+            }
         }
 
         @JavascriptInterface

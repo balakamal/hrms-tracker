@@ -31,7 +31,7 @@ class TimesheetReminderWorker(context: Context, workerParams: WorkerParameters) 
         const val KEY_WEEKDAYS_ONLY = "TimesheetWeekdaysOnly"
         private const val KEY_LAST_REMINDER_DATE = "LastTimesheetReminderDate"
         private const val WORK_NAME = "HRMS_TIMESHEET_REMINDER"
-        const val CHANNEL_ID = "hrms_timesheet_reminder"
+        const val CHANNEL_ID = NotificationHelper.CHANNEL_TIMESHEET
         const val NOTIFICATION_ID = 1002
 
         /**
@@ -86,17 +86,8 @@ class TimesheetReminderWorker(context: Context, workerParams: WorkerParameters) 
         fun sendTimesheetNotification(context: Context, workTime: String, isTest: Boolean = false) {
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val channel = NotificationChannel(
-                    CHANNEL_ID,
-                    "Timesheet Reminders",
-                    NotificationManager.IMPORTANCE_HIGH
-                ).apply {
-                    description = "Daily reminders to submit your work timesheet"
-                    enableVibration(true)
-                }
-                notificationManager.createNotificationChannel(channel)
-            }
+        NotificationHelper.initChannels(context)
+        if (!NotificationHelper.isChannelEnabled(context, CHANNEL_ID)) return
 
             // Direct 1-tap deep link into Timesheet submission page
             val timesheetIntent = Intent(context, MainActivity::class.java).apply {

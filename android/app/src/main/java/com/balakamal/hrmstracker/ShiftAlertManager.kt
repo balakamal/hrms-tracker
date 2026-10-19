@@ -24,7 +24,7 @@ object ShiftAlertManager {
     private const val KEY_NUDGE_COUNT = "ShiftNudgeCount"
     private const val KEY_NUDGE_LAST_WORK_TIME = "ShiftNudgeLastWorkTime"
 
-    const val CHANNEL_ID = "hrms_shift_nudge_channel"
+    const val CHANNEL_ID = NotificationHelper.CHANNEL_LEAVE_OFFICE
     const val NOTIFICATION_ID = 1003
     const val ACTION_ALARM_TICK = "com.balakamal.hrmstracker.ACTION_SHIFT_NUDGE_TICK"
     const val ACTION_SHIFT_TARGET_REACHED = "com.balakamal.hrmstracker.ACTION_SHIFT_TARGET_REACHED"
@@ -202,18 +202,8 @@ object ShiftAlertManager {
         val interval = getIntervalMinutes(context)
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                "Leave Office Alerts",
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "$interval-minute repeating alerts reminding you to pack up and leave the office"
-                enableVibration(true)
-                vibrationPattern = longArrayOf(0, 350, 150, 350)
-            }
-            notificationManager.createNotificationChannel(channel)
-        }
+        NotificationHelper.initChannels(context)
+        if (!NotificationHelper.isChannelEnabled(context, CHANNEL_ID)) return
 
         // Action 1: Dismiss / "I'm Leaving • Stop Reminding"
         val dismissIntent = Intent(context, ShiftAlertReceiver::class.java).apply {
@@ -354,18 +344,8 @@ object ShiftAlertManager {
         val interval = getIntervalMinutes(context)
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                "Leave Office Alerts",
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "$interval-minute repeating alerts reminding you to pack up and leave the office"
-                enableVibration(true)
-                vibrationPattern = longArrayOf(0, 350, 150, 350)
-            }
-            notificationManager.createNotificationChannel(channel)
-        }
+        NotificationHelper.initChannels(context)
+        if (!NotificationHelper.isChannelEnabled(context, CHANNEL_ID)) return
 
         val dismissIntent = Intent(context, ShiftAlertReceiver::class.java).apply {
             action = ACTION_DISMISS_NUDGE
