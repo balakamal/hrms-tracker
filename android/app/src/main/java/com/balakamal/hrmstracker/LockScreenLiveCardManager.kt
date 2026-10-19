@@ -70,6 +70,8 @@ object LockScreenLiveCardManager {
         val progressPercent = prefs.getInt("WidgetProgressPercent", 0)
         val remaining = prefs.getString("WidgetProgressRemaining", "-- left") ?: "-- left"
 
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
         val views = RemoteViews(context.packageName, R.layout.layout_lockscreen_live_card)
 
         // Status Determination & Theme Tinting
