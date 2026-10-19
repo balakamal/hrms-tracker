@@ -3,12 +3,12 @@
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/widget_bg_transparent"
+    android:background="@drawable/widget_m3_surface_dark"
     android:gravity="center"
     android:orientation="vertical"
-    android:padding="6dp">
+    android:padding="8dp">
 
-    <!-- Top Header: Title, Glowing Status Pill & Refresh Button -->
+    <!-- Top Header: Title, Glowing Status Pill & Frameless Refresh Button -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
@@ -21,6 +21,15 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
+            <ImageView
+                android:id="@+id/img_oneui_status_dot"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_marginEnd="5dp"
+                android:contentDescription="Live Status Beacon"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_status_pulse_apple" />
+
             <TextView
                 android:id="@+id/widget_title"
                 android:layout_width="wrap_content"
@@ -28,22 +37,22 @@
                 android:letterSpacing="0.08"
                 android:text="HRMS"
                 android:textColor="#94A3B8"
-                android:textSize="8.5sp"
+                android:textSize="9sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/widget_status_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="5dp"
+                android:layout_marginStart="6dp"
                 android:background="@drawable/widget_oneui_status_pill"
                 android:ellipsize="end"
                 android:letterSpacing="0.04"
                 android:maxLines="1"
-                android:paddingStart="6dp"
-                android:paddingEnd="6dp"
-                android:paddingTop="1dp"
-                android:paddingBottom="1dp"
+                android:paddingStart="7dp"
+                android:paddingEnd="7dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
                 android:singleLine="true"
                 android:text="CLOCKED IN"
                 android:textColor="#10B981"
@@ -53,13 +62,13 @@
 
         <ImageButton
             android:id="@+id/widget_btn_refresh"
-            android:layout_width="22dp"
-            android:layout_height="22dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
             android:background="@drawable/widget_oneui_btn_refresh"
             android:contentDescription="Refresh attendance stats"
-            android:padding="4dp"
+            android:padding="5dp"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_refresh" />
     </RelativeLayout>
@@ -69,8 +78,8 @@
         android:id="@+id/widget_oneui_dial_container"
         android:layout_width="70dp"
         android:layout_height="70dp"
-        android:layout_marginTop="4dp"
-        android:layout_marginBottom="4dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
         android:background="@drawable/widget_oneui_radial_ring"
         android:gravity="center"
         android:orientation="vertical">
@@ -96,8 +105,8 @@
             android:maxLines="1"
             android:singleLine="true"
             android:text="7h 15m"
-            android:textColor="#F8FAFC"
-            android:textSize="10sp"
+            android:textColor="#FFFFFF"
+            android:textSize="10.5sp"
             android:textStyle="bold" />
 
         <TextView
@@ -112,18 +121,18 @@
             android:textSize="6.5sp" />
     </LinearLayout>
 
-    <!-- Bottom: Glass Pill with Est. Exit & Remaining Status -->
+    <!-- Bottom: Borderless Tonal Pill with Est. Exit & Remaining Status -->
     <LinearLayout
         android:id="@+id/widget_oneui_bottom_pill"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/widget_oneui_bg_pod"
+        android:background="@drawable/widget_m3_surface_tonal_dark"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
-        android:paddingTop="3dp"
-        android:paddingBottom="3dp">
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp">
 
         <TextView
             android:id="@+id/widget_exit_time_value"
@@ -134,7 +143,7 @@
             android:maxLines="1"
             android:singleLine="true"
             android:text="Exit: 06:30 PM"
-            android:textColor="#F8FAFC"
+            android:textColor="#FFFFFF"
             android:textSize="9.5sp"
             android:textStyle="bold" />
 

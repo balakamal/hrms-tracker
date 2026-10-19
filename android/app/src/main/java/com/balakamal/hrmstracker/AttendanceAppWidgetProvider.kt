@@ -219,7 +219,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 else -> isSystemNight
             }
 
-            val colorTextPrimary = if (isEffectiveDark) 0xFFF8FAFC.toInt() else 0xFF0F172A.toInt()
+            val colorTextPrimary = if (isEffectiveDark) 0xFFFFFFFF.toInt() else 0xFF0F172A.toInt()
             val colorTextLabel = if (isEffectiveDark) 0xFF94A3B8.toInt() else 0xFF64748B.toInt()
             val colorSkyAccent = if (isEffectiveDark) 0xFF38BDF8.toInt() else 0xFF0284C7.toInt()
 
@@ -245,7 +245,18 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 }
             }
 
-            val podBg = if (isEffectiveDark) R.drawable.widget_oneui_bg_pod else R.drawable.widget_oneui_bg_pod_light
+            // Material 3 Expressive & One UI 9 Surfaces (High-Contrast Non-Transparent by default)
+            val rootBg = when (theme) {
+                "AMOLED" -> R.drawable.widget_bg_amoled
+                "LIGHT" -> R.drawable.widget_m3_surface_light
+                "DARK" -> R.drawable.widget_m3_surface_dark
+                "TRANSPARENT" -> if (isSystemNight) R.drawable.widget_bg_dark_75 else R.drawable.widget_bg_light_75
+                else -> if (isEffectiveDark) R.drawable.widget_m3_surface_dark else R.drawable.widget_m3_surface_light
+            }
+            views.setInt(R.id.widget_root, "setBackgroundResource", rootBg)
+
+            val podBg = if (isEffectiveDark) R.drawable.widget_m3_surface_tonal_dark else R.drawable.widget_m3_surface_tonal_light
+            val refreshBtnBg = if (isEffectiveDark) R.drawable.widget_oneui_btn_refresh else R.drawable.widget_oneui_btn_refresh_light
             val statusPillBg = if (isEffectiveDark) {
                 if (isWfh) R.drawable.widget_oneui_status_pill_wfh else R.drawable.widget_oneui_status_pill
             } else {
@@ -253,10 +264,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             }
             val batteryRingBg = if (isEffectiveDark) R.drawable.widget_oneui_battery_ring else R.drawable.widget_oneui_battery_ring_light
 
-            // Common One UI View Updates
-            views.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.widget_bg_transparent)
-
-            // Surface Pods
+            // Surface Pods (Clean Borderless Tonal Containers)
             views.setInt(R.id.widget_hero_card, "setBackgroundResource", podBg)
             views.setInt(R.id.widget_cell_status, "setBackgroundResource", podBg)
             views.setInt(R.id.widget_cell_first_in, "setBackgroundResource", podBg)
@@ -266,6 +274,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             views.setInt(R.id.widget_card_pod, "setBackgroundResource", podBg)
             views.setInt(R.id.widget_btn_timesheet, "setBackgroundResource", podBg)
             views.setInt(R.id.widget_oneui_bottom_pill, "setBackgroundResource", podBg)
+            views.setInt(R.id.widget_btn_refresh, "setBackgroundResource", refreshBtnBg)
 
             // Header & Beacon
             views.setTextColor(R.id.widget_title, colorTextLabel)
@@ -303,6 +312,30 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             val remainingWithMood = if (isWfh) "Remote • $funMood" else if (isWeekOff) "Enjoy 🏖️" else if (isCompleted) "Freedom! 🚀" else "$progressRemaining • $funMood"
             views.setTextViewText(R.id.widget_progress_remaining, remainingWithMood)
             views.setTextColor(R.id.widget_progress_remaining, colorSkyAccent)
+
+            // Freedom O'Clock Apple Live Activity Chronometer Countdown
+            if (layoutId == R.layout.attendance_widget_countdown) {
+                if (isClockedIn && lastInTimestamp > 0 && baseWorkMinutes >= 0 && isCacheFromToday && !isCompleted) {
+                    val remainingMinutes = Math.max(0.0, targetMinutes - baseWorkMinutes)
+                    val targetExitTimestamp = lastInTimestamp + (remainingMinutes * 60000).toLong()
+                    if (targetExitTimestamp > System.currentTimeMillis()) {
+                        views.setViewVisibility(R.id.widget_chronometer, android.view.View.VISIBLE)
+                        views.setViewVisibility(R.id.widget_progress_remaining, android.view.View.GONE)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                            views.setChronometerCountDown(R.id.widget_chronometer, true)
+                        }
+                        views.setChronometer(R.id.widget_chronometer, targetExitTimestamp, "%s left ⏳", true)
+                    } else {
+                        views.setViewVisibility(R.id.widget_chronometer, android.view.View.GONE)
+                        views.setViewVisibility(R.id.widget_progress_remaining, android.view.View.VISIBLE)
+                        views.setTextViewText(R.id.widget_progress_remaining, "Freedom! 🚀")
+                    }
+                } else {
+                    views.setViewVisibility(R.id.widget_chronometer, android.view.View.GONE)
+                    views.setViewVisibility(R.id.widget_progress_remaining, android.view.View.VISIBLE)
+                    views.setTextViewText(R.id.widget_progress_remaining, remainingWithMood)
+                }
+            }
 
             // Exit Time
             val exitDisplay = if (isWeekOff && exitTime == "--:--") "Weekend" else exitTime
@@ -408,10 +441,10 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     }
                 }
 
-                views.setImageViewResource(R.id.dot_1, if (page == 0) R.drawable.widget_dot_active else R.drawable.widget_dot_inactive)
-                views.setImageViewResource(R.id.dot_2, if (page == 1) R.drawable.widget_dot_active else R.drawable.widget_dot_inactive)
-                views.setImageViewResource(R.id.dot_3, if (page == 2) R.drawable.widget_dot_active else R.drawable.widget_dot_inactive)
-                views.setImageViewResource(R.id.dot_4, if (page == 3) R.drawable.widget_dot_active else R.drawable.widget_dot_inactive)
+                views.setImageViewResource(R.id.dot_0, if (page == 0) R.drawable.widget_dot_active else R.drawable.widget_dot_inactive)
+                views.setImageViewResource(R.id.dot_1, if (page == 1) R.drawable.widget_dot_active else R.drawable.widget_dot_inactive)
+                views.setImageViewResource(R.id.dot_2, if (page == 2) R.drawable.widget_dot_active else R.drawable.widget_dot_inactive)
+                views.setImageViewResource(R.id.dot_3, if (page == 3) R.drawable.widget_dot_active else R.drawable.widget_dot_inactive)
             }
 
             return views

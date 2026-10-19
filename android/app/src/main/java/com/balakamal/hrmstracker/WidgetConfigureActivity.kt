@@ -323,18 +323,23 @@ class WidgetConfigureActivity : AppCompatActivity() {
                 }
             }
         }
-        previewWidgetCard.setBackgroundResource(backgroundRes)
+        if (selectedTheme == "SYSTEM" || selectedTheme == "DARK" || selectedTheme == "LIGHT") {
+            previewWidgetCard.setBackgroundResource(if (isEffectiveDark) R.drawable.widget_m3_surface_dark else R.drawable.widget_m3_surface_light)
+        } else {
+            previewWidgetCard.setBackgroundResource(backgroundRes)
+        }
 
-        // Live preview inner card surfaces & high-contrast typography
-        previewHeroCard.setBackgroundResource(if (isEffectiveDark) R.drawable.widget_oneui_bg_pod else R.drawable.widget_oneui_bg_pod_light)
-        previewCellExit.setBackgroundResource(if (isEffectiveDark) R.drawable.widget_oneui_bg_pod else R.drawable.widget_oneui_bg_pod_light)
+        // Live preview inner card surfaces & high-contrast typography (Material 3 Bento)
+        val tonalBg = if (isEffectiveDark) R.drawable.widget_m3_surface_tonal_dark else R.drawable.widget_m3_surface_tonal_light
+        previewHeroCard.setBackgroundResource(tonalBg)
+        previewCellExit.setBackgroundResource(tonalBg)
 
         previewLabelWork.setTextColor(if (isEffectiveDark) 0xFF94A3B8.toInt() else 0xFF64748B.toInt())
-        previewWorkTime.setTextColor(if (isEffectiveDark) 0xFFF8FAFC.toInt() else 0xFF0F172A.toInt())
+        previewWorkTime.setTextColor(if (isEffectiveDark) 0xFFFFFFFF.toInt() else 0xFF0F172A.toInt())
         previewStatusText.setTextColor(if (isEffectiveDark) 0xFF10B981.toInt() else 0xFF15803D.toInt())
 
         previewLabelExit.setTextColor(if (isEffectiveDark) 0xFF94A3B8.toInt() else 0xFF64748B.toInt())
-        previewExitTime.setTextColor(if (isEffectiveDark) 0xFFF1F5F9.toInt() else 0xFF1E293B.toInt())
+        previewExitTime.setTextColor(if (isEffectiveDark) 0xFFFFFFFF.toInt() else 0xFF0F172A.toInt())
         previewRemainingTime.setTextColor(if (isEffectiveDark) 0xFF38BDF8.toInt() else 0xFF0284C7.toInt())
     }
 
