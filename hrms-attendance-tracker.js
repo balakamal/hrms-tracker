@@ -1145,20 +1145,6 @@
       state.isWfh = true;
       return;
     }
-    // If today's logs already exist, biometric punches at physical office prove In-Office
-    if (state.attendanceData?.attendanceDailyLogs?.length > 0) {
-      if (state.isWfh) {
-        state.isWfh = false;
-        const todayISO = getTodayISO();
-        localStorage.setItem("at_wfh_date", todayISO);
-        localStorage.setItem("at_wfh_mode", "false");
-        if (window.AndroidApp && typeof window.AndroidApp.setWfhMode === "function") {
-          window.AndroidApp.setWfhMode(false);
-        }
-        updateUI();
-      }
-      return;
-    }
     // Only check if an explicit dedicated status element on today's view states WFH
     try {
       const todayCard = document.querySelector('.today-attendance, [data-today-status], .current-day-status');
@@ -1279,10 +1265,6 @@
           const wfhRaw = userStatus.WFH ?? userStatus.wfh ?? userStatus.isWfh ?? userStatus.isWFH;
           if (typeof wfhRaw !== "undefined" && wfhRaw !== null) {
             let isWfhActive = Number(wfhRaw) === 1 || wfhRaw === true || String(wfhRaw).toLowerCase() === "true";
-            // In-office physical punches always take priority over remote mode
-            if (state.attendanceData?.attendanceDailyLogs?.length > 0) {
-              isWfhActive = false;
-            }
             state.isWfh = isWfhActive;
             const todayISO = getTodayISO();
             localStorage.setItem("at_wfh_date", todayISO);
@@ -1466,17 +1448,6 @@
       const resData = await response.json();
       if (resData && resData.data) {
         state.attendanceData = resData.data;
-        if (state.attendanceData.attendanceDailyLogs && state.attendanceData.attendanceDailyLogs.length > 0) {
-          if (state.workspaceModeOverride !== "wfh" && state.isWfh) {
-            state.isWfh = false;
-            const todayISO = getTodayISO();
-            localStorage.setItem("at_wfh_date", todayISO);
-            localStorage.setItem("at_wfh_mode", "false");
-            if (window.AndroidApp && typeof window.AndroidApp.setWfhMode === "function") {
-              window.AndroidApp.setWfhMode(false);
-            }
-          }
-        }
         updateUI();
       }
     } catch (e) {
@@ -1939,11 +1910,7 @@
       } else if (val === "wfh") {
         state.isWfh = true;
       } else {
-        if (state.attendanceData?.attendanceDailyLogs?.length > 0) {
-          state.isWfh = false;
-        } else {
-          fetchEmployeeStatus();
-        }
+        fetchEmployeeStatus();
       }
       const todayISO = getTodayISO();
       localStorage.setItem("at_wfh_date", todayISO);
@@ -3325,6 +3292,14 @@
 
     // Startup sync with Android SharedPreferences
     if (window.AndroidApp) {
+      if (typeof window.AndroidApp.getWfhMode === "function" && state.workspaceModeOverride === "auto") {
+        try {
+          const nativeWfh = window.AndroidApp.getWfhMode();
+          if (typeof nativeWfh === "boolean") {
+            state.isWfh = nativeWfh;
+          }
+        } catch (_) {}
+      }
       if (state.userId) {
         window.AndroidApp.saveUserData(state.userId, state.userName);
       }

@@ -121,7 +121,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
 
             // Click Root to Launch App
             val appIntent = Intent(context, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
             }
             val appPendingIntent = PendingIntent.getActivity(
                 context, 0, appIntent,
@@ -383,7 +383,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
 
                 views.setOnClickPendingIntent(R.id.widget_title, appPendingIntent)
 
-                val cycleIntent = Intent(context, AttendanceAppWidgetProvider::class.java).apply {
+                val cycleIntent = Intent(context, AttendanceAppWidgetProviderSmall::class.java).apply {
                     action = ACTION_CYCLE_PAGE
                     putExtra(EXTRA_WIDGET_ID, appWidgetId)
                 }
@@ -392,7 +392,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     PendingIntent.getBroadcast(context, appWidgetId * 10 + 2, cycleIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
                 )
 
-                val prevIntent = Intent(context, AttendanceAppWidgetProvider::class.java).apply {
+                val prevIntent = Intent(context, AttendanceAppWidgetProviderSmall::class.java).apply {
                     action = ACTION_PREV_PAGE
                     putExtra(EXTRA_WIDGET_ID, appWidgetId)
                 }
@@ -401,7 +401,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     PendingIntent.getBroadcast(context, appWidgetId * 10 + 3, prevIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
                 )
 
-                val nextIntent = Intent(context, AttendanceAppWidgetProvider::class.java).apply {
+                val nextIntent = Intent(context, AttendanceAppWidgetProviderSmall::class.java).apply {
                     action = ACTION_NEXT_PAGE
                     putExtra(EXTRA_WIDGET_ID, appWidgetId)
                 }
@@ -804,13 +804,37 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     }
                     reader.close()
                     val json = JSONObject(sb.toString())
+                    
+                    var userObj: JSONObject? = null
                     val dataObj = json.optJSONObject("data")
                     if (dataObj != null) {
-                        val userObj = dataObj.optJSONObject(userId)
-                            ?: if (dataObj.keys().hasNext()) dataObj.optJSONObject(dataObj.keys().next()) else null
-                        if (userObj != null && userObj.has("WFH")) {
-                            return userObj.optInt("WFH", 0) == 1
+                        userObj = dataObj.optJSONObject(userId)
+                    } else {
+                        val dataArray = json.optJSONArray("data")
+                        if (dataArray != null) {
+                            for (i in 0 until dataArray.length()) {
+                                val item = dataArray.optJSONObject(i)
+                                val empId = item?.optString("employeeId") ?: item?.optString("userId") ?: item?.optString("id")
+                                if (empId != null && (empId.equals(userId, ignoreCase = true) || empId.trim() == userId.trim())) {
+                                    userObj = item
+                                    break
+                                }
+                            }
+                            if (userObj == null && dataArray.length() == 1) {
+                                userObj = dataArray.optJSONObject(0)
+                            }
                         }
+                    }
+
+                    if (userObj != null) {
+                        val isWfh = when {
+                            userObj.has("WFH") -> userObj.optInt("WFH", -1) == 1 || userObj.optBoolean("WFH", false)
+                            userObj.has("wfh") -> userObj.optInt("wfh", -1) == 1 || userObj.optBoolean("wfh", false)
+                            userObj.has("isWfh") -> userObj.optInt("isWfh", -1) == 1 || userObj.optBoolean("isWfh", false)
+                            userObj.has("isWFH") -> userObj.optInt("isWFH", -1) == 1 || userObj.optBoolean("isWFH", false)
+                            else -> false
+                        }
+                        return isWfh
                     }
                 }
             } catch (e: Exception) {
@@ -1043,7 +1067,13 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 }
                 sharedPrefs.edit().putInt(pageKey, newPage).apply()
                 val appWidgetManager = AppWidgetManager.getInstance(context)
-                updateAppWidget(context, appWidgetManager, appWidgetId, defaultLayoutId)
+                val widgetInfo = appWidgetManager.getAppWidgetInfo(appWidgetId)
+                val targetLayoutId = if (widgetInfo?.provider?.className == AttendanceAppWidgetProviderSmall::class.java.name) {
+                    R.layout.attendance_widget_small
+                } else {
+                    defaultLayoutId
+                }
+                updateAppWidget(context, appWidgetManager, appWidgetId, targetLayoutId)
             }
             return
         }
@@ -1187,7 +1217,11 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
 
                 val remoteWfh = checkEmployeeWfhStatus(context, accessToken, userId)
                 if (remoteWfh != null) {
-                    sharedPrefs.edit().putBoolean("WfhMode", remoteWfh).apply()
+                    val todayDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+                    sharedPrefs.edit()
+                        .putBoolean("WfhMode", remoteWfh)
+                        .putString("WfhDate", todayDateStr)
+                        .apply()
                 }
 
                 // Fetch dynamic policy target hours & personalized 30-day average break

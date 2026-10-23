@@ -237,6 +237,8 @@ class MainActivity : AppCompatActivity() {
         val url = intent?.getStringExtra("shortcut_url")
         if (!url.isNullOrBlank()) {
             webView.loadUrl(url)
+        } else {
+            ensureTrackerScriptInjected()
         }
         updateNudgeOverlayState(animate = true)
     }
@@ -245,6 +247,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         if (::webView.isInitialized) {
             TokenManager.syncTokensToWebView(webView, applicationContext)
+            ensureTrackerScriptInjected()
         }
         countdownHandler.removeCallbacks(countdownRunnable)
         countdownHandler.post(countdownRunnable)
@@ -1281,6 +1284,20 @@ class MainActivity : AppCompatActivity() {
             webView.evaluateJavascript(script, null)
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+
+    private fun ensureTrackerScriptInjected() {
+        if (!::webView.isInitialized) return
+        val curUrl = webView.url
+        if (!curUrl.isNullOrBlank() && curUrl.contains("apps.pal.tech") && !curUrl.contains("/login")) {
+            webView.evaluateJavascript(
+                "(function() { return !!document.getElementById('at-widget-container'); })();"
+            ) { result ->
+                if (result == null || result == "false" || result == "null") {
+                    injectScriptFromAssets()
+                }
+            }
         }
     }
 
