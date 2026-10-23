@@ -486,6 +486,11 @@ class MainActivity : AppCompatActivity() {
             checkForAppUpdate(force = true, isManualClick = false)
         }
 
+        // Long-press Refresh button triggers immediate manual update check
+        btnRefresh.setOnLongClickListener {
+            checkForAppUpdate(force = true, isManualClick = true)
+            true
+        }
 
         // Long click on Title opens Settings & Preferences Dialog
         appTitle.setOnLongClickListener {
@@ -877,7 +882,7 @@ class MainActivity : AppCompatActivity() {
             if (notifPre) "15-Min Pre-Exit Alerts: Enabled" else "15-Min Pre-Exit Alerts: Disabled",
             if (wfh) "Workspace: Remote (Synced from HRMS)" else "Workspace: In-Office (Synced from HRMS)",
             "View Leave Balances",
-            "Check for App Updates",
+            "Check for App Updates (Current: v${getAppVersionName()})",
             "Re-inject Insights Widget",
             "Clear Cache & Relogin",
             "About HRMS"
@@ -1185,6 +1190,9 @@ class MainActivity : AppCompatActivity() {
             .setTitle("HRMS")
             .setMessage("Version $verName\n\n• Samsung One UI Edge-to-Edge Design\n• Real-time Biometric Tracking\n• Now Bar Live Activity Capsule\n• Home-Screen Widgets (Small, Medium, Large)\n• Desktop & Mobile Viewports\n• Shift Countdown Timer & Daily Summary\n• WFH Mode & Smart Shift Alerts\n• App Shortcuts & Leave Balance Quick View\n• Secure Local Token Storage")
             .setPositiveButton("OK", null)
+            .setNeutralButton("Check for Updates") { _, _ ->
+                checkForAppUpdate(force = true, isManualClick = true)
+            }
             .show()
     }
 
@@ -1704,6 +1712,23 @@ class MainActivity : AppCompatActivity() {
                 clearTokensAndShowLogin()
             }
         }
+
+        @JavascriptInterface
+        fun checkForAppUpdates() {
+            runOnUiThread {
+                checkForAppUpdate(force = true, isManualClick = true)
+            }
+        }
+
+        @JavascriptInterface
+        fun getAppVersionName(): String {
+            return this@MainActivity.getAppVersionName()
+        }
+
+        @JavascriptInterface
+        fun getAppVersionCode(): Int {
+            return this@MainActivity.getAppVersionCode()
+        }
     }
 
     /**
@@ -1897,7 +1922,11 @@ class MainActivity : AppCompatActivity() {
                             layoutUpdateBadge.visibility = View.GONE
                             stopBeaconAnimation()
                             if (isManualClick) {
-                                Toast.makeText(this@MainActivity, "You're using the latest version ($localVersionName)", Toast.LENGTH_SHORT).show()
+                                AlertDialog.Builder(this@MainActivity, R.style.Theme_HRMS_Dialog)
+                                    .setTitle("You're Up to Date")
+                                    .setMessage("HRMS is currently running the latest version (v$localVersionName).\n\nNo updates are needed right now.")
+                                    .setPositiveButton("OK", null)
+                                    .show()
                             }
                         }
                     }

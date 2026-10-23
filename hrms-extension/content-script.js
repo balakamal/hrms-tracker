@@ -513,26 +513,44 @@
       height: 100%;
       background: var(--at-bg-panels);
       border-radius: 20px;
-      padding: 20px;
+      padding: 0 !important;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      gap: 14px;
       z-index: 10;
       transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
       transform: translateY(100%);
-      overflow-y: auto;
+      overflow: hidden !important;
       color: var(--at-text-primary);
     }
     .at-settings.active {
       transform: translateY(0);
     }
+    .at-settings-top {
+      flex-shrink: 0;
+      background: var(--at-bg-panels);
+      padding: 10px 18px 8px 18px;
+      border-bottom: 1px solid var(--at-panel-border);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 2;
+    }
     .at-settings-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid var(--at-panel-border);
-      padding-bottom: 12px;
+      padding-bottom: 0;
+    }
+    .at-settings-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 18px 24px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
     }
     .at-settings-title {
       font-weight: 700;
@@ -649,12 +667,84 @@
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       font-family: inherit;
     }
+    .at-btn-action svg {
+      width: 14px;
+      height: 14px;
+      min-width: 14px;
+      fill: currentColor;
+      flex-shrink: 0;
+    }
     .at-btn-action:hover {
       background: rgba(255, 255, 255, 0.1);
       border-color: rgba(255, 255, 255, 0.2);
     }
     .at-btn-action:active {
       transform: scale(0.98);
+    }
+    .at-btn-update {
+      padding: 8px 12px !important;
+      border-radius: 12px !important;
+      background: var(--at-bg-item) !important;
+      border: 1px solid var(--at-border) !important;
+    }
+    .at-btn-update:hover {
+      background: rgba(255, 255, 255, 0.08) !important;
+      border-color: rgba(56, 189, 248, 0.35) !important;
+    }
+    .at-btn-update-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .at-btn-update-icon-box {
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
+      border-radius: 8px;
+      background: rgba(56, 189, 248, 0.12);
+      color: #38BDF8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .at-btn-update-icon-box svg {
+      width: 14px !important;
+      height: 14px !important;
+      fill: currentColor !important;
+    }
+    .at-btn-update-text {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      text-align: left;
+      min-width: 0;
+    }
+    .at-btn-update-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--at-text-primary);
+      white-space: nowrap;
+    }
+    .at-btn-update-sub {
+      font-size: 9.5px;
+      font-weight: 500;
+      color: var(--at-text-secondary);
+      white-space: nowrap;
+    }
+    .at-pill-version {
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(56, 189, 248, 0.12);
+      color: #38BDF8;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
     }
     .at-btn-logout {
       color: #EF4444 !important;
@@ -673,6 +763,23 @@
     }
     #at-widget-container.at-theme-light .at-btn-action:hover {
       background: rgba(0, 0, 0, 0.06);
+    }
+    #at-widget-container.at-theme-light .at-btn-update {
+      background: rgba(0, 0, 0, 0.03) !important;
+      border-color: rgba(0, 0, 0, 0.08) !important;
+    }
+    #at-widget-container.at-theme-light .at-btn-update:hover {
+      background: rgba(0, 0, 0, 0.06) !important;
+      border-color: rgba(37, 99, 235, 0.3) !important;
+    }
+    #at-widget-container.at-theme-light .at-btn-update-icon-box {
+      background: rgba(37, 99, 235, 0.08);
+      color: #2563EB;
+    }
+    #at-widget-container.at-theme-light .at-pill-version {
+      background: rgba(37, 99, 235, 0.08);
+      color: #2563EB;
+      border-color: rgba(37, 99, 235, 0.2);
     }
     #at-widget-container.at-theme-light .at-btn-logout {
       color: #DC2626 !important;
@@ -790,7 +897,14 @@
     #at-widget-container.at-fullscreen .at-settings {
       border-radius: 0 !important;
       height: 100% !important;
-      padding: 20px 24px 36px 24px !important;
+      padding: 0 !important;
+      overflow: hidden !important;
+    }
+    #at-widget-container.at-fullscreen .at-settings-top {
+      padding: 16px 24px 12px 24px !important;
+    }
+    #at-widget-container.at-fullscreen .at-settings-content {
+      padding: 16px 24px 36px 24px !important;
       overflow-y: auto !important;
     }
     #at-widget-container.at-fullscreen .at-grab-bar {
@@ -813,6 +927,7 @@
     phone: `<svg viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg>`,
     drag: `<svg viewBox="0 0 24 24"><path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>`,
     chevron: `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor;"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>`,
+    update: `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor;"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>`,
   };
 
   // --- STATE MANAGEMENT ---
@@ -1652,18 +1767,26 @@
 
       <!-- Settings Subpanel -->
       <div class="at-settings" id="at-settings-panel">
-        <div class="at-settings-header">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span class="at-settings-title">Tracker Settings</span>
-            <span class="at-save-indicator" id="at-save-indicator">Auto-saved ✓</span>
+        <!-- Pinned Top: Grab Bar + Settings Header (Never scrolls!) -->
+        <div class="at-settings-top">
+          <div class="at-grab-bar" id="at-drag-handle-settings" title="Drag to move widget">
+            <div class="at-grab-pill"></div>
           </div>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <button class="at-btn" id="at-btn-fullscreen-settings" title="Fullscreen Settings">${state.isFullscreen ? ICONS.fullscreenExit : ICONS.fullscreen}</button>
-            <button class="at-btn" id="at-btn-close-settings" title="Close Settings">${ICONS.minimize}</button>
+          <div class="at-settings-header">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="at-settings-title">Tracker Settings</span>
+              <span class="at-save-indicator" id="at-save-indicator">Auto-saved ✓</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <button class="at-btn" id="at-btn-fullscreen-settings" title="Fullscreen Settings">${state.isFullscreen ? ICONS.fullscreenExit : ICONS.fullscreen}</button>
+              <button class="at-btn" id="at-btn-close-settings" title="Close Settings">${ICONS.minimize}</button>
+            </div>
           </div>
         </div>
 
-        <!-- Section: Shift Target -->
+        <!-- Scrollable Content Body -->
+        <div class="at-settings-content">
+          <!-- Section: Shift Target -->
         <div class="at-settings-section-title">Shift Target</div>
         <div class="at-form-group">
           <label>Target Work (Hours / Minutes)</label>
@@ -1781,6 +1904,20 @@
             ${ICONS.chevron}
           </button>
         </div>
+        <div class="at-form-group" id="at-row-check-updates" style="margin-top: 4px;">
+          <button type="button" class="at-btn-action at-btn-update" id="at-btn-check-updates">
+            <div class="at-btn-update-left">
+              <div class="at-btn-update-icon-box">
+                ${ICONS.update}
+              </div>
+              <div class="at-btn-update-text">
+                <span class="at-btn-update-title" id="at-txt-update-label">Check for App Updates</span>
+                <span class="at-btn-update-sub" id="at-txt-update-sub">Tap to scan remote releases</span>
+              </div>
+            </div>
+            <span class="at-pill-version" id="at-txt-current-version">v4.2</span>
+          </button>
+        </div>
 
         <!-- Section: Workspace & Account -->
         <div class="at-settings-section-title">Workspace & Account</div>
@@ -1802,6 +1939,7 @@
           <button type="button" class="at-btn-action at-btn-logout" id="at-btn-logout">
             Sign Out of Account
           </button>
+        </div>
         </div>
       </div>
     `;
@@ -1932,6 +2070,36 @@
       }
     });
 
+    const btnCheckUpdates = card.querySelector("#at-btn-check-updates");
+    btnCheckUpdates?.addEventListener("click", async () => {
+      const lbl = card.querySelector("#at-txt-update-label");
+      const sub = card.querySelector("#at-txt-update-sub");
+      const origText = lbl ? lbl.textContent : "Check for App Updates";
+      const origSub = sub ? sub.textContent : "Tap to scan remote releases";
+      if (lbl) lbl.textContent = "Checking...";
+      if (sub) sub.textContent = "Contacting update server";
+
+      if (window.AndroidApp && typeof window.AndroidApp.checkForAppUpdates === "function") {
+        window.AndroidApp.checkForAppUpdates();
+        setTimeout(() => {
+          if (lbl) lbl.textContent = origText;
+          if (sub) sub.textContent = origSub;
+        }, 2200);
+      } else {
+        try {
+          const res = await fetch("https://raw.githubusercontent.com/balakamal/hrms-tracker/main/version.json?t=" + Date.now());
+          const data = await res.json();
+          if (lbl) lbl.textContent = origText;
+          if (sub) sub.textContent = origSub;
+          alert(`HRMS Remote Release: v${data.versionName} (${data.releaseDate})\n\nNotes: ${data.releaseNotes}`);
+        } catch (e) {
+          if (lbl) lbl.textContent = origText;
+          if (sub) sub.textContent = origSub;
+          alert("Could not reach update server. Please check your network.");
+        }
+      }
+    });
+
     logoutBtn?.addEventListener("click", () => {
       if (confirm("Are you sure you want to sign out?")) {
         if (window.AndroidApp && typeof window.AndroidApp.logout === "function") {
@@ -1949,6 +2117,7 @@
     const container = elements.container;
     const badge = elements.badge;
     const dragHandle = elements.card.querySelector("#at-drag-handle");
+    const dragHandleSettings = elements.card.querySelector("#at-drag-handle-settings");
 
     let active = false;
     let currentX;
@@ -2049,7 +2218,7 @@
       }
     }
 
-    [badge, dragHandle].forEach((el) => {
+    [badge, dragHandle, dragHandleSettings].forEach((el) => {
       if (el) {
         el.addEventListener("pointerdown", dragStart);
         el.addEventListener("touchstart", (e) => {
@@ -2451,6 +2620,14 @@
     }
     if (rowWidgetConfig) {
       rowWidgetConfig.style.display = window.AndroidApp ? "block" : "none";
+    }
+    const txtCurrentVer = card.querySelector("#at-txt-current-version");
+    if (txtCurrentVer) {
+      let verStr = "v4.2";
+      if (window.AndroidApp && typeof window.AndroidApp.getAppVersionName === "function") {
+        verStr = "v" + window.AndroidApp.getAppVersionName();
+      }
+      txtCurrentVer.textContent = verStr;
     }
 
     if (window.AndroidApp && typeof window.AndroidApp.setSwipeRefreshEnabled === "function") {
