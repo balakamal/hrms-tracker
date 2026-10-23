@@ -53,8 +53,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var layoutNowBar: View
     private lateinit var imgNowBarIcon: ImageView
     private lateinit var txtCountdown: TextView
-    private lateinit var layoutWfhHub: View
-    private lateinit var btnDismissWfhCard: ImageButton
     private lateinit var layoutSummaryCard: View
     private lateinit var btnCloseSummary: ImageButton
     private lateinit var txtSummaryFirstIn: TextView
@@ -69,6 +67,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnStopNudge: Button
     private lateinit var txtNudgeTitle: TextView
     private lateinit var txtNudgeMessage: TextView
+    private lateinit var layoutUpdateBadge: View
+    private lateinit var viewUpdateBeacon: View
+    private lateinit var txtUpdateVersion: TextView
+    private var beaconAnimator: android.animation.ObjectAnimator? = null
 
     private val nudgeStateReceiver = object : android.content.BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -108,6 +110,15 @@ class MainActivity : AppCompatActivity() {
         private const val KEY_LEAVE_CASUAL = "LeaveBalanceCasual"
         private const val KEY_LEAVE_SICK = "LeaveBalanceSick"
         private const val KEY_LEAVE_EARNED = "LeaveBalanceEarned"
+        private const val KEY_LAST_UPDATE_CHECK = "LastUpdateCheckTime"
+        private const val KEY_REMOTE_VERSION_CODE = "RemoteVersionCode"
+        private const val KEY_REMOTE_VERSION_NAME = "RemoteVersionName"
+        private const val KEY_REMOTE_APK_URL = "RemoteApkUrl"
+        private const val KEY_REMOTE_RELEASE_NOTES = "RemoteReleaseNotes"
+        private const val KEY_REMOTE_APK_SIZE = "RemoteApkSize"
+        private const val KEY_REMOTE_RELEASE_DATE = "RemoteReleaseDate"
+        private const val UPDATE_CHECK_THROTTLE_MS = 4 * 60 * 60 * 1000L // 4 Hours
+        private const val VERSION_JSON_URL = "https://raw.githubusercontent.com/balakamal/hrms-tracker/main/version.json"
 
         private const val LOGIN_URL = "https://apps.pal.tech/hrms/login"
         private const val HOME_URL = "https://apps.pal.tech/hrms/"
@@ -164,8 +175,6 @@ class MainActivity : AppCompatActivity() {
         layoutNowBar = findViewById(R.id.layout_now_bar)
         imgNowBarIcon = findViewById(R.id.img_now_bar_icon)
         txtCountdown = findViewById(R.id.txt_countdown)
-        layoutWfhHub = findViewById(R.id.layout_wfh_hub)
-        btnDismissWfhCard = findViewById(R.id.btn_dismiss_wfh_card)
         layoutSummaryCard = findViewById(R.id.layout_summary_card)
         btnCloseSummary = findViewById(R.id.btn_close_summary)
         txtSummaryFirstIn = findViewById(R.id.txt_summary_first_in)
@@ -180,6 +189,10 @@ class MainActivity : AppCompatActivity() {
         btnStopNudge = findViewById(R.id.btn_stop_nudge)
         txtNudgeTitle = findViewById(R.id.txt_nudge_title)
         txtNudgeMessage = findViewById(R.id.txt_nudge_message)
+        layoutUpdateBadge = findViewById(R.id.layout_update_badge)
+        viewUpdateBeacon = findViewById(R.id.view_update_beacon)
+        txtUpdateVersion = findViewById(R.id.txt_update_version)
+        setupUpdateBadge()
 
         // Dynamic System Window Insets: Attach to root layout to guarantee dispatch
         val rootLayout = findViewById<View>(R.id.root_layout)
@@ -264,11 +277,13 @@ class MainActivity : AppCompatActivity() {
         }
         updateNudgeOverlayState(animate = false)
         LockScreenLiveCardManager.updateLiveCard(this)
+        checkUpdateWithThrottle(force = false)
     }
 
     override fun onPause() {
         super.onPause()
         countdownHandler.removeCallbacks(countdownRunnable)
+        stopBeaconAnimation()
         try {
             unregisterReceiver(nudgeStateReceiver)
         } catch (e: Exception) {
@@ -302,6 +317,7 @@ class MainActivity : AppCompatActivity() {
         swipeRefresh.setProgressBackgroundColorSchemeColor(ContextCompat.getColor(this, R.color.bg_surface_card))
         swipeRefresh.setOnRefreshListener {
             webView.reload()
+            checkForAppUpdate(force = true, isManualClick = false)
         }
         swipeRefresh.setOnChildScrollUpCallback { _, _ ->
             if (!isSwipeRefreshAllowed) {
@@ -326,6 +342,7 @@ class MainActivity : AppCompatActivity() {
                     progressBar.progress = newProgress
                 } else {
                     progressBar.visibility = View.GONE
+                    ensureTrackerScriptInjected()
                 }
             }
 
@@ -400,6 +417,7 @@ class MainActivity : AppCompatActivity() {
                     
                     // Inject the floating widget script
                     injectScriptFromAssets()
+                    view?.postDelayed({ ensureTrackerScriptInjected() }, 1200)
 
                     // Extract leave balances if on the leave page
                     if (url.contains("leave")) {
@@ -407,6 +425,12 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
+            }
+
+            override fun doUpdateVisitedHistory(view: WebView?, url: String?, isReload: Boolean) {
+                super.doUpdateVisitedHistory(view, url, isReload)
+                ensureTrackerScriptInjected()
+                view?.postDelayed({ ensureTrackerScriptInjected() }, 1000)
             }
 
             override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
@@ -459,6 +483,7 @@ class MainActivity : AppCompatActivity() {
             layoutError.visibility = View.GONE
             webView.visibility = View.VISIBLE
             webView.reload()
+            checkForAppUpdate(force = true, isManualClick = false)
         }
 
 
@@ -477,16 +502,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupWfhHubListeners() {
-        // Dismiss / Minimize WFH Card
-        btnDismissWfhCard.setOnClickListener {
-            layoutWfhHub.animate()
-                .alpha(0f)
-                .translationY(-30f)
-                .setDuration(250)
-                .withEndAction { layoutWfhHub.visibility = View.GONE }
-                .start()
-        }
-
         // Tap on Now Bar Live Activity Capsule opens Workspace Status Info
         layoutNowBar.setOnClickListener {
             showWorkspaceModeSheet()
@@ -494,34 +509,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateWfhHubState(animate: Boolean) {
-        if (!::layoutWfhHub.isInitialized) return
-        if (isWfhMode) {
-            layoutWfhHub.visibility = View.VISIBLE
-            if (animate) {
-                layoutWfhHub.alpha = 0f
-                layoutWfhHub.translationY = -40f
-                layoutWfhHub.animate()
-                    .alpha(1f)
-                    .translationY(0f)
-                    .setDuration(350)
-                    .setInterpolator(android.view.animation.OvershootInterpolator(1.1f))
-                    .start()
-            } else {
-                layoutWfhHub.alpha = 1f
-                layoutWfhHub.translationY = 0f
-            }
-        } else {
-            if (animate && layoutWfhHub.visibility == View.VISIBLE) {
-                layoutWfhHub.animate()
-                    .alpha(0f)
-                    .translationY(-40f)
-                    .setDuration(250)
-                    .withEndAction { layoutWfhHub.visibility = View.GONE }
-                    .start()
-            } else {
-                layoutWfhHub.visibility = View.GONE
-            }
-        }
+        updateCountdown()
     }
 
     private fun setupShiftNudgeListeners() {
@@ -672,7 +660,7 @@ class MainActivity : AppCompatActivity() {
         if (isWfhMode) {
             imgNowBarIcon.setImageResource(R.drawable.ic_wfh_home)
             imgNowBarIcon.setColorFilter(ContextCompat.getColor(this, R.color.accent_amber_gold))
-            txtCountdown.text = "Remote Workspace"
+            txtCountdown.text = "Remote Workspace • Biometrics Paused"
             txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.accent_amber_gold))
             return
         }
@@ -889,6 +877,7 @@ class MainActivity : AppCompatActivity() {
             if (notifPre) "15-Min Pre-Exit Alerts: Enabled" else "15-Min Pre-Exit Alerts: Disabled",
             if (wfh) "Workspace: Remote (Synced from HRMS)" else "Workspace: In-Office (Synced from HRMS)",
             "View Leave Balances",
+            "Check for App Updates",
             "Re-inject Insights Widget",
             "Clear Cache & Relogin",
             "About HRMS"
@@ -932,12 +921,13 @@ class MainActivity : AppCompatActivity() {
                         Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
                     }
                     10 -> showLeaveBalanceDialog()
-                    11 -> {
+                    11 -> checkForAppUpdate(force = true, isManualClick = true)
+                    12 -> {
                         injectScriptFromAssets()
                         Toast.makeText(this, "Insights Widget re-injected!", Toast.LENGTH_SHORT).show()
                     }
-                    12 -> clearTokensAndShowLogin()
-                    13 -> showAboutDialog()
+                    13 -> clearTokensAndShowLogin()
+                    14 -> showAboutDialog()
                 }
             }
             .setNegativeButton("Close", null)
@@ -1493,10 +1483,25 @@ class MainActivity : AppCompatActivity() {
 
         @JavascriptInterface
         fun saveSettings(hours: Double) {
+            val targetMin = (hours * 60).toFloat()
             sharedPrefs.edit()
                 .putFloat(KEY_TARGET_HOURS, hours.toFloat())
+                .putFloat("WidgetTargetMinutes", targetMin)
                 .apply()
             triggerWidgetRefresh()
+        }
+
+        @JavascriptInterface
+        fun getNativeSettings(): String {
+            val obj = org.json.JSONObject()
+            obj.put("leaveAlertEnabled", sharedPrefs.getBoolean(KEY_NOTIF_SHIFT_COMPLETE, true))
+            obj.put("leaveAlertInterval", sharedPrefs.getInt("LeaveAlertInterval", 5))
+            obj.put("notifPreExit", sharedPrefs.getBoolean(KEY_NOTIF_PRE_EXIT, true))
+            obj.put("liveCardEnabled", sharedPrefs.getBoolean("LiveCardEnabled", true))
+            obj.put("timesheetEnabled", sharedPrefs.getBoolean("TimesheetEnabled", true))
+            obj.put("timesheetHour", sharedPrefs.getInt("TimesheetReminderHour", 21))
+            obj.put("timesheetMinute", sharedPrefs.getInt("TimesheetReminderMinute", 0))
+            return obj.toString()
         }
 
         @JavascriptInterface
@@ -1786,5 +1791,360 @@ class MainActivity : AppCompatActivity() {
 
     fun openImageViewer(url: String, title: String?) {
         openImageViewer(url, null, title)
+    }
+
+    // ============================================================================================
+    // Over-The-Air (OTA) App Update Logic with One UI 9 Frosted Glass Badge & 1-Tap Installer
+    // ============================================================================================
+
+    private fun setupUpdateBadge() {
+        layoutUpdateBadge.setOnClickListener {
+            val remoteVer = sharedPrefs.getString(KEY_REMOTE_VERSION_NAME, "") ?: ""
+            val remoteNotes = sharedPrefs.getString(KEY_REMOTE_RELEASE_NOTES, "") ?: ""
+            val remoteUrl = sharedPrefs.getString(KEY_REMOTE_APK_URL, "") ?: ""
+            val remoteSize = sharedPrefs.getString(KEY_REMOTE_APK_SIZE, "") ?: ""
+            val releaseDate = sharedPrefs.getString(KEY_REMOTE_RELEASE_DATE, "") ?: ""
+            if (remoteUrl.isNotBlank()) {
+                showUpdateDialog(remoteVer, remoteNotes, remoteUrl, remoteSize, releaseDate)
+            }
+        }
+    }
+
+    private fun startBeaconAnimation() {
+        if (beaconAnimator == null) {
+            beaconAnimator = android.animation.ObjectAnimator.ofFloat(viewUpdateBeacon, "alpha", 1f, 0.2f).apply {
+                duration = 900
+                repeatMode = android.animation.ValueAnimator.REVERSE
+                repeatCount = android.animation.ValueAnimator.INFINITE
+            }
+        }
+        if (beaconAnimator?.isStarted != true) {
+            beaconAnimator?.start()
+        }
+    }
+
+    private fun stopBeaconAnimation() {
+        beaconAnimator?.cancel()
+    }
+
+    private fun checkUpdateWithThrottle(force: Boolean = false, isManualClick: Boolean = false) {
+        val now = System.currentTimeMillis()
+        val lastCheck = sharedPrefs.getLong(KEY_LAST_UPDATE_CHECK, 0L)
+        if (force || (now - lastCheck) >= UPDATE_CHECK_THROTTLE_MS) {
+            checkForAppUpdate(force = force, isManualClick = isManualClick)
+        } else {
+            evaluateCachedUpdate()
+        }
+    }
+
+    private fun evaluateCachedUpdate() {
+        val remoteVersionCode = sharedPrefs.getInt(KEY_REMOTE_VERSION_CODE, 0)
+        val remoteVersionName = sharedPrefs.getString(KEY_REMOTE_VERSION_NAME, "") ?: ""
+        val localVersionCode = getAppVersionCode()
+        val localVersionName = getAppVersionName()
+
+        if (isUpdateAvailable(remoteVersionCode, remoteVersionName, localVersionCode, localVersionName)) {
+            showUpdateBadgeOnUi(remoteVersionName)
+        } else {
+            layoutUpdateBadge.visibility = View.GONE
+            stopBeaconAnimation()
+        }
+    }
+
+    private fun checkForAppUpdate(force: Boolean = false, isManualClick: Boolean = false) {
+        if (isManualClick) {
+            Toast.makeText(this, "Checking for latest updates...", Toast.LENGTH_SHORT).show()
+        }
+        Thread {
+            try {
+                val url = java.net.URL(VERSION_JSON_URL)
+                val conn = url.openConnection() as java.net.HttpURLConnection
+                conn.connectTimeout = 6000
+                conn.readTimeout = 6000
+                conn.requestMethod = "GET"
+                conn.useCaches = false
+                conn.setRequestProperty("Cache-Control", "no-cache")
+
+                if (conn.responseCode == java.net.HttpURLConnection.HTTP_OK) {
+                    val response = conn.inputStream.bufferedReader().use { it.readText() }
+                    val json = org.json.JSONObject(response)
+                    val remoteVersionCode = json.optInt("versionCode", 0)
+                    val remoteVersionName = json.optString("versionName", "")
+                    val releaseDate = json.optString("releaseDate", "")
+                    val releaseNotes = json.optString("releaseNotes", "")
+                    val apkUrl = json.optString("apkUrl", "")
+                    val apkSize = json.optString("apkSize", "")
+
+                    val localVersionCode = getAppVersionCode()
+                    val localVersionName = getAppVersionName()
+
+                    val now = System.currentTimeMillis()
+                    sharedPrefs.edit().putLong(KEY_LAST_UPDATE_CHECK, now).apply()
+
+                    if (isUpdateAvailable(remoteVersionCode, remoteVersionName, localVersionCode, localVersionName)) {
+                        sharedPrefs.edit()
+                            .putInt(KEY_REMOTE_VERSION_CODE, remoteVersionCode)
+                            .putString(KEY_REMOTE_VERSION_NAME, remoteVersionName)
+                            .putString(KEY_REMOTE_RELEASE_DATE, releaseDate)
+                            .putString(KEY_REMOTE_RELEASE_NOTES, releaseNotes)
+                            .putString(KEY_REMOTE_APK_URL, apkUrl)
+                            .putString(KEY_REMOTE_APK_SIZE, apkSize)
+                            .apply()
+
+                        runOnUiThread {
+                            showUpdateBadgeOnUi(remoteVersionName)
+                            if (isManualClick) {
+                                showUpdateDialog(remoteVersionName, releaseNotes, apkUrl, apkSize, releaseDate)
+                            }
+                        }
+                    } else {
+                        runOnUiThread {
+                            layoutUpdateBadge.visibility = View.GONE
+                            stopBeaconAnimation()
+                            if (isManualClick) {
+                                Toast.makeText(this@MainActivity, "You're using the latest version ($localVersionName)", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                } else if (isManualClick) {
+                    runOnUiThread {
+                        Toast.makeText(this@MainActivity, "Update check failed (HTTP ${conn.responseCode})", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                conn.disconnect()
+            } catch (e: Exception) {
+                if (isManualClick) {
+                    runOnUiThread {
+                        Toast.makeText(this@MainActivity, "Update check failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }.start()
+    }
+
+    private fun getAppVersionCode(): Int {
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                packageManager.getPackageInfo(packageName, 0).longVersionCode.toInt()
+            } else {
+                @Suppress("DEPRECATION")
+                packageManager.getPackageInfo(packageName, 0).versionCode
+            }
+        } catch (e: Exception) {
+            21
+        }
+    }
+
+    private fun getAppVersionName(): String {
+        return try {
+            packageManager.getPackageInfo(packageName, 0).versionName ?: "4.2"
+        } catch (e: Exception) {
+            "4.2"
+        }
+    }
+
+    private fun isUpdateAvailable(remoteCode: Int, remoteName: String, localCode: Int, localName: String): Boolean {
+        if (remoteCode > localCode && remoteCode > 0) return true
+        if (remoteName.isNotBlank() && remoteName != localName) {
+            return compareSemVer(remoteName, localName) > 0
+        }
+        return false
+    }
+
+    private fun compareSemVer(v1: String, v2: String): Int {
+        val parts1 = v1.replace(Regex("[^0-9.]"), "").split(".").mapNotNull { it.toIntOrNull() }
+        val parts2 = v2.replace(Regex("[^0-9.]"), "").split(".").mapNotNull { it.toIntOrNull() }
+        val maxLen = maxOf(parts1.size, parts2.size)
+        for (i in 0 until maxLen) {
+            val p1 = parts1.getOrElse(i) { 0 }
+            val p2 = parts2.getOrElse(i) { 0 }
+            if (p1 != p2) return p1.compareTo(p2)
+        }
+        return 0
+    }
+
+    private fun showUpdateBadgeOnUi(versionName: String) {
+        val displayVer = if (versionName.startsWith("v", ignoreCase = true)) versionName else "v$versionName"
+        txtUpdateVersion.text = "$displayVer Available"
+        if (layoutUpdateBadge.visibility != View.VISIBLE) {
+            layoutUpdateBadge.alpha = 0f
+            layoutUpdateBadge.scaleX = 0.85f
+            layoutUpdateBadge.scaleY = 0.85f
+            layoutUpdateBadge.visibility = View.VISIBLE
+            layoutUpdateBadge.animate()
+                .alpha(1f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(300)
+                .setInterpolator(android.view.animation.OvershootInterpolator(1.2f))
+                .start()
+        }
+        startBeaconAnimation()
+    }
+
+    private fun showUpdateDialog(
+        remoteVersion: String,
+        notes: String,
+        apkUrl: String,
+        apkSize: String,
+        releaseDate: String
+    ) {
+        val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(this, R.style.Theme_HRMS_BottomSheetDialog)
+        val view = layoutInflater.inflate(R.layout.dialog_app_update, null)
+        dialog.setContentView(view)
+
+        val txtVersionMeta = view.findViewById<TextView>(R.id.txt_dialog_version_meta)
+        val txtReleaseNotes = view.findViewById<TextView>(R.id.txt_dialog_release_notes)
+        val btnClose = view.findViewById<ImageButton>(R.id.btn_dialog_close)
+        val btnLater = view.findViewById<Button>(R.id.btn_dialog_later)
+        val btnInstall = view.findViewById<Button>(R.id.btn_dialog_install)
+        val txtBrowser = view.findViewById<TextView>(R.id.txt_dialog_browser_fallback)
+        val layoutProgress = view.findViewById<View>(R.id.layout_download_progress)
+        val pbProgress = view.findViewById<ProgressBar>(R.id.pb_download_progress)
+        val txtStatus = view.findViewById<TextView>(R.id.txt_download_status)
+        val txtPercent = view.findViewById<TextView>(R.id.txt_download_percent)
+
+        val displayVer = if (remoteVersion.startsWith("v", ignoreCase = true)) remoteVersion else "v$remoteVersion"
+        val metaParts = mutableListOf(displayVer)
+        if (apkSize.isNotBlank()) metaParts.add(apkSize)
+        if (releaseDate.isNotBlank()) metaParts.add(releaseDate)
+        txtVersionMeta.text = metaParts.joinToString(" • ")
+
+        if (notes.isNotBlank()) {
+            txtReleaseNotes.text = notes
+        } else {
+            txtReleaseNotes.text = "Performance enhancements, widget refinements, and stability improvements."
+        }
+
+        btnClose.setOnClickListener { dialog.dismiss() }
+        btnLater.setOnClickListener { dialog.dismiss() }
+        txtBrowser.setOnClickListener {
+            dialog.dismiss()
+            handleLinkDispatch(apkUrl)
+        }
+
+        btnInstall.setOnClickListener {
+            startApkDownloadAndInstall(
+                apkUrl = apkUrl,
+                layoutProgress = layoutProgress,
+                pbProgress = pbProgress,
+                txtStatus = txtStatus,
+                txtPercent = txtPercent,
+                btnInstall = btnInstall,
+                btnLater = btnLater
+            )
+        }
+
+        dialog.show()
+    }
+
+    private fun startApkDownloadAndInstall(
+        apkUrl: String,
+        layoutProgress: View,
+        pbProgress: ProgressBar,
+        txtStatus: TextView,
+        txtPercent: TextView,
+        btnInstall: Button,
+        btnLater: Button
+    ) {
+        btnInstall.isEnabled = false
+        btnInstall.text = "Downloading..."
+        btnLater.isEnabled = false
+        layoutProgress.visibility = View.VISIBLE
+        pbProgress.progress = 0
+        txtPercent.text = "0%"
+        txtStatus.text = "Connecting to CDN..."
+
+        Thread {
+            try {
+                val url = java.net.URL(apkUrl)
+                val conn = url.openConnection() as java.net.HttpURLConnection
+                conn.connectTimeout = 15000
+                conn.readTimeout = 30000
+                conn.connect()
+
+                val fileLength = conn.contentLength
+                val updatesDir = java.io.File(cacheDir, "updates")
+                if (!updatesDir.exists()) updatesDir.mkdirs()
+                val apkFile = java.io.File(updatesDir, "hrms-tracker-latest.apk")
+                if (apkFile.exists()) apkFile.delete()
+
+                val input = java.io.BufferedInputStream(conn.inputStream)
+                val output = java.io.FileOutputStream(apkFile)
+
+                val data = ByteArray(8192)
+                var total: Long = 0
+                var count: Int
+                var lastProgressUpdate = 0L
+
+                while (input.read(data).also { count = it } != -1) {
+                    total += count
+                    output.write(data, 0, count)
+
+                    val now = System.currentTimeMillis()
+                    if (fileLength > 0 && now - lastProgressUpdate > 100) {
+                        lastProgressUpdate = now
+                        val percent = ((total * 100) / fileLength).toInt()
+                        runOnUiThread {
+                            pbProgress.progress = percent
+                            txtPercent.text = "$percent%"
+                            txtStatus.text = "Downloading package... ($percent%)"
+                        }
+                    }
+                }
+
+                output.flush()
+                output.close()
+                input.close()
+                conn.disconnect()
+
+                runOnUiThread {
+                    pbProgress.progress = 100
+                    txtPercent.text = "100%"
+                    txtStatus.text = "Download complete. Starting installer..."
+                    btnInstall.text = "Install Now"
+                    btnInstall.isEnabled = true
+                    btnLater.isEnabled = true
+                    launchApkInstaller(apkFile)
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    layoutProgress.visibility = View.GONE
+                    btnInstall.isEnabled = true
+                    btnInstall.text = "Retry Download"
+                    btnLater.isEnabled = true
+                    Toast.makeText(this@MainActivity, "Download failed: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }.start()
+    }
+
+    private fun launchApkInstaller(apkFile: java.io.File) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (!packageManager.canRequestPackageInstalls()) {
+                    Toast.makeText(this, "Please allow HRMS to install app updates", Toast.LENGTH_LONG).show()
+                    val permissionIntent = Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                        data = Uri.parse("package:$packageName")
+                    }
+                    startActivity(permissionIntent)
+                    return
+                }
+            }
+
+            val apkUri = androidx.core.content.FileProvider.getUriForFile(
+                this,
+                "${applicationContext.packageName}.fileprovider",
+                apkFile
+            )
+
+            val installIntent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(apkUri, "application/vnd.android.package-archive")
+                flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            startActivity(installIntent)
+        } catch (e: Exception) {
+            Toast.makeText(this, "Could not open installer: ${e.message}", Toast.LENGTH_LONG).show()
+        }
     }
 }

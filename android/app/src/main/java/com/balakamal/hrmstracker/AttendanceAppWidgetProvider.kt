@@ -160,7 +160,16 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             val isClockedIn = sharedPrefs.getBoolean("WidgetIsClockedIn", false)
             val lastInTimestamp = sharedPrefs.getLong("WidgetLastInTimestamp", 0L)
             val baseWorkMinutes = sharedPrefs.getFloat("WidgetBaseWorkMinutes", -1f)
-            val targetMinutes = sharedPrefs.getFloat("WidgetTargetMinutes", 510f)
+            val savedTargetHours = sharedPrefs.getFloat("TargetHours", 8.5f)
+            val targetMinutes = sharedPrefs.getFloat("WidgetTargetMinutes", savedTargetHours * 60f)
+            val effectiveTargetHours = targetMinutes / 60.0
+            val targetHoursFormatted = if (effectiveTargetHours % 1.0 == 0.0) {
+                String.format(Locale.US, "%.0fh", effectiveTargetHours)
+            } else {
+                val h = effectiveTargetHours.toInt()
+                val m = Math.round((effectiveTargetHours - h) * 60).toInt()
+                if (m == 30) "${h}.5h" else "${h}h ${m}m"
+            }
 
             val workTime: String
             val progressPercent: Int
@@ -429,7 +438,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                         views.setTextViewText(R.id.widget_metric_label, "FIRST CLOCK-IN")
                         views.setTextViewText(R.id.widget_work_time_value, firstIn)
                         views.setTextColor(R.id.widget_work_time_value, colorSkyAccent)
-                        views.setTextViewText(R.id.widget_status_text, "Target: 8.5h • $progressPercent%")
+                        views.setTextViewText(R.id.widget_status_text, "Target: $targetHoursFormatted • $progressPercent%")
                         views.setTextColor(R.id.widget_status_text, colorTextLabel)
                     }
                     else -> {
@@ -535,11 +544,11 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 .putString("WidgetLastUpdated", lastUpdated)
                 .putString("WidgetCacheDate", todayDateStr)
 
+            editor.putFloat("WidgetTargetMinutes", targetMinutes.toFloat())
             if (baseWorkMinutes >= 0) {
                 editor.putFloat("WidgetBaseWorkMinutes", baseWorkMinutes.toFloat())
                 editor.putLong("WidgetLastInTimestamp", lastInTimestamp)
                 editor.putBoolean("WidgetIsClockedIn", isClockedIn)
-                editor.putFloat("WidgetTargetMinutes", targetMinutes.toFloat())
                 editor.putFloat("WidgetBaseBreakMinutes", baseBreakMinutes.toFloat())
                 editor.putInt("WidgetAvgBreakMinutes", avgBreakMinutes)
             }
@@ -877,6 +886,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                         val targetHours = ((rate / 100.0) * 8.5).toFloat()
                         sharedPrefs.edit()
                             .putFloat("TargetHours", targetHours)
+                            .putFloat("WidgetTargetMinutes", targetHours * 60f)
                             .putInt("PolicyWorkingRate", rate.toInt())
                             .putLong("LastPolicyFetchTimestamp", System.currentTimeMillis())
                             .apply()

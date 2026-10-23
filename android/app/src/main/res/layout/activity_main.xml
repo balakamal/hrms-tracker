@@ -88,6 +88,52 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
+            <!-- One UI 9 Frosted Glass Update Capsule (Option A) -->
+            <LinearLayout
+                android:id="@+id/layout_update_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_update_badge_capsule"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="8dp"
+                android:paddingEnd="10dp"
+                android:visibility="gone">
+
+                <!-- Glowing Beacon Dot -->
+                <View
+                    android:id="@+id/view_update_beacon"
+                    android:layout_width="6dp"
+                    android:layout_height="6dp"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_beacon_cyan" />
+
+                <!-- Vector Cloud Download Icon -->
+                <ImageView
+                    android:id="@+id/img_update_icon"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginEnd="5dp"
+                    android:contentDescription="Update ready"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_download"
+                    app:tint="#38BDF8" />
+
+                <!-- Version Label -->
+                <TextView
+                    android:id="@+id/txt_update_version"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.04"
+                    android:text="v4.2 Available"
+                    android:textColor="#38BDF8"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
             <!-- Desktop Mode Toggle Button -->
             <ImageButton
                 android:id="@+id/btn_desktop_mode"
@@ -146,66 +192,6 @@
                 android:layout_height="match_parent" />
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-        <!-- One UI Floating WFH Workspace Hub Card (Replaces the static top pill) -->
-        <LinearLayout
-            android:id="@+id/layout_wfh_hub"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top"
-            android:layout_marginStart="14dp"
-            android:layout_marginEnd="14dp"
-            android:layout_marginTop="58dp"
-            android:background="@drawable/bg_wfh_hub_card"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="12dp"
-            android:visibility="gone">
-
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:layout_marginEnd="10dp"
-                android:contentDescription="Remote Workspace"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_wfh_home"
-                app:tint="#F59E0B" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:letterSpacing="0.04"
-                    android:text="REMOTE WORKSPACE"
-                    android:textColor="@color/accent_amber_gold"
-                    android:textSize="11sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="1dp"
-                    android:text="Synced from HRMS • Biometrics paused"
-                    android:textColor="#94A3B8"
-                    android:textSize="10sp" />
-            </LinearLayout>
-
-            <!-- Dismiss / Minimize Button -->
-            <ImageButton
-                android:id="@+id/btn_dismiss_wfh_card"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Dismiss WFH card"
-                android:padding="5dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_close_white"
-                app:tint="#64748B" />
-        </LinearLayout>
 
         <!-- One UI Floating Shift Target Met / Leave Office Nudge Overlay -->
         <com.google.android.material.card.MaterialCardView

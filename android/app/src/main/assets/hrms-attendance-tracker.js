@@ -1563,6 +1563,10 @@
   let wasDragging = false;
 
   function buildUI() {
+    if (!document.body) {
+      setTimeout(buildUI, 100);
+      return;
+    }
     if (document.getElementById("at-widget-container")) return;
 
     // Inject style sheet
@@ -1570,7 +1574,7 @@
       const styleEl = document.createElement("style");
       styleEl.id = "at-widget-styles";
       styleEl.innerHTML = styles;
-      document.head.appendChild(styleEl);
+      (document.head || document.documentElement || document.body).appendChild(styleEl);
     }
 
     // Create Main Container
@@ -3366,13 +3370,43 @@
     }, 1000);
   }
 
-  // Start after DOM is loaded or if it's already loaded
+  // Safe startup after DOM is loaded or if it's already loaded
+  function startTracker() {
+    if (!document.body) {
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", startTracker);
+      } else {
+        setTimeout(startTracker, 100);
+      }
+      return;
+    }
+    try {
+      init();
+    } catch (e) {
+      console.error("Tracker init error:", e);
+      try {
+        buildUI();
+        constrainToViewport();
+      } catch (_) {}
+    }
+  }
+
   if (
     document.readyState === "complete" ||
     document.readyState === "interactive"
   ) {
-    init();
+    startTracker();
   } else {
-    window.addEventListener("DOMContentLoaded", init);
+    window.addEventListener("DOMContentLoaded", startTracker);
   }
+
+  // Periodic safety check outside init to re-append widget if dynamic SPA routing clears it
+  setInterval(() => {
+    if (document.body && !document.getElementById("at-widget-container")) {
+      try {
+        buildUI();
+        constrainToViewport();
+      } catch (_) {}
+    }
+  }, 1500);
 })();
