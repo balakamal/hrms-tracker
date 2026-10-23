@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:versionCode="196"
-    android:versionName="4.1"
+    android:versionCode="199"
+    android:versionName="4.2"
     android:compileSdkVersion="34"
     android:compileSdkVersionCodename="14"
     package="com.balakamal.hrmsinsights"
@@ -36,6 +36,9 @@
         android:maxSdkVersion="28" />
 
     <uses-permission
+        android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <uses-permission
         android:name="android.permission.FOREGROUND_SERVICE" />
 
     <permission
@@ -46,7 +49,7 @@
         android:name="com.balakamal.hrmsinsights.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
 
     <application
-        android:theme="@ref/0x7f110220"
+        android:theme="@ref/0x7f110221"
         android:label="@ref/0x7f10001c"
         android:icon="@ref/0x7f0e0000"
         android:debuggable="true"
@@ -56,7 +59,7 @@
         android:appComponentFactory="androidx.core.app.CoreComponentFactory">
 
         <activity
-            android:theme="@ref/0x7f110203"
+            android:theme="@ref/0x7f110204"
             android:label="@ref/0x7f10001c"
             android:icon="@ref/0x7f0e0000"
             android:name="com.balakamal.hrmstracker.MainActivity"
@@ -367,7 +370,7 @@
         </receiver>
 
         <activity
-            android:theme="@ref/0x7f110220"
+            android:theme="@ref/0x7f110221"
             android:label="@ref/0x7f1000a2"
             android:name="com.balakamal.hrmstracker.WidgetConfigureActivity"
             android:exported="true"

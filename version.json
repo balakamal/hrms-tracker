@@ -1,8 +1,8 @@
 {
-  "versionCode": 21,
+  "versionCode": 199,
   "versionName": "4.2",
   "releaseDate": "2026-10-23",
-  "releaseNotes": "feat: add Android application structure, widgets, and CI workflow for HRMS tracker",
+  "releaseNotes": "feat: add MainActivity implementation for HRMS tracker Android app",
   "apkUrl": "https://raw.githubusercontent.com/balakamal/hrms-tracker/main/builds/hrms-tracker-latest.apk",
   "apkSize": "5.9 MB"
 }
