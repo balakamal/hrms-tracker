@@ -1245,7 +1245,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setTargetHours(hours: Float) {
-        sharedPrefs.edit().putFloat(KEY_TARGET_HOURS, hours).apply()
+        val targetMin = hours * 60f
+        sharedPrefs.edit()
+            .putFloat(KEY_TARGET_HOURS, hours)
+            .putFloat("WidgetTargetMinutes", targetMin)
+            .putBoolean("HasCustomTargetHours", true)
+            .putLong("LastPolicyFetchTimestamp", System.currentTimeMillis())
+            .apply()
         
         // Push target hours update into the web localStorage and in-page widget
         val jsSync = "try { localStorage.setItem('at_target_hours', '$hours'); } catch(e){}"
@@ -1487,6 +1493,8 @@ class MainActivity : AppCompatActivity() {
             sharedPrefs.edit()
                 .putFloat(KEY_TARGET_HOURS, hours.toFloat())
                 .putFloat("WidgetTargetMinutes", targetMin)
+                .putBoolean("HasCustomTargetHours", true)
+                .putLong("LastPolicyFetchTimestamp", System.currentTimeMillis())
                 .apply()
             triggerWidgetRefresh()
         }

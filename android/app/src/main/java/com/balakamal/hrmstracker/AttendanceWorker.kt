@@ -111,8 +111,9 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                 }
 
                 // Fetch dynamic policy target hours & personalized 30-day average break
-                val policyHours = AttendanceAppWidgetProvider.fetchRequiredWorkingHours(applicationContext, accessToken, userId)
-                val effectiveTargetHours = policyHours ?: sharedPrefs.getFloat("TargetHours", 8.5f)
+                val hasCustomTarget = sharedPrefs.getBoolean("HasCustomTargetHours", false)
+                val policyHours = if (hasCustomTarget) null else AttendanceAppWidgetProvider.fetchRequiredWorkingHours(applicationContext, accessToken, userId)
+                val effectiveTargetHours = if (hasCustomTarget) sharedPrefs.getFloat("TargetHours", 8.5f) else (policyHours ?: sharedPrefs.getFloat("TargetHours", 8.5f))
                 val avgBreak = AttendanceAppWidgetProvider.fetchAverageBreakMinutes(applicationContext, accessToken, userId)
 
                 // 3. Calculate and sync widget in the background
