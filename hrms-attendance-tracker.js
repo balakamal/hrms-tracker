@@ -878,6 +878,7 @@
     theme: localStorage.getItem("at_theme") || "dark",
     userAvatar: localStorage.getItem("at_user_avatar") || null,
     userAvatarOriginal: localStorage.getItem("at_user_avatar_orig") || null,
+    identityFetched: false,
     isWfh: (function () {
       const todayISO = (new Date()).toLocaleDateString("en-CA");
       if (localStorage.getItem("at_wfh_date") !== todayISO) {
@@ -948,6 +949,13 @@
     const parts = name.trim().split(/\s+/);
     if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
+  const renderAvatarHtml = () => {
+    if (state.userAvatar) {
+      return `<img src="${state.userAvatar}" alt="${state.userName}" onerror="this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='inline-block';" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" /><span class="at-avatar-initials" style="display:none;">${getUserInitials(state.userName)}</span>`;
+    }
+    return `<span class="at-avatar-initials">${getUserInitials(state.userName)}</span>`;
   };
 
   const getTodayLocalDateStr = () => {
@@ -1021,8 +1029,9 @@
     return h;
   }
 
-  async function fetchUserIdentity() {
-    if (state.userId) return; // Custom ID override already set
+  async function fetchUserIdentity(force = false) {
+    if (state.userId && state.userAvatar && !force) return;
+    state.identityFetched = true;
     const url = "https://apps.pal.tech/hrms-backend/api/Employee/GetMyDetails";
     let token = localStorage.getItem("AccessToken");
 
@@ -1048,27 +1057,48 @@
       if (!response.ok) return;
       const resData = await response.json();
       if (resData && resData.data) {
-        state.userId = resData.data.id;
-        state.userName = resData.data.name || resData.data.firstName || "User";
+        if (resData.data.id && (!state.userId || force)) {
+          state.userId = resData.data.id;
+          localStorage.setItem("at_user_id", state.userId);
+        }
+        if (resData.data.name || resData.data.firstName) {
+          state.userName = resData.data.name || resData.data.firstName || state.userName;
+          localStorage.setItem("at_user_name", state.userName);
+        }
 
         // Cache details
-        localStorage.setItem("at_user_id", state.userId);
-        localStorage.setItem("at_user_name", state.userName);
-        if (window.AndroidApp) {
+        if (window.AndroidApp && typeof window.AndroidApp.saveUserData === "function") {
           window.AndroidApp.saveUserData(state.userId, state.userName);
         }
 
-        // Extract user avatar photo UUID if present, or query from page DOM
-        const photoId = resData.data.photo || resData.data.photoId || resData.data.imageId;
-        const originalPhotoId = resData.data.originalPhoto || resData.data.originalPhotoId || resData.data.originalImageId || resData.data.originalImage || resData.data.originalId;
+        // Extract user avatar photo UUID across all known HRMS photo property variants
+        const photoId = resData.data.photo ||
+                        resData.data.photoId ||
+                        resData.data.imageId ||
+                        resData.data.profilePhoto ||
+                        resData.data.profilePhotoId ||
+                        resData.data.profilePic ||
+                        resData.data.avatar ||
+                        resData.data.picture ||
+                        resData.data.thumbnailId;
+
+        const originalPhotoId = resData.data.originalPhoto ||
+                                resData.data.originalPhotoId ||
+                                resData.data.originalImageId ||
+                                resData.data.originalImage ||
+                                resData.data.originalId;
 
         if (photoId) {
-          state.userAvatar = `https://apps.pal.tech/hrms-backend/images/${photoId}`;
+          if (typeof photoId === "string" && (photoId.startsWith("http://") || photoId.startsWith("https://") || photoId.startsWith("data:"))) {
+            state.userAvatar = photoId;
+          } else {
+            state.userAvatar = `https://apps.pal.tech/hrms-backend/images/${photoId}`;
+          }
         } else {
           const domAvatar = document.querySelector(
             'img[src*="hrms-backend/images/"]',
           );
-          if (domAvatar) {
+          if (domAvatar && domAvatar.src) {
             state.userAvatar = domAvatar.src;
           }
         }
@@ -1077,9 +1107,13 @@
         }
 
         if (originalPhotoId) {
-          state.userAvatarOriginal = `https://apps.pal.tech/hrms-backend/images/${originalPhotoId}`;
+          if (typeof originalPhotoId === "string" && (originalPhotoId.startsWith("http://") || originalPhotoId.startsWith("https://"))) {
+            state.userAvatarOriginal = originalPhotoId;
+          } else {
+            state.userAvatarOriginal = `https://apps.pal.tech/hrms-backend/images/${originalPhotoId}`;
+          }
           localStorage.setItem("at_user_avatar_orig", state.userAvatarOriginal);
-          if (photoId) {
+          if (photoId && typeof photoId === "string") {
             state.imageMap[photoId] = originalPhotoId;
             if (window.AndroidApp && typeof window.AndroidApp.saveImageMapping === "function") {
               window.AndroidApp.saveImageMapping(photoId, originalPhotoId);
@@ -1091,11 +1125,7 @@
         if (nameEl) nameEl.innerText = state.userName;
         const avatarEl = document.querySelector("#at-user-avatar");
         if (avatarEl) {
-          if (state.userAvatar) {
-            avatarEl.innerHTML = `<img src="${state.userAvatar}" alt="${state.userName}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />`;
-          } else {
-            avatarEl.innerHTML = `<span class="at-avatar-initials">${getUserInitials(state.userName)}</span>`;
-          }
+          avatarEl.innerHTML = renderAvatarHtml();
         }
       }
     } catch (e) {
@@ -1389,7 +1419,9 @@
 
   async function fetchAttendanceLogs() {
     checkDomForWfhStatus();
-    if (!state.userId) await fetchUserIdentity();
+    if ((!state.userId || !state.userAvatar) && !state.identityFetched) {
+      await fetchUserIdentity();
+    }
     if (!state.userId) return;
 
     // Fetch official employee status from HRMS backend (WFH: 1 check)
@@ -1638,10 +1670,7 @@
       <div class="at-header">
         <div class="at-profile-group">
           <div class="at-avatar" id="at-user-avatar">
-            ${state.userAvatar 
-              ? `<img src="${state.userAvatar}" alt="${state.userName}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />`
-              : `<span class="at-avatar-initials">${getUserInitials(state.userName)}</span>`
-            }
+            ${renderAvatarHtml()}
           </div>
           <div class="at-title-group">
             <span class="at-title" id="at-user-name">${state.userName}</span>
@@ -2756,10 +2785,15 @@
     // Update avatar and name
     const avatarEl = elements.card.querySelector("#at-user-avatar");
     if (avatarEl) {
+      const currentImg = avatarEl.querySelector("img");
       if (state.userAvatar) {
-        avatarEl.innerHTML = `<img src="${state.userAvatar}" alt="${state.userName}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />`;
+        if (!currentImg || currentImg.src !== state.userAvatar) {
+          avatarEl.innerHTML = renderAvatarHtml();
+        }
       } else {
-        avatarEl.innerHTML = `<span class="at-avatar-initials">${getUserInitials(state.userName)}</span>`;
+        if (currentImg || !avatarEl.querySelector(".at-avatar-initials")) {
+          avatarEl.innerHTML = renderAvatarHtml();
+        }
       }
     }
     const nameEl = elements.card.querySelector("#at-user-name");
