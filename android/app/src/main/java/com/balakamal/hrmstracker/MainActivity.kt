@@ -1492,19 +1492,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         @JavascriptInterface
-        fun getNativeSettings(): String {
-            val obj = org.json.JSONObject()
-            obj.put("leaveAlertEnabled", sharedPrefs.getBoolean(KEY_NOTIF_SHIFT_COMPLETE, true))
-            obj.put("leaveAlertInterval", sharedPrefs.getInt("LeaveAlertInterval", 5))
-            obj.put("notifPreExit", sharedPrefs.getBoolean(KEY_NOTIF_PRE_EXIT, true))
-            obj.put("liveCardEnabled", sharedPrefs.getBoolean("LiveCardEnabled", true))
-            obj.put("timesheetEnabled", sharedPrefs.getBoolean("TimesheetEnabled", true))
-            obj.put("timesheetHour", sharedPrefs.getInt("TimesheetReminderHour", 21))
-            obj.put("timesheetMinute", sharedPrefs.getInt("TimesheetReminderMinute", 0))
-            return obj.toString()
-        }
-
-        @JavascriptInterface
         fun saveTokens(accessToken: String, refreshToken: String) {
             sharedPrefs.edit()
                 .putString(KEY_ACCESS_TOKEN, accessToken)
