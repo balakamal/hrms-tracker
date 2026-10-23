@@ -297,6 +297,8 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 else -> displayStatus.uppercase()
             }
 
+            val remainingWithMood = if (isWfh) "Remote • $funMood" else if (isWeekOff) "Enjoy 🏖️" else if (isCompleted) "Freedom! 🚀" else "$progressRemaining • $funMood"
+
             // Work Time & Progress (Only bind for non-small layouts; small carousel binds per-page below)
             if (layoutId != R.layout.attendance_widget_small) {
                 views.setTextViewText(R.id.widget_work_time_value, if (isWeekOff && workTime == "0h 00m") "Week Off" else workTime)
@@ -320,7 +322,6 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 views.setTextColor(R.id.widget_status_text, statusColor)
                 views.setInt(R.id.widget_status_text, "setBackgroundResource", statusPillBg)
 
-                val remainingWithMood = if (isWfh) "Remote • $funMood" else if (isWeekOff) "Enjoy 🏖️" else if (isCompleted) "Freedom! 🚀" else "$progressRemaining • $funMood"
                 views.setTextViewText(R.id.widget_progress_remaining, remainingWithMood)
                 views.setTextColor(R.id.widget_progress_remaining, colorSkyAccent)
             }
