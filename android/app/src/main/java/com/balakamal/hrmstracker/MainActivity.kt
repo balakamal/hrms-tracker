@@ -82,6 +82,8 @@ class MainActivity : AppCompatActivity() {
 
     private var isDesktopMode = false
     private var isWfhMode = false
+    private var isSwipeRefreshAllowed = true
+    private var isWidgetFullscreen = false
 
     private val countdownHandler = Handler(Looper.getMainLooper())
     private val countdownRunnable = object : Runnable {
@@ -102,6 +104,7 @@ class MainActivity : AppCompatActivity() {
         private const val KEY_NOTIF_SHIFT_COMPLETE = "NotifShiftComplete"
         private const val KEY_NOTIF_PRE_EXIT = "NotifPreExit"
         private const val KEY_WFH_MODE = "WfhMode"
+        private const val KEY_WFH_DATE = "WfhDate"
         private const val KEY_LEAVE_CASUAL = "LeaveBalanceCasual"
         private const val KEY_LEAVE_SICK = "LeaveBalanceSick"
         private const val KEY_LEAVE_EARNED = "LeaveBalanceEarned"
@@ -140,7 +143,15 @@ class MainActivity : AppCompatActivity() {
 
         sharedPrefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         isDesktopMode = sharedPrefs.getBoolean(KEY_DESKTOP_MODE, false)
-        isWfhMode = sharedPrefs.getBoolean(KEY_WFH_MODE, false)
+
+        val todayDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val savedWfhDate = sharedPrefs.getString(KEY_WFH_DATE, "")
+        if (savedWfhDate != todayDateStr) {
+            sharedPrefs.edit().putBoolean(KEY_WFH_MODE, false).putString(KEY_WFH_DATE, todayDateStr).apply()
+            isWfhMode = false
+        } else {
+            isWfhMode = sharedPrefs.getBoolean(KEY_WFH_MODE, false)
+        }
 
         // View initialization
         webView = findViewById(R.id.webView)
@@ -288,6 +299,13 @@ class MainActivity : AppCompatActivity() {
         swipeRefresh.setProgressBackgroundColorSchemeColor(ContextCompat.getColor(this, R.color.bg_surface_card))
         swipeRefresh.setOnRefreshListener {
             webView.reload()
+        }
+        swipeRefresh.setOnChildScrollUpCallback { _, _ ->
+            if (!isSwipeRefreshAllowed) {
+                true // Child cannot scroll down for refresh; suppresses pull-to-refresh
+            } else {
+                webView.scrollY > 0
+            }
         }
 
         // Apply saved Desktop Mode state
@@ -728,6 +746,13 @@ class MainActivity : AppCompatActivity() {
         // Intercept Android hardware/gesture back to navigate web history
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
+                if (isWidgetFullscreen) {
+                    webView.evaluateJavascript("if (typeof window.atExitFullscreen === 'function') { window.atExitFullscreen(); }") { null }
+                    isWidgetFullscreen = false
+                    isSwipeRefreshAllowed = true
+                    swipeRefresh.isEnabled = true
+                    return
+                }
                 if (::layoutShiftNudgeOverlay.isInitialized && layoutShiftNudgeOverlay.visibility == View.VISIBLE) {
                     layoutShiftNudgeOverlay.visibility = View.GONE
                     return
@@ -1496,7 +1521,11 @@ class MainActivity : AppCompatActivity() {
 
         @JavascriptInterface
         fun setWfhMode(active: Boolean) {
-            sharedPrefs.edit().putBoolean(KEY_WFH_MODE, active).apply()
+            val todayDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+            sharedPrefs.edit()
+                .putBoolean(KEY_WFH_MODE, active)
+                .putString(KEY_WFH_DATE, todayDateStr)
+                .apply()
             isWfhMode = active
             runOnUiThread {
                 updateWfhHubState(animate = true)
@@ -1537,6 +1566,23 @@ class MainActivity : AppCompatActivity() {
         @JavascriptInterface
         fun toggleFullscreenBars() {
             this@MainActivity.toggleFullscreenBars()
+        }
+
+        @JavascriptInterface
+        fun setSwipeRefreshEnabled(enabled: Boolean) {
+            runOnUiThread {
+                isSwipeRefreshAllowed = enabled
+                swipeRefresh.isEnabled = enabled
+            }
+        }
+
+        @JavascriptInterface
+        fun setWidgetFullscreen(fullscreen: Boolean) {
+            runOnUiThread {
+                isWidgetFullscreen = fullscreen
+                isSwipeRefreshAllowed = !fullscreen
+                swipeRefresh.isEnabled = !fullscreen
+            }
         }
 
         @JavascriptInterface

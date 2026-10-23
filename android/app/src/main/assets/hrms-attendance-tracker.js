@@ -802,6 +802,49 @@
         padding: 12px 14px 16px 14px;
       }
     }
+
+    /* Fullscreen Mode (spacious and comfortable for editing on mobile/desktop) */
+    #at-widget-container.at-fullscreen {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100vw !important;
+      height: 100% !important;
+      height: 100dvh !important;
+      max-width: none !important;
+      max-height: none !important;
+      margin: 0 !important;
+      transform: none !important;
+      border-radius: 0 !important;
+      z-index: 2147483647 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      background: var(--at-bg-panels) !important;
+    }
+    #at-widget-container.at-fullscreen .at-card {
+      width: 100% !important;
+      max-width: 100% !important;
+      height: 100% !important;
+      border-radius: 0 !important;
+      border: none !important;
+      box-shadow: none !important;
+      box-sizing: border-box !important;
+      padding: 16px 20px 24px 20px !important;
+      display: flex !important;
+      flex-direction: column !important;
+      overflow-y: auto !important;
+    }
+    #at-widget-container.at-fullscreen .at-settings {
+      border-radius: 0 !important;
+      height: 100% !important;
+      padding: 20px 24px 36px 24px !important;
+      overflow-y: auto !important;
+    }
+    #at-widget-container.at-fullscreen .at-grab-bar {
+      display: none !important;
+    }
   `;
 
   // --- SVG ICONS ---
@@ -814,6 +857,8 @@
     exit: `<svg viewBox="0 0 24 24"><path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>`,
     gear: `<svg viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>`,
     minimize: `<svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg>`,
+    fullscreen: `<svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>`,
+    fullscreenExit: `<svg viewBox="0 0 24 24"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>`,
     phone: `<svg viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg>`,
     drag: `<svg viewBox="0 0 24 24"><path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>`,
     chevron: `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor;"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>`,
@@ -828,10 +873,20 @@
     avgBreakMinutes: localStorage.getItem("at_avg_break_min") ? parseFloat(localStorage.getItem("at_avg_break_min")) : 60,
     notifyEnabled: localStorage.getItem("at_notify_enabled") !== "false",
     isMinimized: localStorage.getItem("at_is_minimized") === "true",
+    isFullscreen: false,
+    workspaceModeOverride: localStorage.getItem("at_ws_override") || "auto",
     theme: localStorage.getItem("at_theme") || "dark",
     userAvatar: localStorage.getItem("at_user_avatar") || null,
     userAvatarOriginal: localStorage.getItem("at_user_avatar_orig") || null,
-    isWfh: localStorage.getItem("at_wfh_mode") === "true",
+    isWfh: (function () {
+      const todayISO = (new Date()).toLocaleDateString("en-CA");
+      if (localStorage.getItem("at_wfh_date") !== todayISO) {
+        localStorage.setItem("at_wfh_date", todayISO);
+        localStorage.setItem("at_wfh_mode", "false");
+        return false;
+      }
+      return localStorage.getItem("at_wfh_mode") === "true";
+    })(),
     leaveAlertsEnabled: localStorage.getItem("at_leave_alerts") !== "false",
     leaveInterval: parseInt(localStorage.getItem("at_leave_interval") || "5", 10),
     preExitEnabled: localStorage.getItem("at_pre_exit_notif") !== "false",
@@ -848,7 +903,11 @@
   };
 
   // Sync initial WFH state and native settings from Android bridge if present
-  if (window.AndroidApp) {
+  if (state.workspaceModeOverride === "office") {
+    state.isWfh = false;
+  } else if (state.workspaceModeOverride === "wfh") {
+    state.isWfh = true;
+  } else if (window.AndroidApp) {
     if (typeof window.AndroidApp.getWfhMode === "function") {
       try {
         state.isWfh = window.AndroidApp.getWfhMode();
@@ -1048,19 +1107,42 @@
   }
 
   function checkDomForWfhStatus() {
-    if (state.isWfh) return;
+    if (state.workspaceModeOverride === "office") {
+      state.isWfh = false;
+      return;
+    }
+    if (state.workspaceModeOverride === "wfh") {
+      state.isWfh = true;
+      return;
+    }
+    // If today's logs already exist, biometric punches at physical office prove In-Office
+    if (state.attendanceData?.attendanceDailyLogs?.length > 0) {
+      if (state.isWfh) {
+        state.isWfh = false;
+        const todayISO = getTodayISO();
+        localStorage.setItem("at_wfh_date", todayISO);
+        localStorage.setItem("at_wfh_mode", "false");
+        if (window.AndroidApp && typeof window.AndroidApp.setWfhMode === "function") {
+          window.AndroidApp.setWfhMode(false);
+        }
+        updateUI();
+      }
+      return;
+    }
+    // Only check if an explicit dedicated status element on today's view states WFH
     try {
-      const candidates = document.querySelectorAll('.ant-tag, .badge, .status-tag, [class*="status"], [class*="attendance"], [class*="badge"], [class*="chip"]');
-      for (let i = 0; i < candidates.length; i++) {
-        const text = (candidates[i].textContent || "").trim();
+      const todayCard = document.querySelector('.today-attendance, [data-today-status], .current-day-status');
+      if (todayCard && !todayCard.closest("#at-widget-container")) {
+        const text = (todayCard.textContent || "").trim();
         if (/^(wfh|work from home|remote|remote work)$/i.test(text)) {
           state.isWfh = true;
+          const todayISO = getTodayISO();
+          localStorage.setItem("at_wfh_date", todayISO);
           localStorage.setItem("at_wfh_mode", "true");
           if (window.AndroidApp && typeof window.AndroidApp.setWfhMode === "function") {
             window.AndroidApp.setWfhMode(true);
           }
           updateUI();
-          break;
         }
       }
     } catch (_) {}
@@ -1121,6 +1203,15 @@
   }
 
   async function fetchEmployeeStatus() {
+    if (state.workspaceModeOverride === "office") {
+      state.isWfh = false;
+      return;
+    }
+    if (state.workspaceModeOverride === "wfh") {
+      state.isWfh = true;
+      return;
+    }
+
     if (!state.userId) await fetchUserIdentity();
     if (!state.userId) return;
 
@@ -1147,16 +1238,30 @@
       if (!response.ok) return;
       const resData = await response.json();
       if (resData && resData.data) {
-        const idKey = String(state.userId);
-        const userStatus = resData.data[idKey] || resData.data[state.userId] || Object.values(resData.data)[0];
-        if (userStatus && typeof userStatus.WFH !== "undefined") {
-          const isWfhActive = Number(userStatus.WFH) === 1;
-          state.isWfh = isWfhActive;
-          localStorage.setItem("at_wfh_mode", isWfhActive ? "true" : "false");
-          if (window.AndroidApp && typeof window.AndroidApp.setWfhMode === "function") {
-            window.AndroidApp.setWfhMode(isWfhActive);
+        let userStatus = null;
+        if (Array.isArray(resData.data)) {
+          userStatus = resData.data.find(item => String(item.employeeId || item.userId || item.id) === String(state.userId)) || resData.data[0];
+        } else if (typeof resData.data === "object") {
+          userStatus = resData.data[String(state.userId)] || resData.data[state.userId] || Object.values(resData.data)[0];
+        }
+
+        if (userStatus) {
+          const wfhRaw = userStatus.WFH ?? userStatus.wfh ?? userStatus.isWfh ?? userStatus.isWFH;
+          if (typeof wfhRaw !== "undefined" && wfhRaw !== null) {
+            let isWfhActive = Number(wfhRaw) === 1 || wfhRaw === true || String(wfhRaw).toLowerCase() === "true";
+            // In-office physical punches always take priority over remote mode
+            if (state.attendanceData?.attendanceDailyLogs?.length > 0) {
+              isWfhActive = false;
+            }
+            state.isWfh = isWfhActive;
+            const todayISO = getTodayISO();
+            localStorage.setItem("at_wfh_date", todayISO);
+            localStorage.setItem("at_wfh_mode", isWfhActive ? "true" : "false");
+            if (window.AndroidApp && typeof window.AndroidApp.setWfhMode === "function") {
+              window.AndroidApp.setWfhMode(isWfhActive);
+            }
+            updateUI();
           }
-          updateUI();
         }
       }
     } catch (e) {
@@ -1329,6 +1434,17 @@
       const resData = await response.json();
       if (resData && resData.data) {
         state.attendanceData = resData.data;
+        if (state.attendanceData.attendanceDailyLogs && state.attendanceData.attendanceDailyLogs.length > 0) {
+          if (state.workspaceModeOverride !== "wfh" && state.isWfh) {
+            state.isWfh = false;
+            const todayISO = getTodayISO();
+            localStorage.setItem("at_wfh_date", todayISO);
+            localStorage.setItem("at_wfh_mode", "false");
+            if (window.AndroidApp && typeof window.AndroidApp.setWfhMode === "function") {
+              window.AndroidApp.setWfhMode(false);
+            }
+          }
+        }
         updateUI();
       }
     } catch (e) {
@@ -1471,6 +1587,23 @@
     document.body.appendChild(container);
     elements.container = container;
 
+    // Suppress Android swipe-to-refresh whenever touching/interacting with in-app widget
+    container.addEventListener("touchstart", () => {
+      if (window.AndroidApp && typeof window.AndroidApp.setSwipeRefreshEnabled === "function") {
+        window.AndroidApp.setSwipeRefreshEnabled(false);
+      }
+    }, { passive: true });
+
+    container.addEventListener("touchend", () => {
+      if (state.isMinimized && !state.isFullscreen) {
+        const settingsPanel = elements.card?.querySelector("#at-settings-panel");
+        const isSettingsActive = settingsPanel && settingsPanel.classList.contains("active");
+        if (!isSettingsActive && window.AndroidApp && typeof window.AndroidApp.setSwipeRefreshEnabled === "function") {
+          window.AndroidApp.setSwipeRefreshEnabled(true);
+        }
+      }
+    }, { passive: true });
+
     // 1. Badge View (Apple Dynamic Island Live Activity Pill)
     const badge = document.createElement("div");
     badge.className = "at-badge";
@@ -1573,7 +1706,10 @@
             <span class="at-settings-title">Tracker Settings</span>
             <span class="at-save-indicator" id="at-save-indicator">Auto-saved ✓</span>
           </div>
-          <button class="at-btn" id="at-btn-close-settings" title="Close Settings">${ICONS.minimize}</button>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <button class="at-btn" id="at-btn-fullscreen-settings" title="Fullscreen Settings">${state.isFullscreen ? ICONS.fullscreenExit : ICONS.fullscreen}</button>
+            <button class="at-btn" id="at-btn-close-settings" title="Close Settings">${ICONS.minimize}</button>
+          </div>
         </div>
 
         <!-- Section: Shift Target -->
@@ -1697,11 +1833,19 @@
 
         <!-- Section: Workspace & Account -->
         <div class="at-settings-section-title">Workspace & Account</div>
-        <div class="at-form-group row">
+        <div class="at-form-group">
           <label>Workspace Mode</label>
-          <span id="at-setting-workspace-mode" style="font-size:11px; font-weight:700; color:${state.isWfh ? "var(--at-accent-gold)" : "var(--at-text-secondary)"};">
-            ${state.isWfh ? "Remote Workspace (Synced)" : "In-Office (Synced)"}
-          </span>
+          <select class="at-input" id="at-setting-workspace-select" style="width:100%; padding: 6px; background: var(--at-bg-input); color: var(--at-text-primary); border: 1px solid var(--at-border-input); border-radius: 8px; font-size: 13px;">
+            <option value="auto" ${state.workspaceModeOverride === "auto" ? "selected" : ""}>Auto (Synced from HRMS)</option>
+            <option value="office" ${state.workspaceModeOverride === "office" ? "selected" : ""}>In-Office (Biometrics Active)</option>
+            <option value="wfh" ${state.workspaceModeOverride === "wfh" ? "selected" : ""}>Remote / WFH (Biometrics Paused)</option>
+          </select>
+          <div style="margin-top: 4px; font-size: 10px; color: var(--at-text-secondary); display: flex; justify-content: space-between;">
+            <span>Current Status:</span>
+            <span id="at-setting-workspace-mode" style="font-weight:700; color:${state.isWfh ? "var(--at-accent-gold)" : "var(--at-accent-work)"};">
+              ${state.isWfh ? "Remote Workspace (WFH)" : "In-Office Mode"}
+            </span>
+          </div>
         </div>
         <div class="at-form-group" style="margin-top: 6px; margin-bottom: 8px;">
           <button type="button" class="at-btn-action at-btn-logout" id="at-btn-logout">
@@ -1738,6 +1882,9 @@
 
     // Bind event listeners
     card
+      .querySelector("#at-btn-fullscreen-settings")
+      ?.addEventListener("click", toggleFullscreen);
+    card
       .querySelector("#at-btn-minimize")
       .addEventListener("click", toggleCollapse);
     const dragPill = card.querySelector("#at-drag-handle");
@@ -1752,6 +1899,31 @@
     card
       .querySelector("#at-btn-close-settings")
       .addEventListener("click", closeSettings);
+
+    const workspaceSelect = card.querySelector("#at-setting-workspace-select");
+    workspaceSelect?.addEventListener("change", () => {
+      const val = workspaceSelect.value;
+      state.workspaceModeOverride = val;
+      localStorage.setItem("at_ws_override", val);
+      if (val === "office") {
+        state.isWfh = false;
+      } else if (val === "wfh") {
+        state.isWfh = true;
+      } else {
+        if (state.attendanceData?.attendanceDailyLogs?.length > 0) {
+          state.isWfh = false;
+        } else {
+          fetchEmployeeStatus();
+        }
+      }
+      const todayISO = getTodayISO();
+      localStorage.setItem("at_wfh_date", todayISO);
+      localStorage.setItem("at_wfh_mode", state.isWfh ? "true" : "false");
+      if (window.AndroidApp && typeof window.AndroidApp.setWfhMode === "function") {
+        window.AndroidApp.setWfhMode(state.isWfh);
+      }
+      updateUI();
+    });
     // Auto-save event bindings
     const hoursSelect = card.querySelector("#at-setting-hours-select");
     const minutesSelect = card.querySelector("#at-setting-minutes-select");
@@ -1852,9 +2024,13 @@
     }
 
     function dragStart(e) {
-      // Don't drag if interacting with buttons, inputs, or dropdowns
+      // Don't drag if in fullscreen or interacting with buttons, inputs, or dropdowns
+      if (state.isFullscreen) return;
       if (e.target.closest("button") || e.target.closest("input") || e.target.closest("select")) {
         return;
+      }
+      if (window.AndroidApp && typeof window.AndroidApp.setSwipeRefreshEnabled === "function") {
+        window.AndroidApp.setSwipeRefreshEnabled(false);
       }
 
       const coords = getCoords(e);
@@ -1966,6 +2142,11 @@
           toggleCollapse();
         }
       }
+      if (state.isMinimized && !state.isFullscreen) {
+        if (window.AndroidApp && typeof window.AndroidApp.setSwipeRefreshEnabled === "function") {
+          window.AndroidApp.setSwipeRefreshEnabled(true);
+        }
+      }
       initialTarget = null;
     }
 
@@ -2043,6 +2224,12 @@
     const container = elements.container;
 
     if (state.isMinimized) {
+      if (state.isFullscreen) {
+        toggleFullscreen();
+      }
+      if (window.AndroidApp && typeof window.AndroidApp.setSwipeRefreshEnabled === "function") {
+        window.AndroidApp.setSwipeRefreshEnabled(true);
+      }
       if (container) {
         container.classList.add("at-minimized");
         container.classList.remove("at-expanded");
@@ -2065,6 +2252,9 @@
         }
       }, 150);
     } else {
+      if (window.AndroidApp && typeof window.AndroidApp.setSwipeRefreshEnabled === "function") {
+        window.AndroidApp.setSwipeRefreshEnabled(false);
+      }
       if (container) {
         container.classList.add("at-expanded");
         container.classList.remove("at-minimized");
@@ -2089,6 +2279,47 @@
       }, 150);
     }
   }
+
+  function toggleFullscreen() {
+    state.isFullscreen = !state.isFullscreen;
+    const container = elements.container;
+    if (!container) return;
+
+    if (state.isFullscreen) {
+      container.classList.add("at-fullscreen");
+      const btnFsSettings = elements.card?.querySelector("#at-btn-fullscreen-settings");
+      if (btnFsSettings) btnFsSettings.innerHTML = ICONS.fullscreenExit;
+      if (window.AndroidApp && typeof window.AndroidApp.setWidgetFullscreen === "function") {
+        window.AndroidApp.setWidgetFullscreen(true);
+      } else if (window.AndroidApp && typeof window.AndroidApp.setSwipeRefreshEnabled === "function") {
+        window.AndroidApp.setSwipeRefreshEnabled(false);
+      }
+    } else {
+      container.classList.remove("at-fullscreen");
+      const btnFsSettings = elements.card?.querySelector("#at-btn-fullscreen-settings");
+      if (btnFsSettings) btnFsSettings.innerHTML = ICONS.fullscreen;
+      if (window.AndroidApp && typeof window.AndroidApp.setWidgetFullscreen === "function") {
+        window.AndroidApp.setWidgetFullscreen(false);
+      } else if (window.AndroidApp && typeof window.AndroidApp.setSwipeRefreshEnabled === "function") {
+        window.AndroidApp.setSwipeRefreshEnabled(state.isMinimized);
+      }
+      constrainToViewport();
+    }
+  }
+
+  // Register window helper for native hardware back button
+  window.atExitFullscreen = function () {
+    if (state.isFullscreen) {
+      toggleFullscreen();
+      return true;
+    }
+    const settingsPanel = elements.card?.querySelector("#at-settings-panel");
+    if (settingsPanel && settingsPanel.classList.contains("active")) {
+      closeSettings();
+      return true;
+    }
+    return false;
+  };
 
   let autoSaveTimeout = null;
   let saveIndicatorTimeout = null;
@@ -2283,8 +2514,17 @@
       breakAvgEl.innerText = `~${state.avgBreakMinutes || 60}m per day`;
     }
     if (wsModeEl) {
-      wsModeEl.innerText = state.isWfh ? "Remote Workspace (Synced)" : "In-Office (Synced)";
-      wsModeEl.style.color = state.isWfh ? "var(--at-accent-gold)" : "var(--at-text-secondary)";
+      const modeDesc = state.workspaceModeOverride === "office"
+        ? "In-Office (Manual)"
+        : state.workspaceModeOverride === "wfh"
+        ? "Remote / WFH (Manual)"
+        : state.isWfh ? "Remote Workspace (Synced)" : "In-Office (Synced)";
+      wsModeEl.innerText = modeDesc;
+      wsModeEl.style.color = state.isWfh ? "var(--at-accent-gold)" : "var(--at-accent-work)";
+    }
+    const wsSelect = card.querySelector("#at-setting-workspace-select");
+    if (wsSelect) {
+      wsSelect.value = state.workspaceModeOverride || "auto";
     }
     if (leaveAlertsToggle) {
       leaveAlertsToggle.checked = Boolean(state.leaveAlertsEnabled);
@@ -2323,13 +2563,24 @@
       rowWidgetConfig.style.display = window.AndroidApp ? "block" : "none";
     }
 
+    if (window.AndroidApp && typeof window.AndroidApp.setSwipeRefreshEnabled === "function") {
+      window.AndroidApp.setSwipeRefreshEnabled(false);
+    }
     card.querySelector("#at-settings-panel").classList.add("active");
   }
 
   function closeSettings() {
+    if (state.isFullscreen) {
+      toggleFullscreen();
+    }
     elements.card
       ?.querySelector("#at-settings-panel")
       ?.classList.remove("active");
+    if (state.isMinimized && !state.isFullscreen) {
+      if (window.AndroidApp && typeof window.AndroidApp.setSwipeRefreshEnabled === "function") {
+        window.AndroidApp.setSwipeRefreshEnabled(true);
+      }
+    }
   }
 
   function parseWorkTimeInput(inputStr) {
@@ -2385,6 +2636,20 @@
     const badgeWfh = document.getElementById("at-badge-wfh");
     if (badgeWfh) {
       badgeWfh.style.display = state.isWfh ? "inline" : "none";
+    }
+    const wsModeEl = elements.card ? elements.card.querySelector("#at-setting-workspace-mode") : null;
+    if (wsModeEl) {
+      const modeDesc = state.workspaceModeOverride === "office"
+        ? "In-Office (Manual)"
+        : state.workspaceModeOverride === "wfh"
+        ? "Remote / WFH (Manual)"
+        : state.isWfh ? "Remote Workspace (Synced)" : "In-Office (Synced)";
+      wsModeEl.innerText = modeDesc;
+      wsModeEl.style.color = state.isWfh ? "var(--at-accent-gold)" : "var(--at-accent-work)";
+    }
+    const wsSelect = elements.card ? elements.card.querySelector("#at-setting-workspace-select") : null;
+    if (wsSelect && wsSelect.value !== state.workspaceModeOverride) {
+      wsSelect.value = state.workspaceModeOverride || "auto";
     }
 
     const metrics = calculateMetrics();
