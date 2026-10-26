@@ -2,7 +2,7 @@
   "versionCode": 203,
   "versionName": "4.3",
   "releaseDate": "2026-10-26",
-  "releaseNotes": "fix: synchronize app header countdown with in-app tracker and widgets, real-time metrics push bridge",
+  "releaseNotes": "feat: add Android app widget provider, automation scripts, and attendance tracker components",
   "apkUrl": "https://raw.githubusercontent.com/balakamal/hrms-tracker/main/builds/hrms-tracker-latest.apk",
   "apkSize": "5.9 MB"
 }
