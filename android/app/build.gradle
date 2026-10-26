@@ -44,7 +44,18 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+
+    buildFeatures {
+        buildConfig = true
+    }
 }
+
+// Automatically sync root script into Android assets before every build
+tasks.register('syncTrackerScript', Copy) {
+    from "${rootDir}/../hrms-attendance-tracker.js"
+    into "${projectDir}/src/main/assets"
+}
+preBuild.dependsOn syncTrackerScript
 
 dependencies {
     implementation 'androidx.core:core-ktx:1.9.0'

@@ -8,24 +8,20 @@ def main():
     root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     build_gradle_path = os.path.join(root_dir, "android", "app", "build.gradle")
     
-    # 1. Extract versionName from build.gradle
-    version_name = "4.3"
+    # 1. Extract versionName from build.gradle (Single Source of Truth)
+    version_name = None
     if os.path.exists(build_gradle_path):
         with open(build_gradle_path, "r", encoding="utf-8") as f:
             content = f.read()
             match = re.search(r'versionName\s+["\']([^"\']+)["\']', content)
             if match:
-                version_name = match.group(1)
+                version_name = match.group(1).strip()
+    
+    if not version_name:
+        raise ValueError(f"Could not parse versionName from {build_gradle_path}")
 
     # 2. Extract or compute versionCode
-    version_code = 21
-    github_run_number = os.environ.get("GITHUB_RUN_NUMBER")
-    if github_run_number:
-        try:
-            version_code = 100 + int(github_run_number)
-        except ValueError:
-            pass
-
+    version_code = None
     apk_path = os.path.join(root_dir, "builds", "hrms-tracker-latest.apk")
     android_home = os.environ.get("ANDROID_HOME", "")
     if android_home and os.path.exists(apk_path):
@@ -39,6 +35,24 @@ def main():
                     version_code = int(code_str)
             except Exception:
                 pass
+
+    if version_code is None:
+        github_run_number = os.environ.get("GITHUB_RUN_NUMBER")
+        if github_run_number:
+            try:
+                version_code = 100 + int(github_run_number)
+            except ValueError:
+                pass
+
+    if version_code is None:
+        if os.path.exists(build_gradle_path):
+            with open(build_gradle_path, "r", encoding="utf-8") as f:
+                match = re.search(r'versionCode\s+.*?:\s*(\d+)', f.read())
+                if match:
+                    version_code = int(match.group(1))
+        if version_code is None:
+            version_code = 21
+
 
     # 3. Calculate APK file size
     apk_size = "6.2 MB"

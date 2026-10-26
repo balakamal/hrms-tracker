@@ -2002,12 +2002,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun getAppVersionCode(): Int {
         return try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                packageManager.getPackageInfo(packageName, 0).longVersionCode.toInt()
-            } else {
-                @Suppress("DEPRECATION")
-                packageManager.getPackageInfo(packageName, 0).versionCode
-            }
+            BuildConfig.VERSION_CODE
         } catch (e: Exception) {
             21
         }
@@ -2015,9 +2010,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun getAppVersionName(): String {
         return try {
-            packageManager.getPackageInfo(packageName, 0).versionName ?: "4.3"
+            BuildConfig.VERSION_NAME
         } catch (e: Exception) {
-            "4.3"
+            "1.0"
         }
     }
 

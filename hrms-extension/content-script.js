@@ -1932,7 +1932,7 @@
                 <span class="at-btn-update-sub" id="at-txt-update-sub">Tap to scan remote releases</span>
               </div>
             </div>
-            <span class="at-pill-version" id="at-txt-current-version">v4.3</span>
+            <span class="at-pill-version" id="at-txt-current-version" style="display: none;"></span>
           </button>
         </div>
 
@@ -2640,11 +2640,21 @@
     }
     const txtCurrentVer = card.querySelector("#at-txt-current-version");
     if (txtCurrentVer) {
-      let verStr = "v4.3";
+      let verStr = "";
       if (window.AndroidApp && typeof window.AndroidApp.getAppVersionName === "function") {
-        verStr = "v" + window.AndroidApp.getAppVersionName();
+        try {
+          const appVer = window.AndroidApp.getAppVersionName();
+          if (appVer) {
+            verStr = appVer.startsWith("v") ? appVer : "v" + appVer;
+          }
+        } catch (e) {}
       }
-      txtCurrentVer.textContent = verStr;
+      if (verStr) {
+        txtCurrentVer.textContent = verStr;
+        txtCurrentVer.style.display = "inline-block";
+      } else {
+        txtCurrentVer.style.display = "none";
+      }
     }
 
     if (window.AndroidApp && typeof window.AndroidApp.setSwipeRefreshEnabled === "function") {

@@ -4,6 +4,11 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
+    inputs:
+      version_name:
+        description: 'New Version Name (e.g. 4.4, or leave empty to keep existing)'
+        required: false
+        default: ''
 
 jobs:
   build:
@@ -15,6 +20,13 @@ jobs:
     - uses: actions/checkout@v3
       with:
         ref: main
+
+    - name: Apply Custom Version Name
+      if: ${{ github.event.inputs.version_name != '' }}
+      run: |
+        NEW_VER="${{ github.event.inputs.version_name }}"
+        echo "Updating versionName in build.gradle to $NEW_VER"
+        sed -i -E "s/versionName\s+[\"'][^\"']+[\"']/versionName \"$NEW_VER\"/" android/app/build.gradle
 
     - name: Set up JDK 17
       uses: actions/setup-java@v3
@@ -82,7 +94,7 @@ jobs:
 
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git add builds/ android/app/src/main/res/ android/keystore/ version.json
+        git add builds/ android/app/src/main/res/ android/keystore/ version.json android/app/build.gradle android/app/src/main/assets/
         git commit -m "build: compile, extract manifest and update builds/ [skip ci]" || true
         git pull --rebase origin main || true
         git push origin HEAD:main
