@@ -78,6 +78,10 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread {
                     updateNudgeOverlayState(animate = true)
                 }
+            } else if (intent?.action == AttendanceAppWidgetProvider.ACTION_WIDGET_DATA_UPDATED) {
+                runOnUiThread {
+                    updateCountdown()
+                }
             }
         }
     }
@@ -266,7 +270,10 @@ class MainActivity : AppCompatActivity() {
         countdownHandler.post(countdownRunnable)
 
         try {
-            val filter = android.content.IntentFilter(ShiftAlertManager.ACTION_NUDGE_STATE_CHANGED)
+            val filter = android.content.IntentFilter().apply {
+                addAction(ShiftAlertManager.ACTION_NUDGE_STATE_CHANGED)
+                addAction(AttendanceAppWidgetProvider.ACTION_WIDGET_DATA_UPDATED)
+            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 registerReceiver(nudgeStateReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
             } else {
@@ -679,7 +686,39 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        if (exitTime == "Completed" || progressPercent >= 100) {
+        val todayDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+        val cacheDate = sharedPrefs.getString("WidgetCacheDate", "")
+        val isCacheFromToday = cacheDate == todayDateStr
+
+        val isClockedIn = sharedPrefs.getBoolean("WidgetIsClockedIn", false)
+        val lastInTimestamp = sharedPrefs.getLong("WidgetLastInTimestamp", 0L)
+        val baseWorkMinutes = sharedPrefs.getFloat("WidgetBaseWorkMinutes", -1f)
+        val savedTargetHours = sharedPrefs.getFloat("TargetHours", 8.5f)
+        val targetMinutes = sharedPrefs.getFloat("WidgetTargetMinutes", savedTargetHours * 60f).toDouble()
+        val rawStatusText = sharedPrefs.getString("WidgetStatusText", "") ?: ""
+
+        val liveRemainingMinutes: Double
+        val isCompleted: Boolean
+
+        if (isClockedIn && lastInTimestamp > 0 && baseWorkMinutes >= 0 && isCacheFromToday) {
+            val elapsedSinceLastIn = Math.max(0L, System.currentTimeMillis() - lastInTimestamp) / 60000.0
+            val liveWorkMinutes = baseWorkMinutes + elapsedSinceLastIn
+            liveRemainingMinutes = Math.max(0.0, targetMinutes - liveWorkMinutes)
+            isCompleted = liveWorkMinutes >= targetMinutes
+        } else if (baseWorkMinutes >= 0 && isCacheFromToday) {
+            liveRemainingMinutes = Math.max(0.0, targetMinutes - baseWorkMinutes.toDouble())
+            isCompleted = baseWorkMinutes >= targetMinutes || progressPercent >= 100 || rawStatusText.contains("Complete", ignoreCase = true) || exitTime == "Completed"
+        } else {
+            isCompleted = progressPercent >= 100 || rawStatusText.contains("Complete", ignoreCase = true) || exitTime == "Completed"
+            val rawRemaining = sharedPrefs.getString("WidgetProgressRemaining", "") ?: ""
+            val regex = Regex("""(?:(\d+)h\s*)?(?:(\d+)m)?""")
+            val match = regex.find(rawRemaining)
+            val h = match?.groupValues?.getOrNull(1)?.toIntOrNull() ?: 0
+            val m = match?.groupValues?.getOrNull(2)?.toIntOrNull() ?: 0
+            liveRemainingMinutes = if (h > 0 || m > 0) (h * 60 + m).toDouble() else 0.0
+        }
+
+        if (isCompleted || (firstIn != "--:--" && firstIn.isNotBlank() && liveRemainingMinutes <= 0.0)) {
             imgNowBarIcon.setImageResource(R.drawable.ic_check_circle)
             imgNowBarIcon.setColorFilter(ContextCompat.getColor(this, R.color.accent_emerald))
             txtCountdown.text = "Shift Goal Met"
@@ -688,7 +727,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        if (exitTime == "--:--" || exitTime.isBlank()) {
+        if (firstIn == "--:--" || firstIn.isBlank() || (exitTime == "--:--" && baseWorkMinutes < 0)) {
             imgNowBarIcon.setImageResource(R.drawable.ic_timer)
             imgNowBarIcon.setColorFilter(ContextCompat.getColor(this, R.color.text_muted))
             txtCountdown.text = "--"
@@ -696,46 +735,13 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        try {
-            val sdf = SimpleDateFormat("hh:mm a", Locale.US)
-            val parsed = sdf.parse(exitTime)
-            if (parsed != null) {
-                val now = Calendar.getInstance()
-                val exitCal = Calendar.getInstance().apply {
-                    time = parsed
-                    set(Calendar.YEAR, now.get(Calendar.YEAR))
-                    set(Calendar.MONTH, now.get(Calendar.MONTH))
-                    set(Calendar.DAY_OF_MONTH, now.get(Calendar.DAY_OF_MONTH))
-                }
-
-                val diffMs = exitCal.timeInMillis - now.timeInMillis
-                if (diffMs <= 0) {
-                    imgNowBarIcon.setImageResource(R.drawable.ic_check_circle)
-                    imgNowBarIcon.setColorFilter(ContextCompat.getColor(this, R.color.accent_emerald))
-                    txtCountdown.text = "Shift Goal Met"
-                    txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.accent_emerald))
-                } else {
-                    val totalMinutes = (diffMs / 60000).toInt()
-                    val h = totalMinutes / 60
-                    val m = totalMinutes % 60
-                    imgNowBarIcon.setImageResource(R.drawable.ic_timer)
-                    imgNowBarIcon.setColorFilter(ContextCompat.getColor(this, R.color.accent_cyan))
-                    txtCountdown.text = if (h > 0) "${h}h ${m}m left" else "${m}m left"
-                    txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.accent_cyan))
-                }
-            } else {
-                imgNowBarIcon.setImageResource(R.drawable.ic_timer)
-                imgNowBarIcon.setColorFilter(ContextCompat.getColor(this, R.color.accent_cyan))
-                txtCountdown.text = exitTime
-                txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.accent_cyan))
-            }
-        } catch (e: Exception) {
-            val remaining = sharedPrefs.getString("WidgetProgressRemaining", "--") ?: "--"
-            imgNowBarIcon.setImageResource(R.drawable.ic_timer)
-            imgNowBarIcon.setColorFilter(ContextCompat.getColor(this, R.color.text_secondary))
-            txtCountdown.text = remaining
-            txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
-        }
+        val totalMinutes = Math.round(liveRemainingMinutes).toInt()
+        val h = totalMinutes / 60
+        val m = totalMinutes % 60
+        imgNowBarIcon.setImageResource(R.drawable.ic_timer)
+        imgNowBarIcon.setColorFilter(ContextCompat.getColor(this, R.color.accent_cyan))
+        txtCountdown.text = if (h > 0) "${h}h ${m}m left" else "${m}m left"
+        txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.accent_cyan))
     }
 
     private fun setupBackNavigation() {
@@ -1480,6 +1486,54 @@ class MainActivity : AppCompatActivity() {
     // Bidirectional JS interface for the PWA or in-page script
     inner class WebAppInterface {
         @JavascriptInterface
+        fun saveAttendanceMetrics(metricsJson: String) {
+            try {
+                val json = org.json.JSONObject(metricsJson)
+                val workTime = json.optString("workTime", "0h 00m")
+                val firstIn = json.optString("firstIn", "--:--")
+                val breakTime = json.optString("breakTime", "0h 00m")
+                val breakCount = json.optString("breakCount", "0 Breaks Today")
+                val exitTime = json.optString("exitTime", "--:--")
+                val actualExitTime = json.optString("actualExitTime", "--:--")
+                val statusText = json.optString("statusText", "Clocked In")
+                val progressPercent = json.optInt("progressPercent", 0)
+                val progressRemaining = json.optString("progressRemaining", "--h --m left")
+                val baseWorkMinutes = json.optDouble("baseWorkMinutes", -1.0)
+                val lastInTimestamp = json.optLong("lastInTimestamp", 0L)
+                val isClockedIn = json.optBoolean("isClockedIn", false)
+                val targetMinutes = json.optDouble("targetMinutes", -1.0)
+                val avgBreakMinutes = json.optInt("avgBreakMinutes", 60)
+
+                AttendanceAppWidgetProvider.saveWidgetCache(
+                    applicationContext,
+                    workTime = workTime,
+                    firstIn = firstIn,
+                    breakTime = breakTime,
+                    exitTime = exitTime,
+                    statusText = statusText,
+                    progressPercent = progressPercent,
+                    progressRemaining = progressRemaining,
+                    lastUpdated = "Last updated: " + AttendanceAppWidgetProvider.getCurrentTime(),
+                    breakCount = breakCount,
+                    actualExitTime = actualExitTime,
+                    baseWorkMinutes = baseWorkMinutes,
+                    lastInTimestamp = lastInTimestamp,
+                    isClockedIn = isClockedIn,
+                    targetMinutes = targetMinutes,
+                    avgBreakMinutes = avgBreakMinutes
+                )
+
+                AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
+
+                runOnUiThread {
+                    updateCountdown()
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("MainActivity", "Failed to save attendance metrics: ${e.message}", e)
+            }
+        }
+
+        @JavascriptInterface
         fun onLogout() {
             runOnUiThread {
                 clearTokensAndShowLogin()
@@ -1961,9 +2015,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun getAppVersionName(): String {
         return try {
-            packageManager.getPackageInfo(packageName, 0).versionName ?: "4.2"
+            packageManager.getPackageInfo(packageName, 0).versionName ?: "4.3"
         } catch (e: Exception) {
-            "4.2"
+            "4.3"
         }
     }
 

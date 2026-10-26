@@ -59,7 +59,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:letterSpacing="0.03"
-                android:text="v4.2 • 6.2 MB • Oct 23, 2026"
+                android:text="v4.3 • 5.9 MB • Oct 26, 2026"
                 android:textColor="#38BDF8"
                 android:textSize="12sp"
                 android:textStyle="bold" />

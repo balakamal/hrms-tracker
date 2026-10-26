@@ -1599,20 +1599,32 @@
     let lastInTime = null;
     let lastOutTime = null;
     let lastLocation = "Office";
+    let breakCount = 0;
+    let inBreak = false;
 
     for (let i = 0; i < parsedLogs.length; i++) {
       const log = parsedLogs[i];
       if (log.isIn === 0) {
+        if (inBreak) {
+          breakCount++;
+          inBreak = false;
+        }
         lastInTime = log.time;
         lastLocation = log.location || lastLocation;
       } else if (log.isIn === 1 && lastInTime) {
         workDurationMs += log.time - lastInTime;
         lastOutTime = log.time;
         lastInTime = null;
+        inBreak = true;
       }
+    }
+    if (inBreak) {
+      breakCount++;
     }
 
     const isClockedIn = lastInTime !== null;
+    const baseWorkMinutes = workDurationMs / 60000;
+    const lastInTimestamp = lastInTime ? lastInTime.getTime() : 0;
     const now = new Date();
 
     if (isClockedIn) {
@@ -1655,13 +1667,18 @@
       });
     }
 
+    const breakCountStr = breakCount === 0 ? "No Breaks Today" : breakCount === 1 ? "1 Break Today" : `${breakCount} Breaks Today`;
+
     return {
       firstClockIn: firstClockIn.toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
       }),
       workMinutes: totalWorkMinutes,
+      baseWorkMinutes: baseWorkMinutes,
+      lastInTimestamp: lastInTimestamp,
       breakMinutes: totalBreakMinutes,
+      breakCount: breakCountStr,
       remainingMinutes: remainingMinutes,
       exitTime: exitTime,
       actualExitTime: actualExitTime,
@@ -1968,7 +1985,7 @@
                 <span class="at-btn-update-sub" id="at-txt-update-sub">Tap to scan remote releases</span>
               </div>
             </div>
-            <span class="at-pill-version" id="at-txt-current-version">v4.2</span>
+            <span class="at-pill-version" id="at-txt-current-version">v4.3</span>
           </button>
         </div>
 
@@ -2733,7 +2750,7 @@
     }
     const txtCurrentVer = card.querySelector("#at-txt-current-version");
     if (txtCurrentVer) {
-      let verStr = "v4.2";
+      let verStr = "v4.3";
       if (window.AndroidApp && typeof window.AndroidApp.getAppVersionName === "function") {
         verStr = "v" + window.AndroidApp.getAppVersionName();
       }
@@ -2974,6 +2991,31 @@
     // Handle 15-Minute Pre-Exit Advance Notification
     if (!metrics.completed && metrics.isClockedIn && state.preExitEnabled && metrics.remainingMinutes <= 15 && metrics.remainingMinutes > 0) {
       triggerPreExitNotificationOnce();
+    }
+
+    // Sync live metrics with native Android host app
+    if (window.AndroidApp && typeof window.AndroidApp.saveAttendanceMetrics === "function") {
+      try {
+        const payload = JSON.stringify({
+          workTime: formatMinutes(metrics.workMinutes),
+          firstIn: metrics.firstClockIn,
+          breakTime: formatMinutes(metrics.breakMinutes),
+          breakCount: metrics.breakCount || "0 Breaks Today",
+          exitTime: metrics.exitTime,
+          actualExitTime: metrics.actualExitTime,
+          statusText: metrics.completed ? "Shift Complete" : (metrics.isClockedIn ? "Clocked In" : "On Break"),
+          progressPercent: progressPercent,
+          progressRemaining: metrics.completed ? "0m left" : `${formatMinutes(metrics.remainingMinutes)} left`,
+          baseWorkMinutes: metrics.baseWorkMinutes !== undefined ? metrics.baseWorkMinutes : metrics.workMinutes,
+          lastInTimestamp: metrics.lastInTimestamp || 0,
+          isClockedIn: Boolean(metrics.isClockedIn),
+          targetMinutes: targetMin,
+          avgBreakMinutes: metrics.avgBreakMinutes || 60,
+        });
+        window.AndroidApp.saveAttendanceMetrics(payload);
+      } catch (err) {
+        console.error("Failed to sync attendance metrics with AndroidApp:", err);
+      }
     }
   }
 

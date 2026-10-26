@@ -9,7 +9,7 @@ def main():
     build_gradle_path = os.path.join(root_dir, "android", "app", "build.gradle")
     
     # 1. Extract versionName from build.gradle
-    version_name = "4.2"
+    version_name = "4.3"
     if os.path.exists(build_gradle_path):
         with open(build_gradle_path, "r", encoding="utf-8") as f:
             content = f.read()

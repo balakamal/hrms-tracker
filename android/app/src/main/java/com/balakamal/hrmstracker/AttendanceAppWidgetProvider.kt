@@ -55,6 +55,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
         const val ACTION_CYCLE_PAGE = "com.balakamal.hrmstracker.ACTION_CYCLE_PAGE"
         const val ACTION_NEXT_PAGE = "com.balakamal.hrmstracker.ACTION_NEXT_PAGE"
         const val ACTION_PREV_PAGE = "com.balakamal.hrmstracker.ACTION_PREV_PAGE"
+        const val ACTION_WIDGET_DATA_UPDATED = "com.balakamal.hrmstracker.ACTION_WIDGET_DATA_UPDATED"
         const val EXTRA_WIDGET_ID = "appWidgetId"
         private const val PREFS_NAME = "HRMS_PREFS"
 
@@ -566,8 +567,12 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 editor.putInt("WidgetAvgBreakMinutes", avgBreakMinutes)
             }
             editor.apply()
-
             LockScreenLiveCardManager.updateLiveCard(context)
+            try {
+                context.sendBroadcast(Intent(ACTION_WIDGET_DATA_UPDATED).setPackage(context.packageName))
+            } catch (e: Exception) {
+                // Ignore
+            }
         }
 
         fun triggerWidgetUpdate(context: Context) {

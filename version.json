@@ -1,8 +1,8 @@
 {
-  "versionCode": 202,
-  "versionName": "4.2",
-  "releaseDate": "2026-10-23",
-  "releaseNotes": "feat: add Android app wrapper and cross-platform attendance tracker script",
+  "versionCode": 203,
+  "versionName": "4.3",
+  "releaseDate": "2026-10-26",
+  "releaseNotes": "fix: synchronize app header countdown with in-app tracker and widgets, real-time metrics push bridge",
   "apkUrl": "https://raw.githubusercontent.com/balakamal/hrms-tracker/main/builds/hrms-tracker-latest.apk",
   "apkSize": "5.9 MB"
 }
