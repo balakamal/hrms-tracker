@@ -1,8 +1,8 @@
 {
-  "versionCode": 204,
+  "versionCode": 205,
   "versionName": "4.3",
-  "releaseDate": "2026-10-26",
-  "releaseNotes": "feat: add Android CI/CD workflow, update configuration, and implement OTA update UI",
+  "releaseDate": "2026-11-09",
+  "releaseNotes": "feat: add Android attendance widget and browser extension support",
   "apkUrl": "https://raw.githubusercontent.com/balakamal/hrms-tracker/main/builds/hrms-tracker-latest.apk",
   "apkSize": "5.9 MB"
 }
