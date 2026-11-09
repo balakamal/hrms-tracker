@@ -1621,48 +1621,56 @@
 
     if (parsedLogs.length === 0) return null;
 
-    const firstClockIn = parsedLogs[0].time;
+    const firstClockIn = (parsedLogs.find((l) => l.isIn === 0) || parsedLogs[0]).time;
     let workDurationMs = 0;
     let breakDurationMs = 0;
     let lastInTime = null;
     let lastOutTime = null;
     let lastLocation = "Office";
     let breakCount = 0;
-    let inBreak = false;
-    const hasExplicitBreakData = parsedLogs.some((l) => l.isBreak);
 
     for (let i = 0; i < parsedLogs.length; i++) {
       const log = parsedLogs[i];
       if (log.isIn === 0) {
-        if (inBreak) {
-          const breakInterval = log.time - (lastOutTime || log.time);
+        if (lastOutTime !== null) {
+          const breakInterval = log.time - lastOutTime;
           if (breakInterval > 0) {
             breakDurationMs += breakInterval;
           }
           breakCount++;
-          inBreak = false;
+          lastOutTime = null;
         }
-        lastInTime = log.time;
+        if (lastInTime === null) {
+          lastInTime = log.time;
+        }
         lastLocation = log.location || lastLocation;
-      } else if (log.isIn === 1 && lastInTime) {
-        workDurationMs += log.time - lastInTime;
-        lastOutTime = log.time;
-        lastInTime = null;
-        inBreak = hasExplicitBreakData ? log.isBreak : true;
+      } else if (log.isIn === 1) {
+        if (lastInTime !== null) {
+          workDurationMs += log.time - lastInTime;
+          lastInTime = null;
+        }
+        if (lastOutTime === null) {
+          lastOutTime = log.time;
+        }
       }
     }
 
     const isClockedIn = lastInTime !== null;
     const now = new Date();
+    let inBreak = false;
 
     if (isClockedIn) {
       workDurationMs += now - lastInTime;
-    } else if (inBreak && lastOutTime) {
-      const ongoingBreak = now - lastOutTime;
-      if (ongoingBreak > 0) {
-        breakDurationMs += ongoingBreak;
+    } else if (lastOutTime !== null) {
+      const lastLog = parsedLogs[parsedLogs.length - 1];
+      if (lastLog && lastLog.isBreak) {
+        inBreak = true;
+        const ongoingBreak = now - lastOutTime;
+        if (ongoingBreak > 0) {
+          breakDurationMs += ongoingBreak;
+        }
+        breakCount++;
       }
-      breakCount++;
     }
 
     const totalWorkMinutes = workDurationMs / 60000;

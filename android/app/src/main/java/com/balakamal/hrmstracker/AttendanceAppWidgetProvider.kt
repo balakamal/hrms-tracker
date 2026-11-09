@@ -704,25 +704,28 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
 
                 var lastOutTime: Date? = null
                 var breakCount = 0
-                var inBreak = false
-                val hasExplicitBreakData = logs.any { it.isBreak }
 
                 for (log in logs) {
                     if (log.isIn == 0) {
-                        if (inBreak) {
-                            val breakInterval = log.time.time - (lastOutTime?.time ?: log.time.time)
+                        if (lastOutTime != null) {
+                            val breakInterval = log.time.time - lastOutTime.time
                             if (breakInterval > 0) {
                                 breakDurationMs += breakInterval
                             }
                             breakCount++
-                            inBreak = false
+                            lastOutTime = null
                         }
-                        lastInTime = log.time
-                    } else if (log.isIn == 1 && lastInTime != null) {
-                        workDurationMs += (log.time.time - lastInTime.time)
-                        lastOutTime = log.time
-                        lastInTime = null
-                        inBreak = if (hasExplicitBreakData) log.isBreak else true
+                        if (lastInTime == null) {
+                            lastInTime = log.time
+                        }
+                    } else if (log.isIn == 1) {
+                        if (lastInTime != null) {
+                            workDurationMs += (log.time.time - lastInTime.time)
+                            lastInTime = null
+                        }
+                        if (lastOutTime == null) {
+                            lastOutTime = log.time
+                        }
                     }
                 }
 
@@ -730,15 +733,20 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 val baseWorkMinutes = workDurationMs / 60000.0
                 val lastInTimestamp = lastInTime?.time ?: 0L
                 val now = Date()
+                var inBreak = false
 
                 if (isClockedIn) {
                     workDurationMs += (now.time - lastInTime!!.time)
-                } else if (inBreak && lastOutTime != null) {
-                    val ongoingBreak = now.time - lastOutTime.time
-                    if (ongoingBreak > 0) {
-                        breakDurationMs += ongoingBreak
+                } else if (lastOutTime != null) {
+                    val lastLog = logs.lastOrNull()
+                    if (lastLog != null && lastLog.isBreak) {
+                        inBreak = true
+                        val ongoingBreak = now.time - lastOutTime.time
+                        if (ongoingBreak > 0) {
+                            breakDurationMs += ongoingBreak
+                        }
+                        breakCount++
                     }
-                    breakCount++
                 }
 
                 val totalWorkMinutes = workDurationMs / 60000.0
