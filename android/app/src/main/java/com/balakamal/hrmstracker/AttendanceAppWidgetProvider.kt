@@ -26,7 +26,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 // Top-level data classes to simplify type inference and cross-file package visibility
-data class LogEntry(val time: Date, val isIn: Int)
+data class LogEntry(val time: Date, val isIn: Int, val isBreak: Boolean = false)
 
 data class WidgetMetrics(
     val workTime: String,
@@ -214,6 +214,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 isWfh -> "Home Sweet Office 🛋️"
                 isWeekOff -> "Weekend Chill 🏖️"
                 displayStatus.contains("Break", ignoreCase = true) -> "Coffee Break ☕"
+                displayStatus.contains("Clocked Out", ignoreCase = true) -> "Stepped Out 🚶"
                 progressPercent < 25 -> "Coffee Mode ☕"
                 progressPercent < 75 -> "In The Zone ⚡"
                 else -> "Almost There 🏃"
@@ -240,6 +241,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     isWeekOff -> 0xFF38BDF8.toInt()
                     displayStatus.contains("Break", ignoreCase = true) -> 0xFFF59E0B.toInt()
                     displayStatus.contains("Clocked In", ignoreCase = true) -> 0xFF10B981.toInt()
+                    displayStatus.contains("Clocked Out", ignoreCase = true) -> 0xFF94A3B8.toInt()
                     displayStatus.contains("Sync", ignoreCase = true) -> 0xFF38BDF8.toInt()
                     else -> 0xFF94A3B8.toInt()
                 }
@@ -250,6 +252,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     isWeekOff -> 0xFF0369A1.toInt()
                     displayStatus.contains("Break", ignoreCase = true) -> 0xFFB45309.toInt()
                     displayStatus.contains("Clocked In", ignoreCase = true) -> 0xFF15803D.toInt()
+                    displayStatus.contains("Clocked Out", ignoreCase = true) -> 0xFF64748B.toInt()
                     displayStatus.contains("Sync", ignoreCase = true) -> 0xFF0284C7.toInt()
                     else -> 0xFF64748B.toInt()
                 }
@@ -672,26 +675,45 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
                 val sdfTime = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
 
-                val logs = mutableListOf<LogEntry>()
+                val logsMap = mutableMapOf<String, LogEntry>()
                 for (i in 0 until logsArray.length()) {
                     val logObj = logsArray.getJSONObject(i)
                     val timeStr = logObj.getString("time")
                     val isIn = logObj.getInt("isIn")
+                    val isBreak = when {
+                        logObj.has("isBreak") -> logObj.optBoolean("isBreak", false) || logObj.optInt("isBreak", 0) == 1
+                        logObj.has("IsBreak") -> logObj.optBoolean("IsBreak", false) || logObj.optInt("IsBreak", 0) == 1
+                        else -> false
+                    }
                     val parsedTime = sdfTime.parse("${todayStr}T${timeStr}") ?: continue
-                    logs.add(LogEntry(parsedTime, isIn))
+                    val key = "${timeStr}_$isIn"
+                    val existing = logsMap[key]
+                    if (existing == null) {
+                        logsMap[key] = LogEntry(parsedTime, isIn, isBreak)
+                    } else {
+                        logsMap[key] = LogEntry(parsedTime, isIn, existing.isBreak || isBreak)
+                    }
                 }
-                logs.sortBy { it.time }
+                val logs = logsMap.values.sortedBy { it.time }
+                if (logs.isEmpty()) return null
 
                 var workDurationMs = 0L
+                var breakDurationMs = 0L
                 var lastInTime: Date? = null
                 val firstClockIn = logs.firstOrNull { it.isIn == 0 }?.time ?: logs.first().time
 
                 var lastOutTime: Date? = null
                 var breakCount = 0
                 var inBreak = false
+                val hasExplicitBreakData = logs.any { it.isBreak }
+
                 for (log in logs) {
                     if (log.isIn == 0) {
                         if (inBreak) {
+                            val breakInterval = log.time.time - (lastOutTime?.time ?: log.time.time)
+                            if (breakInterval > 0) {
+                                breakDurationMs += breakInterval
+                            }
                             breakCount++
                             inBreak = false
                         }
@@ -700,30 +722,30 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                         workDurationMs += (log.time.time - lastInTime.time)
                         lastOutTime = log.time
                         lastInTime = null
-                        inBreak = true
+                        inBreak = if (hasExplicitBreakData) log.isBreak else true
                     }
-                }
-                if (inBreak) {
-                    breakCount++
                 }
 
                 val isClockedIn = lastInTime != null
                 val baseWorkMinutes = workDurationMs / 60000.0
                 val lastInTimestamp = lastInTime?.time ?: 0L
+                val now = Date()
 
                 if (isClockedIn) {
-                    workDurationMs += (Date().time - lastInTime!!.time)
+                    workDurationMs += (now.time - lastInTime!!.time)
+                } else if (inBreak && lastOutTime != null) {
+                    val ongoingBreak = now.time - lastOutTime.time
+                    if (ongoingBreak > 0) {
+                        breakDurationMs += ongoingBreak
+                    }
+                    breakCount++
                 }
 
                 val totalWorkMinutes = workDurationMs / 60000.0
+                val totalBreakMinutes = breakDurationMs / 60000.0
                 val targetMinutes = targetHours * 60.0
                 val remainingMinutes = Math.max(0.0, targetMinutes - totalWorkMinutes)
                 val completed = totalWorkMinutes >= targetMinutes
-
-                // Break time
-                val endTimestamp = if (isClockedIn) Date() else lastOutTime ?: firstClockIn
-                val totalElapsedMs = endTimestamp.time - firstClockIn.time
-                val totalBreakMinutes = Math.max(0.0, (totalElapsedMs - workDurationMs) / 60000.0)
 
                 // Formats
                 val firstInStr = SimpleDateFormat("hh:mm a", Locale.US).format(firstClockIn)
@@ -739,12 +761,12 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 var actualExitTimeStr = "Completed"
                 if (!completed) {
                     // Actual Exit: direct remaining work time without extra breaks
-                    val actualExitDate = Date(Date().time + (remainingMinutes * 60000).toLong())
+                    val actualExitDate = Date(now.time + (remainingMinutes * 60000).toLong())
                     actualExitTimeStr = SimpleDateFormat("hh:mm a", Locale.US).format(actualExitDate)
 
                     // Estimated Exit: includes buffer for remaining portion of average break
                     val remainingBreakMinutes = Math.max(0.0, avgBreakMinutes - totalBreakMinutes)
-                    val estExitDate = Date(Date().time + ((remainingMinutes + remainingBreakMinutes) * 60000).toLong())
+                    val estExitDate = Date(now.time + ((remainingMinutes + remainingBreakMinutes) * 60000).toLong())
                     exitTimeStr = SimpleDateFormat("hh:mm a", Locale.US).format(estExitDate)
                 }
 
@@ -754,7 +776,8 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 val statusText = when {
                     completed -> "Shift Complete"
                     isClockedIn -> "Clocked In"
-                    progressPercent > 0 -> "On Break"
+                    inBreak -> "On Break"
+                    progressPercent > 0 -> "Clocked Out"
                     else -> "Not Clocked In"
                 }
 

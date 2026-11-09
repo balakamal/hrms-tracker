@@ -142,6 +142,61 @@
       font-size: 14px;
       letter-spacing: -0.01em;
     }
+    .at-badge-divider {
+      width: 1px;
+      height: 13px;
+      background: rgba(255, 255, 255, 0.16);
+      margin: 0 2px;
+    }
+    #at-widget-container.at-theme-light .at-badge-divider {
+      background: rgba(0, 0, 0, 0.12);
+    }
+    .at-badge-sub {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--at-text-secondary);
+      letter-spacing: -0.01em;
+      font-variant-numeric: tabular-nums;
+    }
+    .at-badge-exit-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .at-badge-exit-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .at-badge-tag {
+      font-size: 8.5px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      padding: 1px 3.5px;
+      border-radius: 4px;
+      line-height: 1;
+    }
+    .tag-act {
+      color: #A78BFA;
+      background: rgba(167, 139, 250, 0.16);
+    }
+    .tag-est {
+      color: #38BDF8;
+      background: rgba(56, 189, 248, 0.16);
+    }
+    #at-widget-container.at-theme-light .tag-act {
+      color: #7C3AED;
+      background: rgba(124, 58, 237, 0.12);
+    }
+    #at-widget-container.at-theme-light .tag-est {
+      color: #0284C7;
+      background: rgba(2, 132, 199, 0.12);
+    }
+    .at-badge-exit-sep {
+      opacity: 0.35;
+      font-size: 9px;
+      color: var(--at-text-secondary);
+    }
 
     /* Main Dashboard Card (macOS Sonoma / iOS 18 Frosted Glass) */
     .at-card {
@@ -1533,26 +1588,57 @@
     const todayStr = getTodayLocalDateStr();
     const parseTime = (timeStr) => new Date(`${todayStr}T${timeStr}`);
 
-    const parsedLogs = logs
+    // Deduplicate by time + isIn, merging isBreak
+    const logMap = new Map();
+    for (let i = 0; i < logs.length; i++) {
+      const l = logs[i];
+      const key = `${l.time}_${l.isIn}`;
+      const isBrk = Boolean(
+        l.isBreak === true ||
+        l.isBreak === 1 ||
+        l.isBreak === "true" ||
+        l.IsBreak === true ||
+        l.IsBreak === 1 ||
+        l.IsBreak === "true"
+      );
+      if (!logMap.has(key)) {
+        logMap.set(key, { ...l, isBreak: isBrk });
+      } else {
+        const existing = logMap.get(key);
+        existing.isBreak = existing.isBreak || isBrk;
+      }
+    }
+
+    const parsedLogs = Array.from(logMap.values())
       .map((l) => ({
         time: parseTime(l.time),
         isIn: l.isIn, // 0 = In, 1 = Out
+        isBreak: l.isBreak,
         location: l.location,
       }))
+      .filter((l) => !isNaN(l.time.getTime()))
       .sort((a, b) => a.time - b.time);
+
+    if (parsedLogs.length === 0) return null;
 
     const firstClockIn = parsedLogs[0].time;
     let workDurationMs = 0;
+    let breakDurationMs = 0;
     let lastInTime = null;
     let lastOutTime = null;
     let lastLocation = "Office";
     let breakCount = 0;
     let inBreak = false;
+    const hasExplicitBreakData = parsedLogs.some((l) => l.isBreak);
 
     for (let i = 0; i < parsedLogs.length; i++) {
       const log = parsedLogs[i];
       if (log.isIn === 0) {
         if (inBreak) {
+          const breakInterval = log.time - (lastOutTime || log.time);
+          if (breakInterval > 0) {
+            breakDurationMs += breakInterval;
+          }
           breakCount++;
           inBreak = false;
         }
@@ -1562,34 +1648,30 @@
         workDurationMs += log.time - lastInTime;
         lastOutTime = log.time;
         lastInTime = null;
-        inBreak = true;
+        inBreak = hasExplicitBreakData ? log.isBreak : true;
       }
-    }
-    if (inBreak) {
-      breakCount++;
     }
 
     const isClockedIn = lastInTime !== null;
-    const baseWorkMinutes = workDurationMs / 60000;
-    const lastInTimestamp = lastInTime ? lastInTime.getTime() : 0;
     const now = new Date();
 
     if (isClockedIn) {
       workDurationMs += now - lastInTime;
+    } else if (inBreak && lastOutTime) {
+      const ongoingBreak = now - lastOutTime;
+      if (ongoingBreak > 0) {
+        breakDurationMs += ongoingBreak;
+      }
+      breakCount++;
     }
 
     const totalWorkMinutes = workDurationMs / 60000;
+    const totalBreakMinutes = breakDurationMs / 60000;
+    const baseWorkMinutes = workDurationMs / 60000;
+    const lastInTimestamp = lastInTime ? lastInTime.getTime() : 0;
     const targetMinutes = state.targetHours * 60;
     const remainingMinutes = Math.max(0, targetMinutes - totalWorkMinutes);
     const completed = totalWorkMinutes >= targetMinutes;
-
-    // Break time: elapsed time up to now (or last clock-out) minus work time
-    const endTimestamp = isClockedIn ? now : lastOutTime || firstClockIn;
-    const totalElapsedMs = endTimestamp - firstClockIn;
-    const totalBreakMinutes = Math.max(
-      0,
-      (totalElapsedMs - workDurationMs) / 60000,
-    );
 
     // Actual Exit Time (pure work completion without extra breaks)
     let actualExitTime = "Completed";
@@ -1632,6 +1714,7 @@
       avgBreakMinutes: avgBreakMin,
       remainingBreakMinutes: remainingBreakMinutes,
       isClockedIn: isClockedIn,
+      inBreak: inBreak,
       completed: completed,
       lastLocation: lastLocation,
     };
@@ -1698,7 +1781,17 @@
       <span id="at-badge-wfh" style="display:${state.isWfh ? "inline-flex" : "none"}; align-items:center; gap:4px; background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.35); padding: 1px 7px; border-radius: 12px; font-size: 9.5px; font-weight: 700; color: #F59E0B;"><span style="display:inline-block; width:10px; height:10px; fill:#F59E0B;">${ICONS.home}</span> WFH</span>
       <span class="at-badge-text" id="at-badge-work-time">--h --m</span>
       <span class="at-badge-divider"></span>
-      <span class="at-badge-sub" id="at-badge-exit">--:--</span>
+      <div class="at-badge-exit-group" id="at-badge-exit-group">
+        <span class="at-badge-exit-item at-badge-act" title="Actual Exit (pure work target)">
+          <span class="at-badge-tag tag-act">ACT</span>
+          <span class="at-badge-sub" id="at-badge-actual-exit">--:--</span>
+        </span>
+        <span class="at-badge-exit-sep" id="at-badge-exit-sep">•</span>
+        <span class="at-badge-exit-item at-badge-est" title="Projected Exit (with average break)">
+          <span class="at-badge-tag tag-est">EST</span>
+          <span class="at-badge-sub" id="at-badge-exit">--:--</span>
+        </span>
+      </div>
     `;
     // Click is handled manually in dragEnd to prevent WebView touch scrolling bugs
     container.appendChild(badge);
@@ -2774,8 +2867,16 @@
         if (badgeTimeEl) badgeTimeEl.innerText = "Week Off";
         if (exitTimeEl) exitTimeEl.innerText = "Week Off";
         if (actualExitTimeEl) actualExitTimeEl.innerText = "Week Off";
+        const badgeExitGroup = document.getElementById("at-badge-exit-group");
+        if (badgeExitGroup) {
+          badgeExitGroup.innerHTML = `<span class="at-badge-sub">Week Off</span>`;
+        }
       } else {
         if (statusTextEl) statusTextEl.innerText = "No attendance logs today";
+        const badgeExitGroup = document.getElementById("at-badge-exit-group");
+        if (badgeExitGroup) {
+          badgeExitGroup.innerHTML = `<span class="at-badge-sub">--:--</span>`;
+        }
       }
       return;
     }
@@ -2787,9 +2888,29 @@
     if (badgeDotEl) {
       badgeDotEl.className = "at-badge-dot" + (metrics.completed ? " at-dot-done" : (metrics.isClockedIn ? "" : " at-dot-out"));
     }
-    const badgeExitEl = document.getElementById("at-badge-exit");
-    if (badgeExitEl) {
-      badgeExitEl.innerText = metrics.completed ? "Goal Met" : metrics.exitTime;
+    const badgeExitGroup = document.getElementById("at-badge-exit-group");
+    if (metrics.completed) {
+      if (badgeExitGroup) {
+        badgeExitGroup.innerHTML = `<span class="at-badge-sub" style="color:#34C759; font-weight:700;">Goal Met 🚀</span>`;
+      }
+    } else {
+      if (badgeExitGroup && !document.getElementById("at-badge-actual-exit")) {
+        badgeExitGroup.innerHTML = `
+          <span class="at-badge-exit-item at-badge-act" title="Actual Exit (pure work target)">
+            <span class="at-badge-tag tag-act">ACT</span>
+            <span class="at-badge-sub" id="at-badge-actual-exit">--:--</span>
+          </span>
+          <span class="at-badge-exit-sep" id="at-badge-exit-sep">•</span>
+          <span class="at-badge-exit-item at-badge-est" title="Projected Exit (with average break)">
+            <span class="at-badge-tag tag-est">EST</span>
+            <span class="at-badge-sub" id="at-badge-exit">--:--</span>
+          </span>
+        `;
+      }
+      const exitEl = document.getElementById("at-badge-exit");
+      const actEl = document.getElementById("at-badge-actual-exit");
+      if (exitEl) exitEl.innerText = metrics.exitTime;
+      if (actEl) actEl.innerText = metrics.actualExitTime;
     }
 
     // Update status badge
@@ -2815,7 +2936,11 @@
         }
       } else {
         indicator.classList.add("at-status-out");
-        textNode.innerText = state.isWfh ? "WFH (Break)" : "Clocked Out / Break";
+        if (state.isWfh) {
+          textNode.innerText = metrics.inBreak ? "WFH (Break)" : "WFH (Stepped Out)";
+        } else {
+          textNode.innerText = metrics.inBreak ? "On Break ☕" : "Clocked Out";
+        }
       }
     }
 
@@ -2903,7 +3028,7 @@
           breakCount: metrics.breakCount || "0 Breaks Today",
           exitTime: metrics.exitTime,
           actualExitTime: metrics.actualExitTime,
-          statusText: metrics.completed ? "Shift Complete" : (metrics.isClockedIn ? "Clocked In" : "On Break"),
+          statusText: metrics.completed ? "Shift Complete" : (metrics.isClockedIn ? "Clocked In" : (metrics.inBreak ? "On Break" : "Clocked Out")),
           progressPercent: progressPercent,
           progressRemaining: metrics.completed ? "0m left" : `${formatMinutes(metrics.remainingMinutes)} left`,
           baseWorkMinutes: metrics.baseWorkMinutes !== undefined ? metrics.baseWorkMinutes : metrics.workMinutes,

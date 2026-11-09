@@ -738,10 +738,24 @@ class MainActivity : AppCompatActivity() {
         val totalMinutes = Math.round(liveRemainingMinutes).toInt()
         val h = totalMinutes / 60
         val m = totalMinutes % 60
+        val isClockedOut = rawStatusText.contains("Clocked Out", ignoreCase = true)
+        val isOnBreak = rawStatusText.contains("Break", ignoreCase = true)
+
         imgNowBarIcon.setImageResource(R.drawable.ic_timer)
-        imgNowBarIcon.setColorFilter(ContextCompat.getColor(this, R.color.accent_cyan))
-        txtCountdown.text = if (h > 0) "${h}h ${m}m left" else "${m}m left"
-        txtCountdown.setTextColor(ContextCompat.getColor(this, R.color.accent_cyan))
+        imgNowBarIcon.setColorFilter(
+            ContextCompat.getColor(
+                this,
+                if (isClockedOut) R.color.text_secondary else if (isOnBreak) R.color.accent_amber_gold else R.color.accent_cyan
+            )
+        )
+        val prefix = if (isClockedOut) "Clocked Out • " else if (isOnBreak) "On Break • " else ""
+        txtCountdown.text = if (h > 0) "$prefix${h}h ${m}m left" else "$prefix${m}m left"
+        txtCountdown.setTextColor(
+            ContextCompat.getColor(
+                this,
+                if (isClockedOut) R.color.text_secondary else if (isOnBreak) R.color.accent_amber_gold else R.color.accent_cyan
+            )
+        )
     }
 
     private fun setupBackNavigation() {
