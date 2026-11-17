@@ -1301,13 +1301,88 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun injectScriptFromAssets() {
-        try {
-            val inputStream = assets.open("hrms-attendance-tracker.js")
-            val script = inputStream.bufferedReader().use { it.readText() }
-            webView.evaluateJavascript(script, null)
+    /**
+     * Issue 2: Fetch the tracker script from GitHub raw (single source of truth),
+     * cache it in SharedPreferences for 6 hours, and fall back to stale cache
+     * or the bundled asset if the network is unavailable.
+     */
+    private fun fetchRemoteTrackerScript(): String? {
+        return try {
+            val url = java.net.URL(
+                "https://raw.githubusercontent.com/balakamal/hrms-tracker/main/hrms-attendance-tracker.js"
+            )
+            val conn = url.openConnection() as java.net.HttpURLConnection
+            conn.connectTimeout = 8000
+            conn.readTimeout = 10000
+            conn.setRequestProperty("Cache-Control", "no-cache")
+            if (conn.responseCode == 200) {
+                conn.inputStream.bufferedReader().use { it.readText() }
+            } else null
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.w("HRMSTracker", "Remote script fetch failed: ${e.message}")
+            null
+        }
+    }
+
+    private fun loadTrackerScript(callback: (String) -> Unit) {
+        val cached = sharedPrefs.getString("RemoteTrackerScript", null)
+        val cachedTs = sharedPrefs.getLong("RemoteTrackerScriptTs", 0L)
+        val ttlMs = 6L * 60 * 60 * 1000  // 6 hours
+        val isFresh = cached != null && (System.currentTimeMillis() - cachedTs < ttlMs)
+
+        if (isFresh) {
+            // Fast path: inject from cache; refresh silently in background
+            callback(cached!!)
+            Thread {
+                fetchRemoteTrackerScript()?.let { fresh ->
+                    sharedPrefs.edit()
+                        .putString("RemoteTrackerScript", fresh)
+                        .putLong("RemoteTrackerScriptTs", System.currentTimeMillis())
+                        .apply()
+                }
+            }.start()
+            return
+        }
+
+        // Slow path: fetch from GitHub, then inject
+        Thread {
+            val remote = fetchRemoteTrackerScript()
+            val script = when {
+                remote != null -> {
+                    sharedPrefs.edit()
+                        .putString("RemoteTrackerScript", remote)
+                        .putLong("RemoteTrackerScriptTs", System.currentTimeMillis())
+                        .apply()
+                    remote
+                }
+                cached != null -> {
+                    // Stale cache is better than nothing (offline scenario)
+                    android.util.Log.w("HRMSTracker", "Using stale cached script (offline or GitHub unreachable).")
+                    cached
+                }
+                else -> {
+                    // Final fallback: bundled asset
+                    android.util.Log.w("HRMSTracker", "Using bundled script asset (no cache, no network).")
+                    try {
+                        assets.open("hrms-attendance-tracker.js").bufferedReader().use { it.readText() }
+                    } catch (e: Exception) { "" }
+                }
+            }
+            if (script.isNotEmpty()) {
+                runOnUiThread { callback(script) }
+            }
+        }.start()
+    }
+
+    private fun injectScriptFromAssets() {
+        injectTrackerScript()
+    }
+
+    private fun injectTrackerScript() {
+        loadTrackerScript { script ->
+            if (script.isNotEmpty()) {
+                webView.evaluateJavascript(script, null)
+            }
         }
     }
 

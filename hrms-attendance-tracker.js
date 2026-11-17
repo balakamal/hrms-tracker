@@ -1052,6 +1052,7 @@
     channelLiveEnabled: true,
     imageMap: {},
     attendanceData: null,
+    serverGrossMinutes: 0,  // Server-computed biometric gross minutes (from GetDailySummaryLog)
     lastNotificationTime: 0,
     notificationInterval: (parseInt(localStorage.getItem("at_leave_interval") || "5", 10)) * 60 * 1000,
     loading: false,
@@ -1526,11 +1527,18 @@
         const log = logs[i];
         if (!log) continue;
         const logDateStr = (log.date || "").split("T")[0];
-        // Exclude today's incomplete log
-        if (logDateStr === todayLocalStr) continue;
 
         const gross = Number(log.grossHours) || 0;
         const eff = Number(log.effectiveHours) || 0;
+
+        // Issue 3: Capture today's server-computed gross hours for biometric accuracy.
+        // grossHours is in seconds (same units as effectiveHours per existing break calc).
+        if (logDateStr === todayLocalStr) {
+          if (gross > 0) {
+            state.serverGrossMinutes = gross / 60;
+          }
+          continue; // Exclude today from break average (may be incomplete)
+        }
 
         // Valid completed working day punch
         if (gross > 0 && eff > 0 && gross >= eff) {
@@ -1553,6 +1561,61 @@
     }
   }
 
+  // Issue 1: Fetch employee-specific effective hours from the dedicated endpoint.
+  // This overrides the org-policy rate for more accurate per-employee targets.
+  async function fetchEmployeeEffectiveHours() {
+    if (!state.userId) await fetchUserIdentity();
+    if (!state.userId) return;
+
+    const url = `https://apps.pal.tech/hrms-backend/api/EmployeeTimeSheet/GetEmployeeEffectiveHours?employeeId=${state.userId}`;
+    let token = localStorage.getItem("AccessToken");
+    try {
+      let response = await fetch(url, {
+        credentials: "include",
+        headers: getAuthHeaders(token),
+      });
+      if (response.status === 401) {
+        const refreshed = await attemptTokenRefresh();
+        if (refreshed) {
+          token = localStorage.getItem("AccessToken");
+          response = await fetch(url, {
+            credentials: "include",
+            headers: getAuthHeaders(token),
+          });
+        }
+      }
+      if (!response.ok) return;
+      const resData = await response.json();
+      if (!resData || !resData.data) return;
+
+      // Try multiple possible field shapes for the effective hours value
+      const d = resData.data;
+      const rawHours =
+        d.effectiveHours ??
+        d.EffectiveHours ??
+        d.requiredHours ??
+        d.RequiredHours ??
+        d.dailyEffectiveHours ??
+        d.hours ??
+        (typeof d === "number" ? d : null);
+
+      if (rawHours !== null && !isNaN(parseFloat(rawHours))) {
+        const hours = parseFloat(rawHours);
+        if (hours > 0 && hours <= 24) {
+          state.targetHours = hours;
+          localStorage.setItem("at_target_hours", hours.toString());
+          if (window.AndroidApp && typeof window.AndroidApp.saveSettings === "function") {
+            window.AndroidApp.saveSettings(hours);
+          }
+          updateUI();
+        }
+      }
+    } catch (e) {
+      // Non-critical: fall through to fetchOrganizationPolicy() as backup
+      console.debug("[HRMS Tracker] fetchEmployeeEffectiveHours skipped:", e.message);
+    }
+  }
+
   async function fetchAttendanceLogs() {
     checkDomForWfhStatus();
     if ((!state.userId || !state.userAvatar) && !state.identityFetched) {
@@ -1563,10 +1626,13 @@
     // Fetch official employee status from HRMS backend (WFH: 1 check)
     fetchEmployeeStatus();
 
-    // Fetch organization policy for dynamic target working rate
+    // Fetch employee-specific effective hours (highest priority), then fall back to org policy
+    fetchEmployeeEffectiveHours();
+
+    // Fetch organization policy for dynamic target working rate (fallback)
     fetchOrganizationPolicy();
 
-    // Fetch 30-day daily summary to compute personalized average break duration
+    // Fetch 30-day daily summary to compute personalized average break duration + today's gross hours
     fetchBreakAverageFromSummary();
 
     // Sync tokens with Android side in case they have changed or are freshly available
@@ -1602,6 +1668,12 @@
       const resData = await response.json();
       if (resData && resData.data) {
         state.attendanceData = resData.data;
+        // Capture server-computed gross hours if present in daily log response (Issue 3)
+        const serverGross = resData.data.grossHours ?? resData.data.biometricHours ?? resData.data.totalBiometricHours;
+        if (serverGross && Number(serverGross) > 0) {
+          // grossHours is in seconds (consistent with GetDailySummaryLog usage)
+          state.serverGrossMinutes = Number(serverGross) / 60;
+        }
         updateUI();
       }
     } catch (e) {
@@ -1710,10 +1782,18 @@
       }
     }
 
-    const totalWorkMinutes = workDurationMs / 60000;
+    const rawWorkMinutes = workDurationMs / 60000;
     const totalBreakMinutes = breakDurationMs / 60000;
-    const baseWorkMinutes = workDurationMs / 60000;
+    const baseWorkMinutes = rawWorkMinutes;
     const lastInTimestamp = lastInTime ? lastInTime.getTime() : 0;
+
+    // Issue 3: When employee is punched out, prefer server-computed biometric hours
+    // to match what the HRMS website shows as "Biometric Hours".
+    // While clocked in, we must use real-time client calculation.
+    const totalWorkMinutes = (!isClockedIn && state.serverGrossMinutes > 0)
+      ? state.serverGrossMinutes
+      : rawWorkMinutes;
+
     const targetMinutes = state.targetHours * 60;
     const remainingMinutes = Math.max(0, targetMinutes - totalWorkMinutes);
     const completed = totalWorkMinutes >= targetMinutes;

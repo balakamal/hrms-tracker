@@ -1,10 +1,15 @@
 {
   "manifest_version": 3,
   "name": "HRMS Attendance Tracker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A premium floating dashboard to track biometric office hours, breaks, and exit time in real-time.",
   "permissions": [
-    "notifications"
+    "notifications",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://apps.pal.tech/*",
+    "https://raw.githubusercontent.com/*"
   ],
   "content_scripts": [
     {
@@ -17,6 +22,9 @@
       "run_at": "document_end"
     }
   ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
   "icons": {
     "16": "icon16.png",
     "48": "icon48.png",

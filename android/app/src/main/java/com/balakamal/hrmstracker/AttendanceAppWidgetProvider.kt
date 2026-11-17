@@ -749,7 +749,17 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     }
                 }
 
-                val totalWorkMinutes = workDurationMs / 60000.0
+                // Issue 3: Prefer server-computed biometric hours when punched out
+                val serverGross = data.optLong("grossHours", 0L).takeIf { it > 0 }
+                    ?: data.optLong("biometricHours", 0L).takeIf { it > 0 }
+                    ?: data.optLong("totalBiometricHours", 0L).takeIf { it > 0 }
+
+                val rawWorkMinutes = workDurationMs / 60000.0
+                val totalWorkMinutes = if (!isClockedIn && serverGross != null && serverGross > 0) {
+                    serverGross / 60.0
+                } else {
+                    rawWorkMinutes
+                }
                 val totalBreakMinutes = breakDurationMs / 60000.0
                 val targetMinutes = targetHours * 60.0
                 val remainingMinutes = Math.max(0.0, targetMinutes - totalWorkMinutes)
@@ -912,6 +922,46 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             val oneDayMs = 24 * 60 * 60 * 1000L
             if (cachedTarget > 0 && (System.currentTimeMillis() - lastFetch) < oneDayMs) {
                 return cachedTarget
+            }
+
+            try {
+                // Issue 1: Try dedicated employee effective hours first
+                val effectiveUrl = "https://apps.pal.tech/hrms-backend/api/EmployeeTimeSheet/GetEmployeeEffectiveHours?employeeId=$userId"
+                val effConnection = TokenManager.openAuthenticatedConnection(context, effectiveUrl, accessToken)
+                effConnection.requestMethod = "GET"
+                effConnection.connectTimeout = 6000
+                effConnection.readTimeout = 6000
+                effConnection.connect()
+
+                if (effConnection.responseCode == 200) {
+                    val reader = BufferedReader(InputStreamReader(effConnection.inputStream))
+                    val sb = StringBuilder()
+                    var line: String?
+                    while (reader.readLine().also { line = it } != null) {
+                        sb.append(line)
+                    }
+                    reader.close()
+                    val json = JSONObject(sb.toString())
+                    val d = json.optJSONObject("data")
+                    val rawHours = when {
+                        d != null && d.has("effectiveHours") -> d.optDouble("effectiveHours", -1.0)
+                        d != null && d.has("EffectiveHours") -> d.optDouble("EffectiveHours", -1.0)
+                        d != null && d.has("requiredHours") -> d.optDouble("requiredHours", -1.0)
+                        json.has("data") && json.optDouble("data", -1.0) > 0 -> json.optDouble("data", -1.0)
+                        else -> -1.0
+                    }
+                    if (rawHours > 0.0 && rawHours <= 24.0) {
+                        val targetHours = rawHours.toFloat()
+                        sharedPrefs.edit()
+                            .putFloat("TargetHours", targetHours)
+                            .putFloat("WidgetTargetMinutes", targetHours * 60f)
+                            .putLong("LastPolicyFetchTimestamp", System.currentTimeMillis())
+                            .apply()
+                        return targetHours
+                    }
+                }
+            } catch (e: Exception) {
+                // Non-critical: fall through to OrganizationPolicy
             }
 
             try {
