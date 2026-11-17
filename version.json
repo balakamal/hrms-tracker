@@ -1,8 +1,8 @@
 {
-  "versionCode": 206,
+  "versionCode": 207,
   "versionName": "4.3",
-  "releaseDate": "2026-11-09",
-  "releaseNotes": "feat: implement Android home screen widget and cross-platform HRMS attendance tracker script",
+  "releaseDate": "2026-11-17",
+  "releaseNotes": "feat: add cross-platform HRMS attendance tracker widget and extension files",
   "apkUrl": "https://raw.githubusercontent.com/balakamal/hrms-tracker/main/builds/hrms-tracker-latest.apk",
   "apkSize": "5.9 MB"
 }
