@@ -1,8 +1,8 @@
 {
-  "versionCode": 207,
+  "versionCode": 208,
   "versionName": "4.3",
-  "releaseDate": "2026-11-17",
-  "releaseNotes": "feat: add cross-platform HRMS attendance tracker widget and extension files",
+  "releaseDate": "2026-11-22",
+  "releaseNotes": "Merge branch 'main' of https://github.com/balakamal/hrms-tracker",
   "apkUrl": "https://raw.githubusercontent.com/balakamal/hrms-tracker/main/builds/hrms-tracker-latest.apk",
   "apkSize": "5.9 MB"
 }
