@@ -37,7 +37,7 @@
                 android:letterSpacing="0.08"
                 android:text="HRMS"
                 android:textColor="#94A3B8"
-                android:textSize="9sp"
+                android:textSize="11sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -49,26 +49,26 @@
                 android:ellipsize="end"
                 android:letterSpacing="0.04"
                 android:maxLines="1"
-                android:paddingStart="7dp"
-                android:paddingEnd="7dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
                 android:paddingTop="2dp"
                 android:paddingBottom="2dp"
                 android:singleLine="true"
                 android:text="CLOCKED IN"
                 android:textColor="#10B981"
-                android:textSize="7.5sp"
+                android:textSize="10.5sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
         <ImageButton
             android:id="@+id/widget_btn_refresh"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
             android:background="@drawable/widget_oneui_btn_refresh"
             android:contentDescription="Refresh attendance stats"
-            android:padding="5dp"
+            android:padding="6dp"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_refresh" />
     </RelativeLayout>
@@ -106,7 +106,7 @@
             android:singleLine="true"
             android:text="7h 15m"
             android:textColor="#FFFFFF"
-            android:textSize="10.5sp"
+            android:textSize="11.5sp"
             android:textStyle="bold" />
 
         <TextView
@@ -118,7 +118,7 @@
             android:singleLine="true"
             android:text="Time at Desk"
             android:textColor="#94A3B8"
-            android:textSize="6.5sp" />
+            android:textSize="10sp" />
     </LinearLayout>
 
     <!-- Bottom: Borderless Tonal Pill with Est. Exit & Remaining Status -->
@@ -144,7 +144,7 @@
             android:singleLine="true"
             android:text="Exit: 06:30 PM"
             android:textColor="#FFFFFF"
-            android:textSize="9.5sp"
+            android:textSize="11.5sp"
             android:textStyle="bold" />
 
         <TextView
@@ -156,7 +156,7 @@
             android:singleLine="true"
             android:text="1h 15m left"
             android:textColor="#38BDF8"
-            android:textSize="8.5sp" />
+            android:textSize="11sp" />
     </LinearLayout>
 
 </LinearLayout>

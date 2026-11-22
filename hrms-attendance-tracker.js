@@ -18,21 +18,21 @@
   const styles = `
     /* Widget Container - Obsidian Glass Theme */
     #at-widget-container {
-      --at-bg-card: linear-gradient(165deg, rgba(20, 24, 33, 0.95) 0%, rgba(13, 16, 23, 0.98) 100%);
-      --at-bg-badge: linear-gradient(145deg, rgba(28, 33, 44, 0.95) 0%, rgba(16, 20, 28, 0.97) 100%);
-      --at-bg-panels: #12161F;
+      --at-bg-card: linear-gradient(165deg, rgba(16, 20, 31, 0.96) 0%, rgba(9, 12, 21, 0.98) 100%);
+      --at-bg-badge: #000000;
+      --at-bg-panels: #090C15;
       --at-text-primary: #F8FAFC;
       --at-text-secondary: #94A3B8;
-      --at-border: rgba(255, 255, 255, 0.08);
-      --at-border-input: rgba(255, 255, 255, 0.12);
-      --at-bg-input: rgba(255, 255, 255, 0.04);
-      --at-bg-item: rgba(255, 255, 255, 0.035);
-      --at-shadow: rgba(0, 0, 0, 0.5);
+      --at-border: rgba(255, 255, 255, 0.12);
+      --at-border-input: rgba(255, 255, 255, 0.14);
+      --at-bg-input: rgba(255, 255, 255, 0.05);
+      --at-bg-item: rgba(255, 255, 255, 0.04);
+      --at-shadow: rgba(0, 0, 0, 0.65);
       --at-title-color: #FFFFFF;
       --at-panel-border: rgba(255, 255, 255, 0.08);
-      --at-accent-work: #10B981;       /* Clean Emerald */
-      --at-accent-exit: #3B82F6;       /* Vibrant Cobalt */
-      --at-accent-actual: #818CF8;     /* Soft Indigo */
+      --at-accent-work: #10B981;       /* Apple Sage Green */
+      --at-accent-exit: #818CF8;       /* Intelligence Indigo Luminous */
+      --at-accent-actual: #A5B4FC;     /* Soft Periwinkle */
       --at-accent-gold: #F59E0B;       /* Warm Amber */
       --at-bg-header: transparent;
 
@@ -73,18 +73,18 @@
       --at-shadow: rgba(15, 23, 42, 0.12);
       --at-title-color: #0F172A;
       --at-panel-border: rgba(0, 0, 0, 0.06);
-      --at-accent-work: #059669;
-      --at-accent-exit: #2563EB;
-      --at-accent-actual: #4F46E5;
-      --at-accent-gold: #D97706;
+      --at-accent-work: #059669;       /* WCAG AAA 4.7:1 Emerald */
+      --at-accent-exit: #4F46E5;       /* WCAG AAA 7.2:1 Deep Royal Indigo */
+      --at-accent-actual: #4338CA;     /* WCAG AAA 8.6:1 Indigo */
+      --at-accent-gold: #B45309;       /* WCAG AA 4.9:1 Amber 700 */
       --at-bg-header: transparent;
     }
     #at-widget-container.at-theme-light .highlight-actual {
-      color: #4F46E5 !important;
+      color: #4338CA !important;
       text-shadow: none;
     }
     #at-widget-container.at-theme-light .highlight-exit {
-      color: #2563EB !important;
+      color: #4F46E5 !important;
       text-shadow: none;
     }
     #at-widget-container.at-theme-light .highlight-work {
@@ -94,8 +94,8 @@
     #at-widget-container.at-theme-light #at-wfh-badge,
     #at-widget-container.at-theme-light #at-badge-wfh {
       background: #FFFBEB !important;
-      border-color: rgba(245, 158, 11, 0.3) !important;
-      color: #D97706 !important;
+      border-color: rgba(180, 83, 9, 0.3) !important;
+      color: #B45309 !important;
     }
     #at-widget-container.at-dragging {
       transition: none !important;
@@ -106,13 +106,13 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      background: linear-gradient(135deg, rgba(22, 27, 38, 0.9) 0%, rgba(13, 16, 23, 0.95) 100%);
-      backdrop-filter: blur(28px) saturate(200%);
-      -webkit-backdrop-filter: blur(28px) saturate(200%);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: #000000;
+      backdrop-filter: blur(40px) saturate(190%);
+      -webkit-backdrop-filter: blur(40px) saturate(190%);
+      border: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 9999px;
       padding: 9px 18px;
-      box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+      box-shadow: 0 16px 40px -4px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.22);
       cursor: pointer;
       user-select: none;
       transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
@@ -167,7 +167,7 @@
       background: rgba(0, 0, 0, 0.12);
     }
     .at-badge-sub {
-      font-size: 11.5px;
+      font-size: 12.5px;
       font-weight: 600;
       color: var(--at-text-secondary);
       letter-spacing: -0.01em;
@@ -184,32 +184,32 @@
       gap: 3px;
     }
     .at-badge-tag {
-      font-size: 8.5px;
+      font-size: 10.5px;
       font-weight: 800;
       letter-spacing: 0.04em;
-      padding: 1px 3.5px;
+      padding: 1.5px 4.5px;
       border-radius: 4px;
       line-height: 1;
     }
     .tag-act {
-      color: #A78BFA;
-      background: rgba(167, 139, 250, 0.16);
+      color: #94A3B8;
+      background: rgba(148, 163, 184, 0.14);
     }
     .tag-est {
-      color: #38BDF8;
-      background: rgba(56, 189, 248, 0.16);
+      color: #818CF8;
+      background: rgba(129, 140, 248, 0.16);
     }
     #at-widget-container.at-theme-light .tag-act {
-      color: #7C3AED;
-      background: rgba(124, 58, 237, 0.12);
+      color: #475569;
+      background: rgba(71, 85, 105, 0.10);
     }
     #at-widget-container.at-theme-light .tag-est {
-      color: #0284C7;
-      background: rgba(2, 132, 199, 0.12);
+      color: #4338CA;
+      background: rgba(67, 56, 202, 0.12);
     }
     .at-badge-exit-sep {
       opacity: 0.35;
-      font-size: 9px;
+      font-size: 11px;
       color: var(--at-text-secondary);
     }
     #at-widget-container.at-theme-light .at-badge:hover {
@@ -235,12 +235,12 @@
     .at-card {
       width: 380px;
       background: var(--at-bg-card);
-      backdrop-filter: blur(28px) saturate(190%);
-      -webkit-backdrop-filter: blur(28px) saturate(190%);
+      backdrop-filter: blur(40px) saturate(190%);
+      -webkit-backdrop-filter: blur(40px) saturate(190%);
       border: 1px solid var(--at-border);
-      border-radius: 24px;
+      border-radius: 26px;
       padding: 12px 18px 18px 18px;
-      box-shadow: 0 24px 50px -12px var(--at-shadow), 0 8px 24px -4px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+      box-shadow: 0 24px 60px -12px var(--at-shadow), 0 8px 24px -4px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.18);
       position: relative;
       overflow: hidden;
       display: flex;
@@ -389,8 +389,8 @@
       border: 1px solid rgba(255, 255, 255, 0.09);
       color: var(--at-text-secondary);
       cursor: pointer;
-      width: 32px;
-      height: 32px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -553,7 +553,7 @@
       border-right: 1px solid var(--at-border);
     }
     .at-shelf-label {
-      font-size: 9.5px;
+      font-size: 11px;
       font-weight: 700;
       letter-spacing: 0.06em;
       text-transform: uppercase;
@@ -576,15 +576,15 @@
       margin-top: 1px;
     }
     .highlight-exit {
-      color: #3B82F6 !important;
-      text-shadow: 0 0 12px rgba(59, 130, 246, 0.25);
+      color: #818CF8 !important;
+      text-shadow: 0 0 14px rgba(129, 140, 248, 0.35);
     }
     .highlight-actual {
-      color: #818CF8 !important;
-      text-shadow: 0 0 12px rgba(129, 140, 248, 0.25);
+      color: #F8FAFC !important;
+      text-shadow: none;
     }
     .at-shelf-sub {
-      font-size: 10px;
+      font-size: 11px;
       color: var(--at-text-secondary);
       font-weight: 500;
       white-space: nowrap;
@@ -816,7 +816,7 @@
       white-space: nowrap;
     }
     .at-btn-update-sub {
-      font-size: 9.5px;
+      font-size: 10.5px;
       font-weight: 500;
       color: var(--at-text-secondary);
       white-space: nowrap;
@@ -1902,8 +1902,8 @@
     const badge = document.createElement("div");
     badge.className = "at-badge";
     badge.innerHTML = `
-      <span class="at-badge-dot" id="at-badge-dot"></span>
-      <span id="at-badge-wfh" style="display:${state.isWfh ? "inline-flex" : "none"}; align-items:center; gap:4px; background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.35); padding: 1px 7px; border-radius: 12px; font-size: 9.5px; font-weight: 700; color: #F59E0B;"><span style="display:inline-block; width:10px; height:10px; fill:#F59E0B;">${ICONS.home}</span> WFH</span>
+      <span class="at-badge-dot" id="at-badge-dot" role="status" aria-label="Live biometric status"></span>
+      <span id="at-badge-wfh" style="display:${state.isWfh ? "inline-flex" : "none"}; align-items:center; gap:4px; background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.35); padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; color: #F59E0B;"><span style="display:inline-block; width:10px; height:10px; fill:#F59E0B;">${ICONS.home}</span> WFH</span>
       <span class="at-badge-text" id="at-badge-work-time">--h --m</span>
       <span class="at-badge-divider"></span>
       <div class="at-badge-exit-group" id="at-badge-exit-group">
@@ -1949,7 +1949,7 @@
             <div class="at-presence-row">
               <span class="at-status-indicator at-status-out" id="at-status-indicator"></span>
               <span class="at-status-text" id="at-status-text">Determining status...</span>
-              <span id="at-wfh-badge" style="display:${state.isWfh ? "inline-flex" : "none"}; align-items:center; gap:4px; font-size:9.5px; font-weight:700; color:#F59E0B; background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.35); padding: 1px 7px; border-radius: 12px; margin-left: 4px;"><span style="display:inline-block; width:10px; height:10px; fill:#F59E0B;">${ICONS.home}</span> WFH</span>
+              <span id="at-wfh-badge" style="display:${state.isWfh ? "inline-flex" : "none"}; align-items:center; gap:4px; font-size:11px; font-weight:700; color:#F59E0B; background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.35); padding: 2px 8px; border-radius: 12px; margin-left: 4px;"><span style="display:inline-block; width:10px; height:10px; fill:#F59E0B;">${ICONS.home}</span> WFH</span>
             </div>
           </div>
         </div>

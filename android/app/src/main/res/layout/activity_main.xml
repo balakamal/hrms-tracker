@@ -75,7 +75,7 @@
                     android:letterSpacing="0.03"
                     android:text="Syncing..."
                     android:textColor="@color/text_secondary"
-                    android:textSize="10sp"
+                    android:textSize="11sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </LinearLayout>
@@ -252,13 +252,13 @@
                     <!-- Dismiss / Minimize Button -->
                     <ImageButton
                         android:id="@+id/btn_dismiss_nudge_card"
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
                         android:background="?android:attr/selectableItemBackgroundBorderless"
                         android:contentDescription="Minimize alert card"
-                        android:padding="5dp"
+                        android:padding="6dp"
                         android:scaleType="fitCenter"
                         android:src="@drawable/ic_close_white"
                         app:tint="#64748B" />
@@ -299,7 +299,7 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Daily Summary Card Overlay (One UI 24dp Squircle Floating Sheet) -->
+        <!-- Daily Summary Card Overlay (One UI 26dp Squircle Floating Sheet) -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/layout_summary_card"
             android:layout_width="match_parent"
@@ -309,7 +309,7 @@
             android:layout_marginEnd="14dp"
             android:layout_marginBottom="16dp"
             app:cardBackgroundColor="@color/bg_surface_card"
-            app:cardCornerRadius="24dp"
+            app:cardCornerRadius="26dp"
             app:cardElevation="12dp"
             app:strokeColor="@color/stroke_card"
             app:strokeWidth="1.2dp"
@@ -341,7 +341,7 @@
                             android:contentDescription="Summary"
                             android:scaleType="fitCenter"
                             android:src="@drawable/ic_sparkle"
-                            app:tint="@color/accent_cyan" />
+                            app:tint="@color/primary_accent" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -355,13 +355,13 @@
 
                     <ImageButton
                         android:id="@+id/btn_close_summary"
-                        android:layout_width="30dp"
-                        android:layout_height="30dp"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
                         android:background="?android:attr/selectableItemBackgroundBorderless"
                         android:contentDescription="Close summary"
-                        android:padding="5dp"
+                        android:padding="6dp"
                         android:scaleType="fitCenter"
                         android:src="@drawable/ic_close_white"
                         app:tint="@color/text_muted" />
@@ -392,7 +392,7 @@
                             android:letterSpacing="0.05"
                             android:text="FIRST IN"
                             android:textColor="@color/text_secondary"
-                            android:textSize="7sp"
+                            android:textSize="10.5sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -401,8 +401,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:text="--:--"
-                            android:textColor="@color/accent_emerald"
-                            android:textSize="12sp"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp"
                             android:textStyle="bold" />
                     </LinearLayout>
 
@@ -423,7 +423,7 @@
                             android:letterSpacing="0.05"
                             android:text="WORK"
                             android:textColor="@color/text_secondary"
-                            android:textSize="7sp"
+                            android:textSize="10.5sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -432,8 +432,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:text="--:--"
-                            android:textColor="@color/accent_cyan"
-                            android:textSize="12sp"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp"
                             android:textStyle="bold" />
                     </LinearLayout>
 
@@ -453,8 +453,8 @@
                             android:layout_height="wrap_content"
                             android:letterSpacing="0.05"
                             android:text="EST. EXIT"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="7sp"
+                            android:textColor="@color/primary_accent"
+                            android:textSize="10.5sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -463,8 +463,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:text="--:--"
-                            android:textColor="@color/accent_amber"
-                            android:textSize="12sp"
+                            android:textColor="@color/primary_accent"
+                            android:textSize="13sp"
                             android:textStyle="bold" />
                     </LinearLayout>
 
@@ -485,7 +485,7 @@
                             android:letterSpacing="0.05"
                             android:text="ACT. EXIT"
                             android:textColor="@color/text_secondary"
-                            android:textSize="7sp"
+                            android:textSize="10.5sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -494,8 +494,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:text="--:--"
-                            android:textColor="@color/accent_cyan"
-                            android:textSize="12sp"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp"
                             android:textStyle="bold" />
                     </LinearLayout>
 
@@ -515,7 +515,7 @@
                             android:letterSpacing="0.05"
                             android:text="STATUS"
                             android:textColor="@color/text_secondary"
-                            android:textSize="7sp"
+                            android:textSize="10.5sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -526,8 +526,8 @@
                             android:ellipsize="end"
                             android:maxLines="1"
                             android:text="--"
-                            android:textColor="@color/accent_violet"
-                            android:textSize="10sp"
+                            android:textColor="@color/accent_emerald"
+                            android:textSize="11sp"
                             android:textStyle="bold" />
                     </LinearLayout>
                 </LinearLayout>

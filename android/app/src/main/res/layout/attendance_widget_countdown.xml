@@ -49,9 +49,9 @@
                 android:letterSpacing="0.08"
                 android:maxLines="1"
                 android:singleLine="true"
-                android:text="FREEDOM O'CLOCK 🚀"
+                android:text="FREEDOM COUNTDOWN"
                 android:textColor="#38BDF8"
-                android:textSize="8sp"
+                android:textSize="10.5sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -67,7 +67,7 @@
             android:singleLine="true"
             android:text="06:30 PM"
             android:textColor="#FFFFFF"
-            android:textSize="21sp"
+            android:textSize="22sp"
             android:textStyle="bold" />
 
         <!-- Apple Live Activity Ticking Countdown / Remaining Status -->
@@ -83,7 +83,7 @@
                 android:layout_height="wrap_content"
                 android:countDown="true"
                 android:textColor="#38BDF8"
-                android:textSize="10sp"
+                android:textSize="12sp"
                 android:textStyle="bold"
                 android:visibility="gone" />
 
@@ -96,7 +96,7 @@
                 android:singleLine="true"
                 android:text="1h 45m left ⏳"
                 android:textColor="#38BDF8"
-                android:textSize="10sp"
+                android:textSize="12sp"
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
@@ -138,16 +138,16 @@
             android:singleLine="true"
             android:text="IN THE ZONE"
             android:textColor="#94A3B8"
-            android:textSize="7.5sp"
+            android:textSize="10.5sp"
             android:textStyle="bold" />
 
         <ImageButton
             android:id="@+id/widget_btn_refresh"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:background="@drawable/widget_oneui_btn_refresh"
             android:contentDescription="Refresh attendance stats"
-            android:padding="5dp"
+            android:padding="6dp"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_refresh" />
     </LinearLayout>

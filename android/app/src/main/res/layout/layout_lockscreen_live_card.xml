@@ -73,7 +73,7 @@
                 android:letterSpacing="0.05"
                 android:text="WORK TIME"
                 android:textColor="#94A3B8"
-                android:textSize="9sp"
+                android:textSize="10.5sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -100,7 +100,7 @@
                 android:letterSpacing="0.05"
                 android:text="EST. EXIT"
                 android:textColor="#94A3B8"
-                android:textSize="9sp"
+                android:textSize="10.5sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -127,7 +127,7 @@
                 android:letterSpacing="0.05"
                 android:text="REMAINING"
                 android:textColor="#94A3B8"
-                android:textSize="9sp"
+                android:textSize="10.5sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -168,7 +168,7 @@
         <LinearLayout
             android:id="@+id/btn_ls_refresh"
             android:layout_width="0dp"
-            android:layout_height="32dp"
+            android:layout_height="36dp"
             android:layout_marginEnd="6dp"
             android:layout_weight="1"
             android:background="@drawable/bg_lockscreen_action_btn"
@@ -187,7 +187,7 @@
                 android:layout_height="wrap_content"
                 android:text="Refresh"
                 android:textColor="#F8FAFC"
-                android:textSize="11sp"
+                android:textSize="12sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -195,7 +195,7 @@
         <LinearLayout
             android:id="@+id/btn_ls_timesheet"
             android:layout_width="0dp"
-            android:layout_height="32dp"
+            android:layout_height="36dp"
             android:layout_weight="1"
             android:background="@drawable/bg_lockscreen_action_btn"
             android:gravity="center"
@@ -213,7 +213,7 @@
                 android:layout_height="wrap_content"
                 android:text="Timesheet"
                 android:textColor="#F8FAFC"
-                android:textSize="11sp"
+                android:textSize="12sp"
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>

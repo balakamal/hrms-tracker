@@ -51,7 +51,7 @@
                 android:singleLine="true"
                 android:text="TODAY'S LOG"
                 android:textColor="#38BDF8"
-                android:textSize="8sp"
+                android:textSize="10.5sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -66,7 +66,7 @@
             android:singleLine="true"
             android:text="8h 15m"
             android:textColor="#FFFFFF"
-            android:textSize="20sp"
+            android:textSize="21sp"
             android:textStyle="bold" />
 
         <TextView
@@ -78,7 +78,7 @@
             android:singleLine="true"
             android:text="Ready for Submission"
             android:textColor="#10B981"
-            android:textSize="9.5sp"
+            android:textSize="11.5sp"
             android:textStyle="bold" />
     </LinearLayout>
 
@@ -119,18 +119,18 @@
                 android:letterSpacing="0.06"
                 android:text="TIMESHEET"
                 android:textColor="#38BDF8"
-                android:textSize="7.5sp"
+                android:textSize="10sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
         <!-- Frameless Refresh Button -->
         <ImageButton
             android:id="@+id/widget_btn_refresh"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:background="@drawable/widget_oneui_btn_refresh"
             android:contentDescription="Refresh attendance stats"
-            android:padding="5dp"
+            android:padding="6dp"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_refresh" />
     </LinearLayout>

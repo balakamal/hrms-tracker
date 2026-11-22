@@ -1,30 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Backgrounds & Surfaces (Paltech Corporate Navy Aesthetics) -->
-    <color name="ic_launcher_background">#064173</color>
-    <color name="bg_app">#041424</color>
+    <!-- Backgrounds & Surfaces (Apple Intelligence Obsidian Glass) -->
+    <color name="ic_launcher_background">#0E121E</color>
+    <color name="bg_app">#090C15</color>
     <color name="bg_top_bar">#00000000</color>
-    <color name="bg_surface_card">#08213D</color>
-    <color name="stroke_card">#133863</color>
-    <color name="stroke_glass_specular">#2B0F47C0</color>
+    <color name="bg_surface_card">#131724</color>
+    <color name="bg_surface_elevated">#1C2236</color>
+    <color name="stroke_card">#273048</color>
+    <color name="stroke_glass_specular">#24FFFFFF</color>
 
-    <!-- Paltech Brand & Accent Colors -->
-    <color name="primary_accent">#064173</color>
-    <color name="primary_royal">#0F47C0</color>
-    <color name="accent_emerald">#39B14A</color>
-    <color name="accent_cyan">#0576F8</color>
-    <color name="accent_amber">#EEAB55</color>
-    <color name="accent_amber_gold">#FFCE20</color>
-    <color name="accent_violet">#0F47C0</color>
-    <color name="accent_lavender">#7C9BCE</color>
-    <color name="accent_rose">#DE1A1A</color>
+    <!-- Professional Apple Semantic Palette (Intelligence Indigo) -->
+    <color name="primary_accent">#6366F1</color>
+    <color name="primary_royal">#4F46E5</color>
+    <color name="accent_emerald">#10B981</color>
+    <color name="accent_cyan">#06B6D4</color>
+    <color name="accent_amber">#F59E0B</color>
+    <color name="accent_amber_gold">#FBBF24</color>
+    <color name="accent_violet">#818CF8</color>
+    <color name="accent_lavender">#A5B4FC</color>
+    <color name="accent_rose">#EF4444</color>
 
-    <!-- Typography -->
+    <!-- Typography (Apple SF Pro Scale) -->
     <color name="text_primary">#F8FAFC</color>
     <color name="text_secondary">#94A3B8</color>
     <color name="text_muted">#64748B</color>
 
     <!-- Navigation / Legacy -->
-    <color name="nav_active">#0576F8</color>
+    <color name="nav_active">#6366F1</color>
     <color name="nav_inactive">#64748B</color>
 </resources>

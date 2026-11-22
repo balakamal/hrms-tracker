@@ -39,7 +39,7 @@
             android:singleLine="true"
             android:text="6h 45m"
             android:textColor="#FFFFFF"
-            android:textSize="15sp"
+            android:textSize="16sp"
             android:textStyle="bold" />
 
         <TextView
@@ -52,7 +52,7 @@
             android:singleLine="true"
             android:text="CLOCKED IN"
             android:textColor="#10B981"
-            android:textSize="8sp"
+            android:textSize="10.5sp"
             android:textStyle="bold" />
     </LinearLayout>
 
@@ -74,7 +74,7 @@
             android:singleLine="true"
             android:text="06:30 PM"
             android:textColor="#38BDF8"
-            android:textSize="12sp"
+            android:textSize="13sp"
             android:textStyle="bold" />
 
         <TextView
@@ -86,17 +86,17 @@
             android:singleLine="true"
             android:text="1h 45m left"
             android:textColor="#94A3B8"
-            android:textSize="8sp" />
+            android:textSize="10.5sp" />
     </LinearLayout>
 
     <!-- Frameless 1-Tap Refresh Button -->
     <ImageButton
         android:id="@+id/widget_btn_refresh"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:background="@drawable/widget_oneui_btn_refresh"
         android:contentDescription="Refresh attendance stats"
-        android:padding="5dp"
+        android:padding="6dp"
         android:scaleType="fitCenter"
         android:src="@drawable/ic_refresh" />
 

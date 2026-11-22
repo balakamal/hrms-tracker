@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Frosted Paltech deep navy glass gradient fading seamlessly down -->
+    <!-- Apple Obsidian Frosted Glass Header -->
     <item>
         <shape android:shape="rectangle">
             <gradient
                 android:angle="270"
-                android:startColor="#E6041424"
-                android:centerColor="#99064173"
-                android:endColor="#00041424" />
+                android:startColor="#F2090D14"
+                android:centerColor="#D90E131E"
+                android:endColor="#00090D14" />
         </shape>
     </item>
-    <!-- Hairline subtle separator -->
+    <!-- Specular Hairline Separator -->
     <item android:gravity="bottom">
         <shape android:shape="rectangle">
             <size android:height="1dp" />
-            <solid android:color="#2B0F47C0" />
+            <solid android:color="#1AFFFFFF" />
         </shape>
     </item>
 </layer-list>

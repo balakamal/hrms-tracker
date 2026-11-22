@@ -43,7 +43,7 @@
                 android:singleLine="true"
                 android:text="CLOCKED IN"
                 android:textColor="#10B981"
-                android:textSize="8.5sp"
+                android:textSize="11sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -55,7 +55,7 @@
                 android:singleLine="true"
                 android:text="Live Island"
                 android:textColor="#94A3B8"
-                android:textSize="7sp" />
+                android:textSize="10sp" />
         </LinearLayout>
     </LinearLayout>
 
@@ -85,7 +85,7 @@
                 android:singleLine="true"
                 android:text="7h 24m"
                 android:textColor="#FFFFFF"
-                android:textSize="17sp"
+                android:textSize="18sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -98,7 +98,7 @@
                 android:singleLine="true"
                 android:text="87%"
                 android:textColor="#38BDF8"
-                android:textSize="10sp"
+                android:textSize="11sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -136,7 +136,7 @@
                 android:singleLine="true"
                 android:text="06:30 PM"
                 android:textColor="#FFFFFF"
-                android:textSize="12sp"
+                android:textSize="13sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -148,16 +148,16 @@
                 android:singleLine="true"
                 android:text="1h 06m left"
                 android:textColor="#38BDF8"
-                android:textSize="7.5sp" />
+                android:textSize="10.5sp" />
         </LinearLayout>
 
         <ImageButton
             android:id="@+id/widget_btn_refresh"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:background="@drawable/widget_oneui_btn_refresh"
             android:contentDescription="Refresh attendance stats"
-            android:padding="5dp"
+            android:padding="6dp"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_refresh" />
     </LinearLayout>
