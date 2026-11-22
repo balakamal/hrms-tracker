@@ -1,8 +1,8 @@
 {
-  "versionCode": 208,
+  "versionCode": 209,
   "versionName": "4.3",
   "releaseDate": "2026-11-22",
-  "releaseNotes": "Merge branch 'main' of https://github.com/balakamal/hrms-tracker",
+  "releaseNotes": "feat: add Android project configuration and CI/CD build workflow",
   "apkUrl": "https://raw.githubusercontent.com/balakamal/hrms-tracker/main/builds/hrms-tracker-latest.apk",
-  "apkSize": "5.9 MB"
+  "apkSize": "2.5 MB"
 }

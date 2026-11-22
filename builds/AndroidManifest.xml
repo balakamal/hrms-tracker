@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:versionCode="208"
+    android:versionCode="209"
     android:versionName="4.3"
     android:compileSdkVersion="34"
     android:compileSdkVersionCodename="14"
@@ -36,9 +36,6 @@
         android:maxSdkVersion="28" />
 
     <uses-permission
-        android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
-
-    <uses-permission
         android:name="android.permission.FOREGROUND_SERVICE" />
 
     <permission
@@ -52,7 +49,6 @@
         android:theme="@ref/0x7f110221"
         android:label="@ref/0x7f10001c"
         android:icon="@ref/0x7f0e0000"
-        android:debuggable="true"
         android:allowBackup="true"
         android:supportsRtl="true"
         android:roundIcon="@ref/0x7f0e0001"
