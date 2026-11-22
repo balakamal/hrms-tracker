@@ -45,9 +45,16 @@ jobs:
         python3 -m pip install pillow
         python3 scripts/generate_icons.py
 
-    - name: Ensure Persistent Keystore
+    - name: Ensure Persistent Keystores
       run: |
         mkdir -p android/keystore
+        if [ ! -f android/keystore/release.keystore ]; then
+          echo "Generating persistent release keystore for production-grade signatures..."
+          keytool -genkeypair -v -keystore android/keystore/release.keystore \
+            -storepass hrmsrelease123 -alias hrmskey -keypass hrmsrelease123 \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Balakamal,OU=InnovateX,O=Paltech HRMS,C=IN" -deststoretype pkcs12
+        fi
         if [ ! -f android/keystore/debug.keystore ]; then
           echo "Generating persistent debug keystore for consistent APK signatures..."
           keytool -genkeypair -v -keystore android/keystore/debug.keystore \
@@ -60,7 +67,7 @@ jobs:
       run: |
         set -eo pipefail
         cd android
-        gradle assembleDebug --stacktrace 2>&1 | tee build_log.txt
+        gradle assembleRelease --stacktrace 2>&1 | tee build_log.txt
 
     - name: Print Build Log on Failure
       if: failure()
@@ -77,17 +84,17 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: hrms-insights-apk
-        path: android/app/build/outputs/apk/debug/app-debug.apk
+        path: android/app/build/outputs/apk/release/app-release.apk
 
     - name: Commit and Push APK to Repo
       run: |
         mkdir -p builds
         VERSION=$(grep 'versionName' android/app/build.gradle | head -n1 | sed -E 's/.*"([^"]+)".*/\1/')
-        cp android/app/build/outputs/apk/debug/app-debug.apk builds/app-debug.apk
-        cp android/app/build/outputs/apk/debug/app-debug.apk "builds/hrms-tracker-v${VERSION}.apk"
-        cp android/app/build/outputs/apk/debug/app-debug.apk "builds/hrms-insights-v${VERSION}.apk"
-        cp android/app/build/outputs/apk/debug/app-debug.apk builds/hrms-tracker-latest.apk
-        $ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer manifest print builds/app-debug.apk > builds/AndroidManifest.xml || true
+        cp android/app/build/outputs/apk/release/app-release.apk builds/app-release.apk
+        cp android/app/build/outputs/apk/release/app-release.apk "builds/hrms-tracker-v${VERSION}.apk"
+        cp android/app/build/outputs/apk/release/app-release.apk "builds/hrms-insights-v${VERSION}.apk"
+        cp android/app/build/outputs/apk/release/app-release.apk builds/hrms-tracker-latest.apk
+        $ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer manifest print builds/hrms-tracker-latest.apk > builds/AndroidManifest.xml || true
         
         # Generate version.json for in-app OTA update badge
         python3 scripts/generate_version_json.py

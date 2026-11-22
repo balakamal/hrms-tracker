@@ -1302,76 +1302,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Issue 2: Fetch the tracker script from GitHub raw (single source of truth),
-     * cache it in SharedPreferences for 6 hours, and fall back to stale cache
-     * or the bundled asset if the network is unavailable.
+     * Safely load tracker script directly from bundled Android assets.
+     * Gradle automatically syncs the root hrms-attendance-tracker.js into assets
+     * during preBuild, guaranteeing full synchronization without remote code injection.
      */
-    private fun fetchRemoteTrackerScript(): String? {
-        return try {
-            val url = java.net.URL(
-                "https://raw.githubusercontent.com/balakamal/hrms-tracker/main/hrms-attendance-tracker.js"
-            )
-            val conn = url.openConnection() as java.net.HttpURLConnection
-            conn.connectTimeout = 8000
-            conn.readTimeout = 10000
-            conn.setRequestProperty("Cache-Control", "no-cache")
-            if (conn.responseCode == 200) {
-                conn.inputStream.bufferedReader().use { it.readText() }
-            } else null
-        } catch (e: Exception) {
-            android.util.Log.w("HRMSTracker", "Remote script fetch failed: ${e.message}")
-            null
-        }
-    }
-
     private fun loadTrackerScript(callback: (String) -> Unit) {
-        val cached = sharedPrefs.getString("RemoteTrackerScript", null)
-        val cachedTs = sharedPrefs.getLong("RemoteTrackerScriptTs", 0L)
-        val ttlMs = 6L * 60 * 60 * 1000  // 6 hours
-        val isFresh = cached != null && (System.currentTimeMillis() - cachedTs < ttlMs)
-
-        if (isFresh) {
-            // Fast path: inject from cache; refresh silently in background
-            callback(cached!!)
-            Thread {
-                fetchRemoteTrackerScript()?.let { fresh ->
-                    sharedPrefs.edit()
-                        .putString("RemoteTrackerScript", fresh)
-                        .putLong("RemoteTrackerScriptTs", System.currentTimeMillis())
-                        .apply()
-                }
-            }.start()
-            return
-        }
-
-        // Slow path: fetch from GitHub, then inject
-        Thread {
-            val remote = fetchRemoteTrackerScript()
-            val script = when {
-                remote != null -> {
-                    sharedPrefs.edit()
-                        .putString("RemoteTrackerScript", remote)
-                        .putLong("RemoteTrackerScriptTs", System.currentTimeMillis())
-                        .apply()
-                    remote
-                }
-                cached != null -> {
-                    // Stale cache is better than nothing (offline scenario)
-                    android.util.Log.w("HRMSTracker", "Using stale cached script (offline or GitHub unreachable).")
-                    cached
-                }
-                else -> {
-                    // Final fallback: bundled asset
-                    android.util.Log.w("HRMSTracker", "Using bundled script asset (no cache, no network).")
-                    try {
-                        assets.open("hrms-attendance-tracker.js").bufferedReader().use { it.readText() }
-                    } catch (e: Exception) { "" }
-                }
-            }
+        try {
+            val script = assets.open("hrms-attendance-tracker.js").bufferedReader().use { it.readText() }
             if (script.isNotEmpty()) {
                 runOnUiThread { callback(script) }
             }
-        }.start()
+        } catch (e: Exception) {
+            android.util.Log.e("HRMSTracker", "Error loading bundled script asset: ${e.message}")
+        }
     }
 
     private fun injectScriptFromAssets() {
@@ -2161,10 +2104,6 @@ class MainActivity : AppCompatActivity() {
         val btnLater = view.findViewById<Button>(R.id.btn_dialog_later)
         val btnInstall = view.findViewById<Button>(R.id.btn_dialog_install)
         val txtBrowser = view.findViewById<TextView>(R.id.txt_dialog_browser_fallback)
-        val layoutProgress = view.findViewById<View>(R.id.layout_download_progress)
-        val pbProgress = view.findViewById<ProgressBar>(R.id.pb_download_progress)
-        val txtStatus = view.findViewById<TextView>(R.id.txt_download_status)
-        val txtPercent = view.findViewById<TextView>(R.id.txt_download_percent)
 
         val displayVer = if (remoteVersion.startsWith("v", ignoreCase = true)) remoteVersion else "v$remoteVersion"
         val metaParts = mutableListOf(displayVer)
@@ -2186,127 +2125,17 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnInstall.setOnClickListener {
-            startApkDownloadAndInstall(
-                apkUrl = apkUrl,
-                layoutProgress = layoutProgress,
-                pbProgress = pbProgress,
-                txtStatus = txtStatus,
-                txtPercent = txtPercent,
-                btnInstall = btnInstall,
-                btnLater = btnLater
-            )
+            dialog.dismiss()
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(apkUrl)).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            try {
+                startActivity(intent)
+            } catch (e: Exception) {
+                Toast.makeText(this@MainActivity, "Could not open browser: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
         }
 
         dialog.show()
-    }
-
-    private fun startApkDownloadAndInstall(
-        apkUrl: String,
-        layoutProgress: View,
-        pbProgress: ProgressBar,
-        txtStatus: TextView,
-        txtPercent: TextView,
-        btnInstall: Button,
-        btnLater: Button
-    ) {
-        btnInstall.isEnabled = false
-        btnInstall.text = "Downloading..."
-        btnLater.isEnabled = false
-        layoutProgress.visibility = View.VISIBLE
-        pbProgress.progress = 0
-        txtPercent.text = "0%"
-        txtStatus.text = "Connecting to CDN..."
-
-        Thread {
-            try {
-                val url = java.net.URL(apkUrl)
-                val conn = url.openConnection() as java.net.HttpURLConnection
-                conn.connectTimeout = 15000
-                conn.readTimeout = 30000
-                conn.connect()
-
-                val fileLength = conn.contentLength
-                val updatesDir = java.io.File(cacheDir, "updates")
-                if (!updatesDir.exists()) updatesDir.mkdirs()
-                val apkFile = java.io.File(updatesDir, "hrms-tracker-latest.apk")
-                if (apkFile.exists()) apkFile.delete()
-
-                val input = java.io.BufferedInputStream(conn.inputStream)
-                val output = java.io.FileOutputStream(apkFile)
-
-                val data = ByteArray(8192)
-                var total: Long = 0
-                var count: Int
-                var lastProgressUpdate = 0L
-
-                while (input.read(data).also { count = it } != -1) {
-                    total += count
-                    output.write(data, 0, count)
-
-                    val now = System.currentTimeMillis()
-                    if (fileLength > 0 && now - lastProgressUpdate > 100) {
-                        lastProgressUpdate = now
-                        val percent = ((total * 100) / fileLength).toInt()
-                        runOnUiThread {
-                            pbProgress.progress = percent
-                            txtPercent.text = "$percent%"
-                            txtStatus.text = "Downloading package... ($percent%)"
-                        }
-                    }
-                }
-
-                output.flush()
-                output.close()
-                input.close()
-                conn.disconnect()
-
-                runOnUiThread {
-                    pbProgress.progress = 100
-                    txtPercent.text = "100%"
-                    txtStatus.text = "Download complete. Starting installer..."
-                    btnInstall.text = "Install Now"
-                    btnInstall.isEnabled = true
-                    btnLater.isEnabled = true
-                    launchApkInstaller(apkFile)
-                }
-            } catch (e: Exception) {
-                runOnUiThread {
-                    layoutProgress.visibility = View.GONE
-                    btnInstall.isEnabled = true
-                    btnInstall.text = "Retry Download"
-                    btnLater.isEnabled = true
-                    Toast.makeText(this@MainActivity, "Download failed: ${e.message}", Toast.LENGTH_LONG).show()
-                }
-            }
-        }.start()
-    }
-
-    private fun launchApkInstaller(apkFile: java.io.File) {
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (!packageManager.canRequestPackageInstalls()) {
-                    Toast.makeText(this, "Please allow HRMS to install app updates", Toast.LENGTH_LONG).show()
-                    val permissionIntent = Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
-                        data = Uri.parse("package:$packageName")
-                    }
-                    startActivity(permissionIntent)
-                    return
-                }
-            }
-
-            val apkUri = androidx.core.content.FileProvider.getUriForFile(
-                this,
-                "${applicationContext.packageName}.fileprovider",
-                apkFile
-            )
-
-            val installIntent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(apkUri, "application/vnd.android.package-archive")
-                flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK
-            }
-            startActivity(installIntent)
-        } catch (e: Exception) {
-            Toast.makeText(this, "Could not open installer: ${e.message}", Toast.LENGTH_LONG).show()
-        }
     }
 }
