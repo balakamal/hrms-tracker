@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:versionCode="209"
+    android:versionCode="211"
     android:versionName="4.3"
     android:compileSdkVersion="34"
     android:compileSdkVersionCodename="14"
@@ -30,6 +30,9 @@
 
     <uses-permission
         android:name="android.permission.WAKE_LOCK" />
+
+    <uses-permission
+        android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
@@ -98,6 +101,9 @@
                     android:name="android.appwidget.action.APPWIDGET_UPDATE" />
 
                 <action
+                    android:name="android.intent.action.USER_PRESENT" />
+
+                <action
                     android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
 
                 <action
@@ -133,6 +139,9 @@
                     android:name="android.appwidget.action.APPWIDGET_UPDATE" />
 
                 <action
+                    android:name="android.intent.action.USER_PRESENT" />
+
+                <action
                     android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
 
                 <action
@@ -157,6 +166,9 @@
 
                 <action
                     android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+
+                <action
+                    android:name="android.intent.action.USER_PRESENT" />
 
                 <action
                     android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
@@ -194,6 +206,9 @@
                     android:name="android.appwidget.action.APPWIDGET_UPDATE" />
 
                 <action
+                    android:name="android.intent.action.USER_PRESENT" />
+
+                <action
                     android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
 
                 <action
@@ -218,6 +233,9 @@
 
                 <action
                     android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+
+                <action
+                    android:name="android.intent.action.USER_PRESENT" />
 
                 <action
                     android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
@@ -246,6 +264,9 @@
                     android:name="android.appwidget.action.APPWIDGET_UPDATE" />
 
                 <action
+                    android:name="android.intent.action.USER_PRESENT" />
+
+                <action
                     android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
 
                 <action
@@ -270,6 +291,9 @@
 
                 <action
                     android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+
+                <action
+                    android:name="android.intent.action.USER_PRESENT" />
 
                 <action
                     android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
@@ -298,6 +322,9 @@
                     android:name="android.appwidget.action.APPWIDGET_UPDATE" />
 
                 <action
+                    android:name="android.intent.action.USER_PRESENT" />
+
+                <action
                     android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
 
                 <action
@@ -324,6 +351,9 @@
                     android:name="android.appwidget.action.APPWIDGET_UPDATE" />
 
                 <action
+                    android:name="android.intent.action.USER_PRESENT" />
+
+                <action
                     android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
 
                 <action
@@ -348,6 +378,9 @@
 
                 <action
                     android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+
+                <action
+                    android:name="android.intent.action.USER_PRESENT" />
 
                 <action
                     android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
@@ -394,6 +427,20 @@
         <receiver
             android:name="com.balakamal.hrmstracker.ShiftAlertReceiver"
             android:exported="false" />
+
+        <receiver
+            android:name="com.balakamal.hrmstracker.AttendanceSyncReceiver"
+            android:exported="true">
+
+            <intent-filter>
+
+                <action
+                    android:name="com.balakamal.hrmstracker.ACTION_ATTENDANCE_SYNC_ALARM" />
+
+                <action
+                    android:name="android.intent.action.USER_PRESENT" />
+            </intent-filter>
+        </receiver>
 
         <receiver
             android:name="com.balakamal.hrmstracker.BootReceiver"
