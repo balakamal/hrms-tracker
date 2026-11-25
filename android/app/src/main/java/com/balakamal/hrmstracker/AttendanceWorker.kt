@@ -7,61 +7,76 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.work.Worker
-import android.net.ConnectivityManager
 import androidx.work.WorkerParameters
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
-import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
 
+/**
+ * AttendanceWorker fetches real-time biometric logs from the official HRMS backend API,
+ * recalculates attendance metrics, and synchronizes all active homescreen & lockscreen widgets.
+ * 
+ * Never returns Result.failure() to ensure background synchronization is never permanently terminated.
+ */
 class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
 
     private val sharedPrefs: SharedPreferences = context.getSharedPreferences("HRMS_PREFS", Context.MODE_PRIVATE)
 
     override fun doWork(): Result {
-        var accessToken = TokenManager.getValidAccessToken(applicationContext)
-        val cookies = TokenManager.getValidCookies(applicationContext)
-        if (accessToken.isNullOrEmpty() && cookies.isNullOrEmpty()) {
-            return Result.failure()
-        }
-        var userId = sharedPrefs.getString("UserId", null)
-        if (userId.isNullOrEmpty()) {
-            val identity = TokenManager.ensureUserIdentity(applicationContext)
-            if (identity != null) {
-                userId = identity.first
-            } else {
-                return Result.failure()
-            }
-        }
-        val targetHours = sharedPrefs.getFloat("TargetHours", 8.5f)
+        Log.d(TAG, "Starting AttendanceWorker background sync...")
+        var result = Result.success()
 
-        // Office-hours budget check: avoid battery drain & backend spam outside of office hours unless actively clocked in
-        val calendar = Calendar.getInstance()
-        val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
-        val hour = calendar.get(Calendar.HOUR_OF_DAY)
-        val minute = calendar.get(Calendar.MINUTE)
-        val isWeekend = dayOfWeek == Calendar.SATURDAY || dayOfWeek == Calendar.SUNDAY
-        val isClockedIn = sharedPrefs.getBoolean("WidgetIsClockedIn", false)
-
-        if (!isClockedIn && (isWeekend || hour < 7 || (hour == 7 && minute < 30) || hour >= 21)) {
-            // Update widget locally without remote network call
-            AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
-            return Result.success()
-        }
-
-        // 1. Get formatted local ISO date
-        val sdfDate = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-        val todayStr = sdfDate.format(Date())
-        val todayISO = "${todayStr}T00:00:00.000Z"
-
-        // 2. Fetch daily attendance log from API
-        val apiUrl = "https://apps.pal.tech/hrms-backend/api/Attendance/GetDailyLog?date=$todayISO&userId=$userId"
-        
         try {
+            var accessToken = TokenManager.getValidAccessToken(applicationContext)
+            val cookies = TokenManager.getValidCookies(applicationContext)
+
+            if (accessToken.isNullOrEmpty() && cookies.isNullOrEmpty()) {
+                Log.w(TAG, "No valid AccessToken or Cookies found. Keeping worker alive.")
+                AttendanceAppWidgetProvider.saveWidgetCacheError(applicationContext, "Please Login in App")
+                AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
+                return Result.success()
+            }
+
+            var userId = sharedPrefs.getString("UserId", null)
+            if (userId.isNullOrEmpty()) {
+                val identity = TokenManager.ensureUserIdentity(applicationContext)
+                if (identity != null) {
+                    userId = identity.first
+                } else {
+                    Log.w(TAG, "User identity not resolved. Keeping worker alive.")
+                    AttendanceAppWidgetProvider.saveWidgetCacheError(applicationContext, "User ID not found")
+                    AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
+                    return Result.success()
+                }
+            }
+
+            // Office-hours check: avoid battery drain outside of office hours unless actively clocked in
+            val calendar = Calendar.getInstance()
+            val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+            val hour = calendar.get(Calendar.HOUR_OF_DAY)
+            val minute = calendar.get(Calendar.MINUTE)
+            val isWeekend = dayOfWeek == Calendar.SATURDAY || dayOfWeek == Calendar.SUNDAY
+            val isClockedIn = sharedPrefs.getBoolean("WidgetIsClockedIn", false)
+
+            if (!isClockedIn && (isWeekend || hour < 7 || (hour == 7 && minute < 30) || hour >= 22)) {
+                // Update widget locally without remote network call
+                AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
+                return Result.success()
+            }
+
+            // 1. Get formatted local ISO date
+            val sdfDate = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+            val todayStr = sdfDate.format(Date())
+            val todayISO = "${todayStr}T00:00:00.000Z"
+
+            // 2. Fetch daily attendance log from API
+            val apiUrl = "https://apps.pal.tech/hrms-backend/api/Attendance/GetDailyLog?date=$todayISO&userId=$userId"
+
             var connection = TokenManager.openAuthenticatedConnection(applicationContext, apiUrl, accessToken)
             connection.requestMethod = "GET"
             connection.connectTimeout = 10000
@@ -80,8 +95,10 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                         connection.readTimeout = 10000
                     }
                     is TokenManager.RefreshResult.SessionExpired -> {
+                        AttendanceAppWidgetProvider.saveWidgetCacheError(applicationContext, "Session Expired")
+                        AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
                         sendNotification("Session Expired", "Please open the HRMS Insights app to log in again.")
-                        return Result.failure()
+                        return Result.success() // Keep worker alive for next app login
                     }
                     is TokenManager.RefreshResult.NetworkError -> {
                         return Result.retry()
@@ -91,8 +108,10 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
 
             if (connection.responseCode == 401) {
                 // Retried token is still unauthorized
+                AttendanceAppWidgetProvider.saveWidgetCacheError(applicationContext, "Session Expired")
+                AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
                 sendNotification("Session Expired", "Please open the HRMS Insights app to log in again.")
-                return Result.failure()
+                return Result.success()
             }
 
             if (connection.responseCode == 200) {
@@ -136,8 +155,15 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                         isClockedIn = metrics.isClockedIn,
                         targetMinutes = metrics.targetMinutes,
                         baseBreakMinutes = metrics.baseBreakMinutes,
-                        avgBreakMinutes = metrics.avgBreakMinutes
+                        avgBreakMinutes = metrics.avgBreakMinutes,
+                        lastOutTimestamp = metrics.lastOutTimestamp
                     )
+
+                    // Record successful sync timestamp for screen-on freshness checks
+                    sharedPrefs.edit()
+                        .putLong(AttendanceSyncReceiver.KEY_LAST_SYNC_TIMESTAMP, System.currentTimeMillis())
+                        .apply()
+
                     AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
 
                     // 4. Trigger Completed Shift Notification or Pre-Shift Pack-up Alert (respect user settings)
@@ -212,15 +238,21 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                         "Last updated: " + AttendanceAppWidgetProvider.getCurrentTime(),
                         actualExitTime = defaultExitTime
                     )
+                    sharedPrefs.edit()
+                        .putLong(AttendanceSyncReceiver.KEY_LAST_SYNC_TIMESTAMP, System.currentTimeMillis())
+                        .apply()
                     AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
-            return Result.retry()
+            Log.e(TAG, "Error in AttendanceWorker: ${e.message}", e)
+            result = Result.retry()
+        } finally {
+            // Guarantee continuous adaptive sync scheduling across all scenarios
+            AttendanceSyncManager.scheduleNextSync(applicationContext)
         }
 
-        return Result.success()
+        return result
     }
 
     private fun sendNotification(title: String, message: String) {
@@ -252,8 +284,14 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
     }
 
     companion object {
+        private const val TAG = "AttendanceWorker"
         const val WORK_NAME = "HRMS_ATTENDANCE_CHECK"
 
+        /**
+         * Schedules the periodic background worker as a baseline fallback (every 15 mins).
+         * Uses ExistingPeriodicWorkPolicy.KEEP so active schedules are never reset.
+         * Also activates the adaptive AttendanceSyncManager.
+         */
         fun schedule(context: Context) {
             val constraints = androidx.work.Constraints.Builder()
                 .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
@@ -265,9 +303,32 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
 
             androidx.work.WorkManager.getInstance(context.applicationContext).enqueueUniquePeriodicWork(
                 WORK_NAME,
-                androidx.work.ExistingPeriodicWorkPolicy.UPDATE,
+                androidx.work.ExistingPeriodicWorkPolicy.KEEP,
                 workRequest
             )
+
+            // Activate adaptive real-time sync manager (3-5 min frequency)
+            AttendanceSyncManager.scheduleNextSync(context.applicationContext)
+        }
+
+        /**
+         * Triggers an immediate, expedited background sync via WorkManager.
+         */
+        fun syncNow(context: Context) {
+            try {
+                val constraints = androidx.work.Constraints.Builder()
+                    .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
+                    .build()
+
+                val workRequest = androidx.work.OneTimeWorkRequestBuilder<AttendanceWorker>()
+                    .setConstraints(constraints)
+                    .setExpedited(androidx.work.OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+                    .build()
+
+                androidx.work.WorkManager.getInstance(context.applicationContext).enqueue(workRequest)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to enqueue syncNow: ${e.message}")
+            }
         }
     }
 }

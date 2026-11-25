@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
 
     <application
@@ -50,6 +51,7 @@
             android:label="@string/widget_title_large">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.USER_PRESENT" />
                 <action android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
                 <action android:name="com.balakamal.hrmstracker.ACTION_CYCLE_PAGE" />
                 <action android:name="com.balakamal.hrmstracker.ACTION_NEXT_PAGE" />
@@ -69,6 +71,7 @@
             android:label="@string/widget_title_medium">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.USER_PRESENT" />
                 <action android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
                 <action android:name="com.samsung.android.intent.action.REQUEST_SERVICEBOX_REMOTEVIEWS" />
             </intent-filter>
@@ -85,6 +88,7 @@
             android:label="@string/widget_title_small">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.USER_PRESENT" />
                 <action android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
                 <action android:name="com.balakamal.hrmstracker.ACTION_CYCLE_PAGE" />
                 <action android:name="com.balakamal.hrmstracker.ACTION_NEXT_PAGE" />
@@ -104,6 +108,7 @@
             android:label="@string/widget_title_countdown">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.USER_PRESENT" />
                 <action android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
                 <action android:name="com.samsung.android.intent.action.REQUEST_SERVICEBOX_REMOTEVIEWS" />
             </intent-filter>
@@ -120,6 +125,7 @@
             android:label="@string/widget_title_timesheet">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.USER_PRESENT" />
                 <action android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
                 <action android:name="com.samsung.android.intent.action.REQUEST_SERVICEBOX_REMOTEVIEWS" />
             </intent-filter>
@@ -136,6 +142,7 @@
             android:label="@string/widget_title_dial">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.USER_PRESENT" />
                 <action android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
                 <action android:name="com.samsung.android.intent.action.REQUEST_SERVICEBOX_REMOTEVIEWS" />
             </intent-filter>
@@ -153,6 +160,7 @@
             android:label="@string/widget_title_lockscreen">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.USER_PRESENT" />
                 <action android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
                 <action android:name="com.samsung.android.intent.action.REQUEST_SERVICEBOX_REMOTEVIEWS" />
             </intent-filter>
@@ -170,6 +178,7 @@
             android:label="@string/widget_title_oneui_capsule">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.USER_PRESENT" />
                 <action android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
                 <action android:name="com.samsung.android.intent.action.REQUEST_SERVICEBOX_REMOTEVIEWS" />
             </intent-filter>
@@ -187,6 +196,7 @@
             android:label="@string/widget_title_oneui_dualpod">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.USER_PRESENT" />
                 <action android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
                 <action android:name="com.samsung.android.intent.action.REQUEST_SERVICEBOX_REMOTEVIEWS" />
             </intent-filter>
@@ -204,6 +214,7 @@
             android:label="@string/widget_title_oneui_matrix">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.USER_PRESENT" />
                 <action android:name="com.balakamal.hrmstracker.ACTION_REFRESH" />
                 <action android:name="com.samsung.android.intent.action.REQUEST_SERVICEBOX_REMOTEVIEWS" />
             </intent-filter>
@@ -242,6 +253,16 @@
         <receiver
             android:name=".ShiftAlertReceiver"
             android:exported="false" />
+
+        <!-- Attendance Sync Receiver for real-time AlarmManager & Screen-Unlock updates -->
+        <receiver
+            android:name=".AttendanceSyncReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.balakamal.hrmstracker.ACTION_ATTENDANCE_SYNC_ALARM" />
+                <action android:name="android.intent.action.USER_PRESENT" />
+            </intent-filter>
+        </receiver>
 
         <!-- Boot and Package Update Receiver for automatic persistence -->
         <receiver

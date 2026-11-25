@@ -92,9 +92,16 @@
             android:src="@drawable/ic_refresh" />
     </RelativeLayout>
 
-    <!-- Main Hero Tonal Card (No Borders) -->
+    <!-- NORMAL OFFICE CONTENT CONTAINER (Hero + Stat Matrix) -->
     <LinearLayout
-        android:id="@+id/widget_hero_card"
+        android:id="@+id/widget_normal_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- Main Hero Tonal Card (No Borders) -->
+        <LinearLayout
+            android:id="@+id/widget_hero_card"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="5dp"
@@ -376,6 +383,97 @@
                 android:text="--:--"
                 android:textColor="#38BDF8"
                 android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+    </LinearLayout>
+
+    <!-- DEDICATED CONTEXTUAL CONTAINER (WFH & WEEK OFF) -->
+    <!-- Replaces empty hero + 4-quadrant slots with a purpose-built state container -->
+    <LinearLayout
+        android:id="@+id/widget_context_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="8dp"
+        android:visibility="gone">
+
+        <!-- Top Status Pill -->
+        <TextView
+            android:id="@+id/widget_context_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/widget_pill_phase_amber"
+            android:letterSpacing="0.06"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
+            android:text="REMOTE WORKDAY"
+            android:textColor="#FFB340"
+            android:textSize="10.5sp"
+            android:textStyle="bold" />
+
+        <!-- Center: Icon & Title -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/img_context_icon"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginBottom="6dp"
+                android:contentDescription="Context Mode Icon"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_wfh_home" />
+
+            <TextView
+                android:id="@+id/widget_context_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:text="Working From Home"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_context_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:gravity="center"
+                android:maxLines="2"
+                android:text="Turnstiles paused • 8.5h shift credited on timesheet submit"
+                android:textColor="#94A3B8"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <!-- Bottom Action Pill -->
+        <LinearLayout
+            android:id="@+id/widget_btn_context_action"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/widget_oneui_bg_pod"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+
+            <TextView
+                android:id="@+id/widget_context_action_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Log Timesheet on Web ↗"
+                android:textColor="#FFB340"
+                android:textSize="12sp"
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>

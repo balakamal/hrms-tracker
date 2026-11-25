@@ -18,22 +18,28 @@
   const styles = `
     /* Widget Container - Obsidian Glass Theme */
     #at-widget-container {
-      --at-bg-card: linear-gradient(165deg, rgba(16, 20, 31, 0.96) 0%, rgba(9, 12, 21, 0.98) 100%);
-      --at-bg-badge: #000000;
-      --at-bg-panels: #090C15;
+      --at-bg-card: rgba(18, 23, 34, 0.68);
+      --at-bg-badge: rgba(18, 23, 34, 0.72);
+      --at-bg-panels: rgba(14, 18, 28, 0.96);
+      --at-bg-select-option: #0F172A;
       --at-text-primary: #F8FAFC;
       --at-text-secondary: #94A3B8;
       --at-border: rgba(255, 255, 255, 0.12);
       --at-border-input: rgba(255, 255, 255, 0.14);
       --at-bg-input: rgba(255, 255, 255, 0.05);
-      --at-bg-item: rgba(255, 255, 255, 0.04);
-      --at-shadow: rgba(0, 0, 0, 0.65);
+      --at-bg-item: rgba(255, 255, 255, 0.045);
+      --at-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.65), 0 8px 16px -4px rgba(0, 0, 0, 0.35);
+      --at-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.24);
       --at-title-color: #FFFFFF;
-      --at-panel-border: rgba(255, 255, 255, 0.08);
-      --at-accent-work: #10B981;       /* Apple Sage Green */
-      --at-accent-exit: #818CF8;       /* Intelligence Indigo Luminous */
-      --at-accent-actual: #A5B4FC;     /* Soft Periwinkle */
-      --at-accent-gold: #F59E0B;       /* Warm Amber */
+      --at-panel-border: rgba(255, 255, 255, 0.065);
+      --at-accent-work: #00E5A3;       /* Solstice Jade */
+      --at-accent-exit: #38BDF8;       /* Celestial Azure */
+      --at-accent-actual: #00E5A3;     /* Solstice Jade */
+      --at-accent-gold: #FFB340;       /* Solar Amber */
+      --at-phase-crimson: #FF453A;     /* Phase 1: Crimson Quartz */
+      --at-phase-amber: #FFB340;       /* Phase 2: Solar Amber */
+      --at-phase-jade: #00E5A3;        /* Phase 3: Solstice Jade */
+      --at-phase-azure: #38BDF8;       /* Phase 4: Celestial Azure */
       --at-bg-header: transparent;
 
       position: fixed;
@@ -61,35 +67,29 @@
       transform: translateX(-50%) !important;
     }
     #at-widget-container.at-theme-light {
-      --at-bg-card: linear-gradient(165deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.96) 100%);
-      --at-bg-badge: linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(241, 245, 249, 0.96) 100%);
-      --at-bg-panels: #FFFFFF;
+      --at-bg-card: rgba(255, 255, 255, 0.72);
+      --at-bg-badge: rgba(255, 255, 255, 0.75);
+      --at-bg-panels: rgba(248, 250, 252, 0.97);
+      --at-bg-select-option: #FFFFFF;
       --at-text-primary: #0F172A;
       --at-text-secondary: #64748B;
-      --at-border: rgba(0, 0, 0, 0.08);
+      --at-border: rgba(255, 255, 255, 0.65);
       --at-border-input: rgba(0, 0, 0, 0.12);
-      --at-bg-input: #F1F5F9;
-      --at-bg-item: rgba(241, 245, 249, 0.65);
-      --at-shadow: rgba(15, 23, 42, 0.12);
+      --at-bg-input: rgba(0, 0, 0, 0.04);
+      --at-bg-item: rgba(0, 0, 0, 0.035);
+      --at-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.05);
+      --at-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.95);
       --at-title-color: #0F172A;
-      --at-panel-border: rgba(0, 0, 0, 0.06);
-      --at-accent-work: #059669;       /* WCAG AAA 4.7:1 Emerald */
-      --at-accent-exit: #4F46E5;       /* WCAG AAA 7.2:1 Deep Royal Indigo */
-      --at-accent-actual: #4338CA;     /* WCAG AAA 8.6:1 Indigo */
-      --at-accent-gold: #B45309;       /* WCAG AA 4.9:1 Amber 700 */
+      --at-panel-border: rgba(0, 0, 0, 0.05);
+      --at-accent-work: #00875A;
+      --at-accent-exit: #0284C7;
+      --at-accent-actual: #00875A;
+      --at-accent-gold: #B25E00;
+      --at-phase-crimson: #D32F2F;
+      --at-phase-amber: #B25E00;
+      --at-phase-jade: #00875A;
+      --at-phase-azure: #0284C7;
       --at-bg-header: transparent;
-    }
-    #at-widget-container.at-theme-light .highlight-actual {
-      color: #4338CA !important;
-      text-shadow: none;
-    }
-    #at-widget-container.at-theme-light .highlight-exit {
-      color: #4F46E5 !important;
-      text-shadow: none;
-    }
-    #at-widget-container.at-theme-light .highlight-work {
-      color: #059669 !important;
-      text-shadow: none;
     }
     #at-widget-container.at-theme-light #at-wfh-badge,
     #at-widget-container.at-theme-light #at-badge-wfh {
@@ -231,16 +231,16 @@
       letter-spacing: -0.01em;
     }
 
-    /* Main Dashboard Card (macOS Sonoma / iOS 18 Frosted Glass) */
+    /* Main Dashboard Card (Apple Liquid Glass 2026) */
     .at-card {
       width: 380px;
       background: var(--at-bg-card);
-      backdrop-filter: blur(40px) saturate(190%);
-      -webkit-backdrop-filter: blur(40px) saturate(190%);
+      backdrop-filter: blur(36px) saturate(180%);
+      -webkit-backdrop-filter: blur(36px) saturate(180%);
       border: 1px solid var(--at-border);
-      border-radius: 26px;
-      padding: 12px 18px 18px 18px;
-      box-shadow: 0 24px 60px -12px var(--at-shadow), 0 8px 24px -4px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+      border-radius: 28px;
+      padding: 14px 18px 18px 18px;
+      box-shadow: var(--at-shadow), var(--at-specular);
       position: relative;
       overflow: hidden;
       display: flex;
@@ -250,7 +250,101 @@
       color: var(--at-text-primary);
     }
     #at-widget-container.at-theme-light .at-card {
-      box-shadow: 0 20px 45px -12px rgba(15, 23, 42, 0.15), 0 4px 12px -2px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255, 255, 255, 1);
+      box-shadow: var(--at-shadow), var(--at-specular);
+    }
+
+    /* Dedicated Non-Office Context Card (WFH & Week Off) */
+    .at-context-card {
+      background: var(--at-bg-item);
+      border: 1px solid var(--at-border);
+      border-radius: 20px;
+      padding: 18px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 10px;
+    }
+    .at-context-header {
+      display: flex;
+      justify-content: center;
+    }
+    .at-context-badge {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      padding: 2.5px 9px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      border: 1px solid currentColor;
+    }
+    .at-context-body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+    .at-context-icon {
+      font-size: 38px;
+      line-height: 1.1;
+      margin-bottom: 2px;
+    }
+    .at-context-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--at-text-primary);
+      letter-spacing: -0.01em;
+    }
+    .at-context-subtitle {
+      font-size: 11.5px;
+      color: var(--at-text-secondary);
+      line-height: 1.4;
+      max-width: 290px;
+    }
+    .at-context-footer {
+      margin-top: 4px;
+    }
+    .at-context-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 7px 16px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(255, 179, 64, 0.15);
+      border: 1px solid rgba(255, 179, 64, 0.3);
+      color: #FFB340;
+      text-decoration: none;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .at-context-btn:hover {
+      background: rgba(255, 179, 64, 0.25);
+      transform: translateY(-1px);
+    }
+    #at-widget-container.at-theme-light .at-context-btn {
+      color: #B25E00;
+      background: rgba(178, 94, 0, 0.1);
+      border-color: rgba(178, 94, 0, 0.25);
+    }
+
+    @media (prefers-reduced-transparency: reduce) {
+      .at-card {
+        background: #121722 !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
+      .at-badge {
+        background: #000000 !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
+      #at-widget-container.at-theme-light .at-card {
+        background: #FFFFFF !important;
+      }
+      #at-widget-container.at-theme-light .at-badge {
+        background: #FFFFFF !important;
+      }
     }
 
     /* Seamless Inset Apple Grab Bar */
@@ -389,14 +483,15 @@
       border: 1px solid rgba(255, 255, 255, 0.09);
       color: var(--at-text-secondary);
       cursor: pointer;
-      width: 36px;
-      height: 36px;
+      width: 30px;
+      height: 30px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       padding: 0;
+      font-size: 13px;
     }
     .at-btn:hover {
       background: rgba(255, 255, 255, 0.14);
@@ -410,6 +505,7 @@
     #at-widget-container.at-theme-light .at-btn {
       background: rgba(0, 0, 0, 0.04);
       border-color: rgba(0, 0, 0, 0.08);
+      color: #64748B;
     }
     #at-widget-container.at-theme-light .at-btn:hover {
       background: rgba(0, 0, 0, 0.08);
@@ -422,174 +518,215 @@
       fill: currentColor;
     }
 
-    /* Hero Work Time & Progress Section */
-    .at-hero-card {
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.015) 100%);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      border-radius: 16px;
-      padding: 12px 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    #at-widget-container.at-theme-light .at-hero-card {
-      background: linear-gradient(135deg, rgba(0, 0, 0, 0.03) 0%, rgba(0, 0, 0, 0.015) 100%);
-      border-color: rgba(0, 0, 0, 0.06);
-    }
-    .at-hero-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-    }
-    .at-hero-label-group {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .at-hero-label {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--at-text-secondary);
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .at-hero-label svg {
-      width: 11px;
-      height: 11px;
-      fill: currentColor;
-    }
-    .at-hero-val {
-      font-size: 24px;
-      font-weight: 700;
-      color: #10B981;
-      letter-spacing: -0.02em;
-      font-variant-numeric: tabular-nums;
-      line-height: 1.1;
-      text-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
-    }
-    #at-widget-container.at-theme-light .at-hero-val {
-      color: #059669;
-      text-shadow: none;
-    }
-    .at-hero-progress-group {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 2px;
-    }
-    .at-progress-badge {
-      font-size: 11px;
-      font-weight: 700;
-      color: #38BDF8;
-      background: rgba(56, 189, 248, 0.12);
-      border: 1px solid rgba(56, 189, 248, 0.25);
-      padding: 2px 7px;
-      border-radius: 9999px;
-      letter-spacing: -0.01em;
-      font-variant-numeric: tabular-nums;
-    }
-    #at-widget-container.at-theme-light .at-progress-badge {
-      color: #0284C7;
-      background: rgba(2, 132, 199, 0.08);
-      border-color: rgba(2, 132, 199, 0.2);
-    }
-    .at-progress-rem {
-      font-size: 11px;
-      font-weight: 500;
-      color: var(--at-text-secondary);
-      font-variant-numeric: tabular-nums;
-    }
-    .at-progress-track {
-      width: 100%;
-      height: 6px;
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 9999px;
-      overflow: hidden;
-      position: relative;
-    }
-    #at-widget-container.at-theme-light .at-progress-track {
-      background: rgba(0, 0, 0, 0.08);
-    }
-    .at-progress-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #10B981 0%, #38BDF8 100%);
-      border-radius: 9999px;
-      box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
-      transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    /* 4-Quadrant Frosted Data Shelf */
-    .at-data-shelf {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+    /* Main Hero Bento Block: Biometric Work Duration with Circular Ring Gauge */
+    .at-hero-bento {
       background: var(--at-bg-item);
       border: 1px solid var(--at-border);
-      border-radius: 16px;
-      overflow: hidden;
+      border-radius: 18px;
+      padding: 13px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.3s ease;
     }
-    #at-widget-container.at-theme-light .at-data-shelf {
-      background: rgba(241, 245, 249, 0.6);
-      border-color: rgba(0, 0, 0, 0.07);
+    #at-widget-container.at-theme-light .at-hero-bento {
+      background: rgba(0, 0, 0, 0.035);
+      border-color: rgba(0, 0, 0, 0.06);
     }
-    .at-shelf-cell {
-      padding: 10px 14px;
+    .at-hero-bento-content {
       display: flex;
       flex-direction: column;
       gap: 2px;
-      position: relative;
+      min-width: 0;
     }
-    .at-shelf-cell:nth-child(1) {
-      border-right: 1px solid var(--at-border);
-      border-bottom: 1px solid var(--at-border);
-    }
-    .at-shelf-cell:nth-child(2) {
-      border-bottom: 1px solid var(--at-border);
-    }
-    .at-shelf-cell:nth-child(3) {
-      border-right: 1px solid var(--at-border);
-    }
-    .at-shelf-label {
-      font-size: 11px;
+    .at-hero-bento-label {
+      font-size: 10.5px;
       font-weight: 700;
       letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--at-text-secondary);
+    }
+    .at-hero-bento-val {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.15;
+      color: var(--at-text-primary);
+      transition: color 0.35s ease;
+    }
+    .at-hero-bento-sub {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--at-accent-work);
+      margin-top: 2px;
+      font-variant-numeric: tabular-nums;
+      transition: color 0.35s ease;
+    }
+    /* Circular Progress Ring Gauge */
+    .at-hero-ring-container {
+      position: relative;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .at-hero-ring-svg {
+      width: 48px;
+      height: 48px;
+      transform: rotate(-90deg);
+    }
+    .at-hero-ring-bg {
+      stroke: rgba(255, 255, 255, 0.10);
+      stroke-width: 3.5;
+    }
+    #at-widget-container.at-theme-light .at-hero-ring-bg {
+      stroke: rgba(0, 0, 0, 0.08);
+    }
+    .at-hero-ring-fg {
+      stroke: var(--at-accent-work);
+      stroke-width: 3.5;
+      stroke-linecap: round;
+      fill: none;
+      transition: stroke-dasharray 0.6s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.35s ease, filter 0.35s ease;
+    }
+    .at-hero-ring-text {
+      position: absolute;
+      font-size: 11px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      color: var(--at-text-primary);
+      transition: color 0.35s ease;
+    }
+
+    /* 4-Pod Bento Grid: First In, Total Breaks, Actual Exit, Est Exit */
+    .at-bento-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .at-bento-cell {
+      background: var(--at-bg-item);
+      border: 1px solid var(--at-border);
+      border-radius: 14px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      transition: all 0.25s ease;
+      min-width: 0;
+    }
+    #at-widget-container.at-theme-light .at-bento-cell {
+      background: rgba(0, 0, 0, 0.035);
+      border-color: rgba(0, 0, 0, 0.05);
+    }
+    .at-bento-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      margin-bottom: 2px;
+    }
+    .at-bento-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
       color: var(--at-text-secondary);
       display: flex;
       align-items: center;
       gap: 4px;
     }
-    .at-shelf-label svg {
-      width: 10px;
-      height: 10px;
-      fill: currentColor;
+    .at-bento-badge {
+      font-size: 9px;
+      font-weight: 800;
+      padding: 1.5px 5px;
+      border-radius: 4px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--at-text-secondary);
+      border: 1px solid transparent;
+      white-space: nowrap;
     }
-    .at-shelf-val {
+    #at-widget-container.at-theme-light .at-bento-badge {
+      background: rgba(0, 0, 0, 0.06);
+      color: #64748B;
+    }
+    .at-bento-badge.at-badge-amber {
+      background: rgba(255, 179, 64, 0.15) !important;
+      color: #FFB340 !important;
+      border-color: rgba(255, 179, 64, 0.3) !important;
+    }
+    #at-widget-container.at-theme-light .at-bento-badge.at-badge-amber {
+      background: #FFFBEB !important;
+      color: #B45309 !important;
+      border-color: rgba(180, 83, 9, 0.25) !important;
+    }
+    .at-bento-badge.at-badge-target {
+      background: rgba(0, 229, 163, 0.12) !important;
+      color: #00E5A3 !important;
+      border-color: rgba(0, 229, 163, 0.25) !important;
+    }
+    #at-widget-container.at-theme-light .at-bento-badge.at-badge-target {
+      background: #ECFDF5 !important;
+      color: #059669 !important;
+      border-color: rgba(5, 150, 105, 0.25) !important;
+    }
+    .at-bento-val {
       font-size: 15px;
-      font-weight: 700;
+      font-weight: 800;
       color: var(--at-text-primary);
       letter-spacing: -0.01em;
       font-variant-numeric: tabular-nums;
-      margin-top: 1px;
     }
-    .highlight-exit {
-      color: #818CF8 !important;
-      text-shadow: 0 0 14px rgba(129, 140, 248, 0.35);
-    }
-    .highlight-actual {
-      color: #F8FAFC !important;
-      text-shadow: none;
-    }
-    .at-shelf-sub {
-      font-size: 11px;
-      color: var(--at-text-secondary);
+    .at-bento-sub {
+      font-size: 10px;
       font-weight: 500;
+      color: var(--at-text-secondary);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    /* Footer Sync Status */
+    .at-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--at-border);
+      font-size: 10px;
+      color: var(--at-text-secondary);
+      padding-top: 8px;
+      margin-top: 2px;
+    }
+    .at-footer-sync {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .at-footer-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #00E5A3;
+      box-shadow: 0 0 6px #00E5A3;
+    }
+    #at-widget-container.at-theme-light .at-footer-dot {
+      background: #059669;
+      box-shadow: 0 0 6px rgba(5, 150, 105, 0.6);
+    }
+    .at-footer-action {
+      font-weight: 600;
+      color: var(--at-text-primary);
+      cursor: pointer;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+    .at-footer-action:hover {
+      opacity: 1;
     }
 
     /* Settings Subpanel */
@@ -600,7 +737,9 @@
       width: 100%;
       height: 100%;
       background: var(--at-bg-panels);
-      border-radius: 20px;
+      backdrop-filter: blur(32px) saturate(180%);
+      -webkit-backdrop-filter: blur(32px) saturate(180%);
+      border-radius: 28px;
       padding: 0 !important;
       box-sizing: border-box;
       display: flex;
@@ -617,6 +756,8 @@
     .at-settings-top {
       flex-shrink: 0;
       background: var(--at-bg-panels);
+      backdrop-filter: blur(32px) saturate(180%);
+      -webkit-backdrop-filter: blur(32px) saturate(180%);
       padding: 10px 18px 8px 18px;
       border-bottom: 1px solid var(--at-panel-border);
       display: flex;
@@ -673,7 +814,7 @@
       transition: border-color 0.2s, box-shadow 0.2s;
     }
     .at-input option {
-      background: var(--at-bg-panels);
+      background: var(--at-bg-select-option);
       color: var(--at-text-primary);
     }
     .at-input:focus {
@@ -1094,9 +1235,10 @@
 
   // --- UTILS ---
   const formatMinutes = (totalMin) => {
-    const h = Math.floor(totalMin / 60);
-    const m = Math.floor(totalMin % 60);
-    return `${h}h ${m}m`;
+    const total = Math.max(0, Math.floor(totalMin));
+    const h = Math.floor(total / 60);
+    const m = total % 60;
+    return `${h}h ${String(m).padStart(2, "0")}m`;
   };
 
   const getUserInitials = (name) => {
@@ -1745,8 +1887,11 @@
           const breakInterval = log.time - lastOutTime;
           if (breakInterval > 0) {
             breakDurationMs += breakInterval;
+            // Ignore rapid turnstile re-swipes (< 60s) from inflating break count
+            if (breakInterval >= 60000) {
+              breakCount++;
+            }
           }
-          breakCount++;
           lastOutTime = null;
         }
         if (lastInTime === null) {
@@ -1755,12 +1900,11 @@
         lastLocation = log.location || lastLocation;
       } else if (log.isIn === 1) {
         if (lastInTime !== null) {
-          workDurationMs += log.time - lastInTime;
+          workDurationMs += (log.time - lastInTime);
           lastInTime = null;
         }
-        if (lastOutTime === null) {
-          lastOutTime = log.time;
-        }
+        // Always record the latest consecutive OUT punch for accurate break tracking
+        lastOutTime = log.time;
       }
     }
 
@@ -1768,31 +1912,29 @@
     const now = new Date();
     let inBreak = false;
 
+    // Capture baseWorkMinutes and baseBreakMinutes BEFORE adding active session elapsed time (fixes 2x double-counting)
+    const baseWorkMinutes = workDurationMs / 60000;
+    const baseBreakMinutes = breakDurationMs / 60000;
+    const lastInTimestamp = lastInTime ? lastInTime.getTime() : 0;
+    const lastOutTimestamp = lastOutTime ? lastOutTime.getTime() : 0;
+
     if (isClockedIn) {
-      workDurationMs += now - lastInTime;
+      workDurationMs += Math.max(0, now - lastInTime);
     } else if (lastOutTime !== null) {
-      const lastLog = parsedLogs[parsedLogs.length - 1];
-      if (lastLog && lastLog.isBreak) {
+      // User is currently stepped out / on break during the workday
+      const ongoingBreak = Math.max(0, now - lastOutTime);
+      if (ongoingBreak > 0) {
+        breakDurationMs += ongoingBreak;
         inBreak = true;
-        const ongoingBreak = now - lastOutTime;
-        if (ongoingBreak > 0) {
-          breakDurationMs += ongoingBreak;
+        if (ongoingBreak >= 60000) {
+          breakCount++;
         }
-        breakCount++;
       }
     }
 
-    const rawWorkMinutes = workDurationMs / 60000;
+    // Always use accurate paired biometric work minutes (never overwrite with grossHours)
+    const totalWorkMinutes = workDurationMs / 60000;
     const totalBreakMinutes = breakDurationMs / 60000;
-    const baseWorkMinutes = rawWorkMinutes;
-    const lastInTimestamp = lastInTime ? lastInTime.getTime() : 0;
-
-    // Issue 3: When employee is punched out, prefer server-computed biometric hours
-    // to match what the HRMS website shows as "Biometric Hours".
-    // While clocked in, we must use real-time client calculation.
-    const totalWorkMinutes = (!isClockedIn && state.serverGrossMinutes > 0)
-      ? state.serverGrossMinutes
-      : rawWorkMinutes;
 
     const targetMinutes = state.targetHours * 60;
     const remainingMinutes = Math.max(0, targetMinutes - totalWorkMinutes);
@@ -1831,7 +1973,9 @@
       workMinutes: totalWorkMinutes,
       baseWorkMinutes: baseWorkMinutes,
       lastInTimestamp: lastInTimestamp,
+      lastOutTimestamp: lastOutTimestamp,
       breakMinutes: totalBreakMinutes,
+      baseBreakMinutes: baseBreakMinutes,
       breakCount: breakCountStr,
       remainingMinutes: remainingMinutes,
       exitTime: exitTime,
@@ -1954,50 +2098,92 @@
           </div>
         </div>
         <div class="at-header-actions">
+          <button class="at-btn" id="at-btn-refresh" title="Refresh Attendance Logs">↻</button>
           <button class="at-btn" id="at-btn-settings" title="Settings">${ICONS.gear}</button>
           <button class="at-btn" id="at-btn-minimize" title="Minimize">${ICONS.minimize}</button>
         </div>
       </div>
 
-      <!-- Hero Work Time & Shift Progress Section -->
-      <div class="at-hero-card">
-        <div class="at-hero-header">
-          <div class="at-hero-label-group">
-            <span class="at-hero-label">${ICONS.work} WORK TIME</span>
-            <span class="at-hero-val" id="at-val-work-time">--h --m</span>
-          </div>
-          <div class="at-hero-progress-group">
-            <span class="at-progress-badge" id="at-progress-percentage">0% Completed</span>
-            <span class="at-progress-rem" id="at-progress-remaining">--h --m left</span>
-          </div>
+      <!-- Main Hero Bento Block: Biometric Work Duration with Circular Ring Gauge -->
+      <div class="at-hero-bento" id="at-hero-bento">
+        <div class="at-hero-bento-content">
+          <span class="at-hero-bento-label">BIOMETRIC HOURS</span>
+          <div class="at-hero-bento-val" id="at-val-work-time">--h --m</div>
+          <span class="at-hero-bento-sub" id="at-val-rem-time">--h --m remaining (${formatMinutes(state.targetHours * 60)} shift)</span>
         </div>
-        <div class="at-progress-track">
-          <div class="at-progress-fill" id="at-progress-fill"></div>
+        <div class="at-hero-ring-container">
+          <svg class="at-hero-ring-svg" viewBox="0 0 36 36">
+            <path class="at-hero-ring-bg" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+            <path id="at-progress-ring" class="at-hero-ring-fg" stroke-width="3.5" stroke-dasharray="0, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+          </svg>
+          <span class="at-hero-ring-text" id="at-progress-ring-text">0%</span>
         </div>
       </div>
 
-      <!-- 4-Quadrant Frosted Data Shelf with Hairline Dividers -->
-      <div class="at-data-shelf">
-        <div class="at-shelf-cell">
-          <span class="at-shelf-label">${ICONS.login} FIRST IN</span>
-          <span class="at-shelf-val" id="at-val-first-in">--:--</span>
-          <span class="at-shelf-sub">First entry</span>
+      <!-- 4-Pod Bento Grid: First In, Total Breaks, Actual Exit, Est Exit -->
+      <div class="at-bento-grid" id="at-bento-grid">
+        <!-- Pod 1: First Clock-In -->
+        <div class="at-bento-cell" id="at-bento-first-in">
+          <div class="at-bento-header">
+            <span class="at-bento-label">FIRST IN</span>
+            <span class="at-bento-badge" id="at-badge-first-in">🚪 ENTRY</span>
+          </div>
+          <div class="at-bento-val" id="at-val-first-in">--:--</div>
+          <div class="at-bento-sub">Office biometric punch</div>
         </div>
-        <div class="at-shelf-cell">
-          <span class="at-shelf-label">${ICONS.coffee} TOTAL BREAK</span>
-          <span class="at-shelf-val" id="at-val-break-time">--h --m</span>
-          <span class="at-shelf-sub" id="at-sub-break-avg">30d Avg: ~60m</span>
+
+        <!-- Pod 2: Total Breaks & Lunch -->
+        <div class="at-bento-cell" id="at-bento-break">
+          <div class="at-bento-header">
+            <span class="at-bento-label" style="color:var(--at-accent-gold);">TOTAL BREAK</span>
+            <span class="at-bento-badge at-badge-amber" id="at-badge-break">0 BREAKS</span>
+          </div>
+          <div class="at-bento-val" id="at-val-break-time" style="color:var(--at-accent-gold);">--h --m</div>
+          <div class="at-bento-sub" id="at-sub-break-avg">30d Avg: ~60m</div>
         </div>
-        <div class="at-shelf-cell">
-          <span class="at-shelf-label">${ICONS.exit} EST. EXIT</span>
-          <span class="at-shelf-val highlight-exit" id="at-val-exit-time">--:--</span>
-          <span class="at-shelf-sub" id="at-sub-exit-desc">with est. break</span>
+
+        <!-- Pod 3: Actual Exit Target -->
+        <div class="at-bento-cell" id="at-bento-actual-exit">
+          <div class="at-bento-header">
+            <span class="at-bento-label">ACTUAL EXIT</span>
+            <span class="at-bento-badge at-badge-target" id="at-badge-target">TARGET</span>
+          </div>
+          <div class="at-bento-val" id="at-val-actual-exit-time">--:--</div>
+          <div class="at-bento-sub" id="at-sub-actual-exit">Pure ${formatMinutes(state.targetHours * 60)} work goal</div>
         </div>
-        <div class="at-shelf-cell">
-          <span class="at-shelf-label">${ICONS.clock} ACTUAL EXIT</span>
-          <span class="at-shelf-val highlight-actual" id="at-val-actual-exit-time">--:--</span>
-          <span class="at-shelf-sub">no extra break</span>
+
+        <!-- Pod 4: Projected Exit with Buffer -->
+        <div class="at-bento-cell" id="at-bento-est-exit">
+          <div class="at-bento-header">
+            <span class="at-bento-label">EST. EXIT</span>
+            <span class="at-bento-badge" id="at-badge-buffer">BUFFER</span>
+          </div>
+          <div class="at-bento-val" id="at-val-exit-time">--:--</div>
+          <div class="at-bento-sub" id="at-sub-exit-desc">+avg break left</div>
         </div>
+      </div>
+
+      <!-- Dedicated WFH & Week Off Context Card Container -->
+      <div class="at-context-card" id="at-context-card" style="display:none;">
+        <div class="at-context-header">
+          <span class="at-context-badge" id="at-context-badge">REMOTE WORKDAY</span>
+        </div>
+        <div class="at-context-body">
+          <div class="at-context-icon" id="at-context-icon">🏠</div>
+          <div class="at-context-title" id="at-context-title">Working From Home</div>
+          <div class="at-context-subtitle" id="at-context-subtitle">Turnstiles paused • ${formatMinutes(state.targetHours * 60)} shift credited on timesheet submit</div>
+        </div>
+        <div class="at-context-footer">
+          <a href="https://apps.pal.tech/hrms/me/timesheet" target="_blank" class="at-context-btn" id="at-context-btn">Log Timesheet on Web ↗</a>
+        </div>
+      </div>
+
+      <!-- Footer Sync Status -->
+      <div class="at-card-footer" id="at-card-footer">
+        <span class="at-footer-sync">
+          <span class="at-footer-dot"></span> Biometrics Synced (<span id="at-sync-time">Just now</span>)
+        </span>
+        <span class="at-footer-action" id="at-footer-action">Tap to Minimize</span>
       </div>
 
       <!-- Settings Subpanel -->
@@ -2208,6 +2394,12 @@
     card
       .querySelector("#at-btn-fullscreen-settings")
       ?.addEventListener("click", toggleFullscreen);
+    card
+      .querySelector("#at-btn-refresh")
+      ?.addEventListener("click", () => fetchAttendanceLogs());
+    card
+      .querySelector("#at-footer-action")
+      ?.addEventListener("click", toggleCollapse);
     card
       .querySelector("#at-btn-minimize")
       .addEventListener("click", toggleCollapse);
@@ -3021,137 +3213,76 @@
       wsSelect.value = state.workspaceModeOverride || "auto";
     }
 
-    const metrics = calculateMetrics();
-    if (!metrics) {
-      // No logs yet today
-      const today = new Date();
-      const isWeekend = today.getDay() === 0 || today.getDay() === 6; // 0=Sun, 6=Sat
-      const statusTextEl = elements.card.querySelector("#at-status-text");
-      const indicator = elements.card.querySelector("#at-status-indicator");
-      const badgeTimeEl = document.getElementById("at-badge-work-time");
-      const exitTimeEl = elements.card.querySelector("#at-val-exit-time");
-      const actualExitTimeEl = elements.card.querySelector("#at-val-actual-exit-time");
+    const today = new Date();
+    const isWeekendToday = today.getDay() === 0 || today.getDay() === 6; // 0=Sun, 6=Sat
+    const isWeekOff = state.isWeekOff || isWeekendToday;
 
-      if (state.isWfh) {
-        if (statusTextEl) statusTextEl.innerText = "Working from Home";
-        if (indicator) {
-          indicator.className = "at-status-indicator";
-          indicator.style.background = "#FFCE20";
-          indicator.style.boxShadow = "0 0 8px #FFCE20";
+    const heroBento = elements.card ? elements.card.querySelector("#at-hero-bento") : null;
+    const bentoGrid = elements.card ? elements.card.querySelector("#at-bento-grid") : null;
+    const contextCard = elements.card ? elements.card.querySelector("#at-context-card") : null;
+
+    // 1. Contextual Card State for WFH & Week Off
+    if (state.isWfh || isWeekOff) {
+      if (heroBento) heroBento.style.display = "none";
+      if (bentoGrid) bentoGrid.style.display = "none";
+      if (contextCard) {
+        contextCard.style.display = "flex";
+        const ctxBadge = contextCard.querySelector("#at-context-badge");
+        const ctxIcon = contextCard.querySelector("#at-context-icon");
+        const ctxTitle = contextCard.querySelector("#at-context-title");
+        const ctxSub = contextCard.querySelector("#at-context-subtitle");
+        const ctxBtn = contextCard.querySelector("#at-context-btn");
+
+        if (state.isWfh) {
+          if (ctxBadge) {
+            ctxBadge.innerText = "REMOTE WORKDAY";
+            ctxBadge.style.color = "#FFB340";
+            ctxBadge.style.borderColor = "#FFB340";
+          }
+          if (ctxIcon) ctxIcon.innerText = "🏠";
+          if (ctxTitle) ctxTitle.innerText = "Working From Home";
+          if (ctxSub) ctxSub.innerText = `Biometric turnstiles disabled • ${formatMinutes(state.targetHours * 60)} shift credited on timesheet submit`;
+          if (ctxBtn) {
+            ctxBtn.innerText = "Log Timesheet on Web ↗";
+            ctxBtn.href = "https://apps.pal.tech/hrms/me/timesheet";
+            ctxBtn.style.color = "#FFB340";
+          }
+        } else {
+          if (ctxBadge) {
+            ctxBadge.innerText = "WEEKEND REST";
+            ctxBadge.style.color = "#818CF8";
+            ctxBadge.style.borderColor = "#818CF8";
+          }
+          if (ctxIcon) ctxIcon.innerText = "🏖️";
+          if (ctxTitle) ctxTitle.innerText = "Weekend Recharge";
+          if (ctxSub) ctxSub.innerText = "Zero turnstile expectations • Enjoy your well-earned break!";
+          if (ctxBtn) {
+            ctxBtn.innerText = "Next Shift: Monday 09:30 AM";
+            ctxBtn.href = "https://apps.pal.tech/hrms/me/leave/apply";
+            ctxBtn.style.color = "#818CF8";
+          }
         }
-      } else if (isWeekend) {
-        if (statusTextEl) statusTextEl.innerText = "Week Off";
-        if (indicator) {
-          indicator.className = "at-status-indicator";
-          indicator.style.background = "#0F47C0";
-          indicator.style.boxShadow = "0 0 8px rgba(15, 71, 192, 0.45)";
-        }
-        if (badgeTimeEl) badgeTimeEl.innerText = "Week Off";
-        if (exitTimeEl) exitTimeEl.innerText = "Week Off";
-        if (actualExitTimeEl) actualExitTimeEl.innerText = "Week Off";
-        const badgeExitGroup = document.getElementById("at-badge-exit-group");
-        if (badgeExitGroup) {
-          badgeExitGroup.innerHTML = `<span class="at-badge-sub">Week Off</span>`;
-        }
-      } else {
-        if (statusTextEl) statusTextEl.innerText = "No attendance logs today";
-        const badgeExitGroup = document.getElementById("at-badge-exit-group");
-        if (badgeExitGroup) {
-          badgeExitGroup.innerHTML = `<span class="at-badge-sub">--:--</span>`;
-        }
+      }
+
+      // Collapsed Dynamic Island Pill for Non-Office
+      const badgeDot = document.getElementById("at-badge-dot");
+      const badgeTimeEl = document.getElementById("at-badge-work-time");
+      const badgeExitGroup = document.getElementById("at-badge-exit-group");
+      if (badgeDot) {
+        badgeDot.style.background = state.isWfh ? "#FFB340" : "#818CF8";
+        badgeDot.style.boxShadow = state.isWfh ? "0 0 10px rgba(255, 179, 64, 0.5)" : "0 0 10px rgba(129, 140, 248, 0.5)";
+      }
+      if (badgeTimeEl) {
+        badgeTimeEl.innerText = state.isWfh ? "WFH" : "Week Off";
+      }
+      if (badgeExitGroup) {
+        badgeExitGroup.innerHTML = `<span class="at-badge-sub">${state.isWfh ? "Remote Mode" : "Week Off"}</span>`;
       }
       return;
-    }
-
-    // Update floating collapsed badge (Apple Dynamic Island Live Activity Pill)
-    const badgeTimeEl = document.getElementById("at-badge-work-time");
-    if (badgeTimeEl) badgeTimeEl.innerText = formatMinutes(metrics.workMinutes);
-    const badgeDotEl = document.getElementById("at-badge-dot");
-    if (badgeDotEl) {
-      badgeDotEl.className = "at-badge-dot" + (metrics.completed ? " at-dot-done" : (metrics.isClockedIn ? "" : " at-dot-out"));
-    }
-    const badgeExitGroup = document.getElementById("at-badge-exit-group");
-    if (metrics.completed) {
-      if (badgeExitGroup) {
-        badgeExitGroup.innerHTML = `<span class="at-badge-sub" style="color:#34C759; font-weight:700;">Goal Met 🚀</span>`;
-      }
     } else {
-      if (badgeExitGroup && !document.getElementById("at-badge-actual-exit")) {
-        badgeExitGroup.innerHTML = `
-          <span class="at-badge-exit-item at-badge-act" title="Actual Exit (pure work target)">
-            <span class="at-badge-tag tag-act">ACT</span>
-            <span class="at-badge-sub" id="at-badge-actual-exit">--:--</span>
-          </span>
-          <span class="at-badge-exit-sep" id="at-badge-exit-sep">•</span>
-          <span class="at-badge-exit-item at-badge-est" title="Projected Exit (with average break)">
-            <span class="at-badge-tag tag-est">EST</span>
-            <span class="at-badge-sub" id="at-badge-exit">--:--</span>
-          </span>
-        `;
-      }
-      const exitEl = document.getElementById("at-badge-exit");
-      const actEl = document.getElementById("at-badge-actual-exit");
-      if (exitEl) exitEl.innerText = metrics.exitTime;
-      if (actEl) actEl.innerText = metrics.actualExitTime;
-    }
-
-    // Update status badge
-    const indicator = elements.card.querySelector("#at-status-indicator");
-    const textNode = elements.card.querySelector("#at-status-text");
-
-    if (indicator && textNode) {
-      indicator.className = "at-status-indicator";
-      if (metrics.completed) {
-        indicator.classList.add("at-status-done");
-        textNode.innerText = "Shift Completed";
-      } else if (metrics.isClockedIn) {
-        indicator.classList.add("at-status-in");
-        const today = new Date();
-        const isWeekend = today.getDay() === 0 || today.getDay() === 6;
-        const loc = metrics.lastLocation ? ` (${metrics.lastLocation})` : "";
-        if (state.isWfh) {
-          textNode.innerText = `In Office${loc} • WFH`;
-        } else if (isWeekend) {
-          textNode.innerText = `In Office${loc} • Weekend`;
-        } else {
-          textNode.innerText = `In Office${loc}`;
-        }
-      } else {
-        indicator.classList.add("at-status-out");
-        if (state.isWfh) {
-          textNode.innerText = metrics.inBreak ? "WFH (Break)" : "WFH (Stepped Out)";
-        } else {
-          textNode.innerText = metrics.inBreak ? "On Break ☕" : "Clocked Out";
-        }
-      }
-    }
-
-    // Update main grid values
-    const firstInEl = elements.card.querySelector("#at-val-first-in");
-    const workTimeEl = elements.card.querySelector("#at-val-work-time");
-    const breakTimeEl = elements.card.querySelector("#at-val-break-time");
-    const exitTimeEl = elements.card.querySelector("#at-val-exit-time");
-    const actualExitTimeEl = elements.card.querySelector("#at-val-actual-exit-time");
-    const subBreakAvgEl = elements.card.querySelector("#at-sub-break-avg");
-    const subExitDescEl = elements.card.querySelector("#at-sub-exit-desc");
-
-    if (firstInEl) firstInEl.innerText = metrics.firstClockIn;
-    if (workTimeEl) workTimeEl.innerText = formatMinutes(metrics.workMinutes);
-    if (breakTimeEl)
-      breakTimeEl.innerText = formatMinutes(metrics.breakMinutes);
-    if (exitTimeEl) exitTimeEl.innerText = metrics.exitTime;
-    if (actualExitTimeEl) actualExitTimeEl.innerText = metrics.actualExitTime;
-    if (subBreakAvgEl) {
-      const avgMin = Math.round(metrics.avgBreakMinutes || 0);
-      subBreakAvgEl.innerText = avgMin >= 60 ? `30d Avg: ~${formatMinutes(avgMin)}` : `30d Avg: ~${avgMin}m`;
-    }
-    if (subExitDescEl) {
-      if (metrics.completed) {
-        subExitDescEl.innerText = "Goal Met";
-      } else {
-        const remBreak = Math.round(metrics.remainingBreakMinutes || 0);
-        subExitDescEl.innerText = remBreak > 0 ? `+${remBreak}m avg break` : "on track";
-      }
+      if (heroBento) heroBento.style.display = "flex";
+      if (bentoGrid) bentoGrid.style.display = "grid";
+      if (contextCard) contextCard.style.display = "none";
     }
 
     // Update avatar and name
@@ -3171,31 +3302,212 @@
     const nameEl = elements.card.querySelector("#at-user-name");
     if (nameEl) nameEl.innerText = state.userName;
 
-    // Update progress bar
+    const metrics = calculateMetrics();
+
+    // 2. Normal Office Workday: Calculate Progress & 4-Phase Progressive Colors
     const targetMin = state.targetHours * 60;
+    const workMin = metrics ? metrics.workMinutes : 0;
     const progressPercent = Math.min(
       100,
-      Math.floor((metrics.workMinutes / targetMin) * 100),
+      Math.floor((workMin / targetMin) * 100),
     );
 
-    const fillEl = elements.card.querySelector("#at-progress-fill");
-    const pctEl = elements.card.querySelector("#at-progress-percentage");
-    const remEl = elements.card.querySelector("#at-progress-remaining");
-
-    if (fillEl) fillEl.style.width = `${progressPercent}%`;
-    if (pctEl) pctEl.innerText = `${progressPercent}% Completed`;
-    if (remEl) {
-      remEl.innerText = metrics.completed
-        ? "0m remaining"
-        : `${formatMinutes(metrics.remainingMinutes)} remaining`;
+    // 4-Phase Progressive Color Scheme (Crimson Quartz -> Solar Amber -> Solstice Jade -> Celestial Azure)
+    let phaseColor = state.theme === "light" ? "#D32F2F" : "#FF453A"; // Phase 1: Crimson (<34%)
+    let phaseGlow = "rgba(255, 69, 58, 0.45)";
+    if ((metrics && metrics.completed) || progressPercent >= 100) {
+      phaseColor = state.theme === "light" ? "#0284C7" : "#38BDF8"; // Phase 4: Azure (100%+)
+      phaseGlow = "rgba(56, 189, 248, 0.45)";
+    } else if (progressPercent >= 76) {
+      phaseColor = state.theme === "light" ? "#00875A" : "#00E5A3"; // Phase 3: Jade (76-99%)
+      phaseGlow = "rgba(0, 229, 163, 0.45)";
+    } else if (progressPercent >= 34) {
+      phaseColor = state.theme === "light" ? "#B25E00" : "#FFB340"; // Phase 2: Amber (34-75%)
+      phaseGlow = "rgba(255, 179, 64, 0.45)";
     }
 
-    // Handle Completed Notifications (shown repeating at state.notificationInterval while shift is completed and user is still clocked in)
+    // Common Elements
+    const workTimeEl = elements.card.querySelector("#at-val-work-time");
+    const remTimeEl = elements.card.querySelector("#at-val-rem-time");
+    const progressRing = elements.card.querySelector("#at-progress-ring");
+    const progressRingText = elements.card.querySelector("#at-progress-ring-text");
+    const statusTextEl = elements.card.querySelector("#at-status-text");
+    const indicator = elements.card.querySelector("#at-status-indicator");
+    const firstInEl = elements.card.querySelector("#at-val-first-in");
+    const breakTimeEl = elements.card.querySelector("#at-val-break-time");
+    const badgeBreakEl = elements.card.querySelector("#at-badge-break");
+    const subBreakAvgEl = elements.card.querySelector("#at-sub-break-avg");
+    const actualExitTimeEl = elements.card.querySelector("#at-val-actual-exit-time");
+    const exitTimeEl = elements.card.querySelector("#at-val-exit-time");
+    const subExitDescEl = elements.card.querySelector("#at-sub-exit-desc");
+
+    // Collapsed Island Elements
+    const badgeTimeEl = document.getElementById("at-badge-work-time");
+    const badgeDotEl = document.getElementById("at-badge-dot");
+    const badgeExitGroup = document.getElementById("at-badge-exit-group");
+
+    const actualExitSubEl = elements.card.querySelector("#at-sub-actual-exit");
+    if (actualExitSubEl) {
+      actualExitSubEl.innerText = `Pure ${formatMinutes(targetMin)} work goal`;
+    }
+
+    if (!metrics) {
+      // Office day, but no biometric turnstile punches recorded yet today
+      if (workTimeEl) {
+        workTimeEl.innerText = "--h --m";
+        workTimeEl.style.color = phaseColor;
+      }
+      if (remTimeEl) {
+        remTimeEl.innerText = `${formatMinutes(targetMin)} remaining (${formatMinutes(targetMin)} shift)`;
+        remTimeEl.style.color = phaseColor;
+      }
+      if (progressRing) {
+        progressRing.setAttribute("stroke-dasharray", "0, 100");
+        progressRing.style.stroke = phaseColor;
+        progressRing.style.filter = `drop-shadow(0 0 6px ${phaseGlow})`;
+      }
+      if (progressRingText) {
+        progressRingText.innerText = "0%";
+        progressRingText.style.color = phaseColor;
+      }
+      if (statusTextEl) statusTextEl.innerText = "No attendance logs today";
+      if (indicator) {
+        indicator.className = "at-status-indicator at-status-out";
+      }
+
+      if (firstInEl) firstInEl.innerText = "--:--";
+      if (breakTimeEl) breakTimeEl.innerText = "--h --m";
+      if (badgeBreakEl) {
+        badgeBreakEl.innerText = "0 BREAKS";
+        badgeBreakEl.className = "at-bento-badge";
+      }
+      if (subBreakAvgEl) subBreakAvgEl.innerText = "30d Avg: ~60m";
+      if (actualExitTimeEl) actualExitTimeEl.innerText = "--:--";
+      if (exitTimeEl) exitTimeEl.innerText = "--:--";
+      if (subExitDescEl) subExitDescEl.innerText = "with est. break";
+
+      if (badgeTimeEl) badgeTimeEl.innerText = "--h --m";
+      if (badgeDotEl) {
+        badgeDotEl.className = "at-badge-dot at-dot-out";
+        badgeDotEl.style.background = phaseColor;
+        badgeDotEl.style.boxShadow = `0 0 10px ${phaseGlow}`;
+      }
+      if (badgeExitGroup) {
+        badgeExitGroup.innerHTML = `
+          <span class="at-badge-exit-item at-badge-act" title="Actual Exit">
+            <span class="at-badge-tag tag-act">ACT</span>
+            <span class="at-badge-sub">--:--</span>
+          </span>
+          <span class="at-badge-exit-sep">•</span>
+          <span class="at-badge-exit-item at-badge-est" title="Projected Exit">
+            <span class="at-badge-tag tag-est">EST</span>
+            <span class="at-badge-sub">--:--</span>
+          </span>
+        `;
+      }
+      return;
+    }
+
+    // Biometric logs exist:
+    if (workTimeEl) {
+      workTimeEl.innerText = formatMinutes(metrics.workMinutes);
+      workTimeEl.style.color = phaseColor;
+    }
+    if (remTimeEl) {
+      remTimeEl.innerText = metrics.completed
+        ? "Shift Goal Met! Freedom o'clock 🚀"
+        : `${formatMinutes(metrics.remainingMinutes)} remaining (${formatMinutes(targetMin)} shift)`;
+      remTimeEl.style.color = phaseColor;
+    }
+    if (progressRing) {
+      progressRing.setAttribute("stroke-dasharray", `${progressPercent}, 100`);
+      progressRing.style.stroke = phaseColor;
+      progressRing.style.filter = `drop-shadow(0 0 6px ${phaseGlow})`;
+    }
+    if (progressRingText) {
+      progressRingText.innerText = `${progressPercent}%`;
+      progressRingText.style.color = phaseColor;
+    }
+
+    // Status Indicator
+    if (indicator && statusTextEl) {
+      indicator.className = "at-status-indicator";
+      if (metrics.completed) {
+        indicator.classList.add("at-status-done");
+        statusTextEl.innerText = "Shift Completed 🚀";
+      } else if (metrics.isClockedIn) {
+        indicator.classList.add("at-status-in");
+        const loc = metrics.lastLocation ? ` (${metrics.lastLocation})` : "";
+        statusTextEl.innerText = `In Office${loc}`;
+      } else {
+        indicator.classList.add("at-status-out");
+        statusTextEl.innerText = metrics.inBreak ? "On Break ☕" : "Clocked Out";
+      }
+    }
+
+    // Bento Pod Values
+    if (firstInEl) firstInEl.innerText = metrics.firstClockIn || "--:--";
+    if (breakTimeEl) breakTimeEl.innerText = formatMinutes(metrics.breakMinutes);
+    if (badgeBreakEl) {
+      if (metrics.inBreak) {
+        badgeBreakEl.innerText = "ACTIVE BREAK";
+        badgeBreakEl.className = "at-bento-badge at-badge-amber";
+      } else {
+        const cnt = metrics.breakCount || 0;
+        badgeBreakEl.innerText = cnt === 1 ? "1 BREAK" : `${cnt} BREAKS`;
+        badgeBreakEl.className = cnt > 0 ? "at-bento-badge at-badge-amber" : "at-bento-badge";
+      }
+    }
+    if (subBreakAvgEl) {
+      const avgMin = Math.round(metrics.avgBreakMinutes || 0);
+      subBreakAvgEl.innerText = avgMin >= 60 ? `30d Avg: ~${formatMinutes(avgMin)}` : `30d Avg: ~${avgMin}m`;
+    }
+    if (actualExitTimeEl) actualExitTimeEl.innerText = metrics.actualExitTime || "--:--";
+    if (exitTimeEl) exitTimeEl.innerText = metrics.exitTime || "--:--";
+    if (subExitDescEl) {
+      if (metrics.completed) {
+        subExitDescEl.innerText = "Goal Met";
+      } else {
+        const remBreak = Math.round(metrics.remainingBreakMinutes || 0);
+        subExitDescEl.innerText = remBreak > 0 ? `+${remBreak}m avg break` : "on track";
+      }
+    }
+
+    // Collapsed Dynamic Island Pill
+    if (badgeTimeEl) badgeTimeEl.innerText = formatMinutes(metrics.workMinutes);
+    if (badgeDotEl) {
+      badgeDotEl.className = "at-badge-dot" + (metrics.completed ? " at-dot-done" : (metrics.isClockedIn ? "" : " at-dot-out"));
+      badgeDotEl.style.background = phaseColor;
+      badgeDotEl.style.boxShadow = `0 0 10px ${phaseGlow}`;
+    }
+    if (badgeExitGroup) {
+      if (metrics.completed) {
+        badgeExitGroup.innerHTML = `<span class="at-badge-sub" style="color:${phaseColor}; font-weight:700;">Goal Met 🚀</span>`;
+      } else {
+        if (!document.getElementById("at-badge-actual-exit")) {
+          badgeExitGroup.innerHTML = `
+            <span class="at-badge-exit-item at-badge-act" title="Actual Exit (pure work target)">
+              <span class="at-badge-tag tag-act">ACT</span>
+              <span class="at-badge-sub" id="at-badge-actual-exit">--:--</span>
+            </span>
+            <span class="at-badge-exit-sep" id="at-badge-exit-sep">•</span>
+            <span class="at-badge-exit-item at-badge-est" title="Projected Exit (with average break)">
+              <span class="at-badge-tag tag-est">EST</span>
+              <span class="at-badge-sub" id="at-badge-exit">--:--</span>
+            </span>
+          `;
+        }
+        const exitEl = document.getElementById("at-badge-exit");
+        const actEl = document.getElementById("at-badge-actual-exit");
+        if (exitEl) exitEl.innerText = metrics.exitTime || "--:--";
+        if (actEl) actEl.innerText = metrics.actualExitTime || "--:--";
+      }
+    }
+
+    // Handle Notifications
     if (metrics.completed && metrics.isClockedIn && state.leaveAlertsEnabled) {
       triggerNotificationOnce(metrics.workMinutes);
     }
-
-    // Handle 15-Minute Pre-Exit Advance Notification
     if (!metrics.completed && metrics.isClockedIn && state.preExitEnabled && metrics.remainingMinutes <= 15 && metrics.remainingMinutes > 0) {
       triggerPreExitNotificationOnce();
     }
@@ -3210,13 +3522,15 @@
           breakCount: metrics.breakCount || "0 Breaks Today",
           exitTime: metrics.exitTime,
           actualExitTime: metrics.actualExitTime,
-          statusText: metrics.completed ? "Shift Complete" : (metrics.isClockedIn ? "Clocked In" : (metrics.inBreak ? "On Break" : "Clocked Out")),
+          statusText: metrics.completed ? "Shift Complete" : (metrics.isClockedIn ? "Clocked In" : (metrics.inBreak ? "Stepped Out" : "Clocked Out")),
           progressPercent: progressPercent,
           progressRemaining: metrics.completed ? "0m left" : `${formatMinutes(metrics.remainingMinutes)} left`,
           baseWorkMinutes: metrics.baseWorkMinutes !== undefined ? metrics.baseWorkMinutes : metrics.workMinutes,
           lastInTimestamp: metrics.lastInTimestamp || 0,
+          lastOutTimestamp: metrics.lastOutTimestamp || 0,
           isClockedIn: Boolean(metrics.isClockedIn),
           targetMinutes: targetMin,
+          baseBreakMinutes: metrics.baseBreakMinutes !== undefined ? metrics.baseBreakMinutes : (metrics.breakMinutes || 0),
           avgBreakMinutes: metrics.avgBreakMinutes || 60,
         });
         window.AndroidApp.saveAttendanceMetrics(payload);

@@ -36,6 +36,7 @@ class BootReceiver : BroadcastReceiver() {
             // 3. If logged in, re-schedule background attendance worker & trigger refresh
             if (!accessToken.isNullOrBlank() || !refreshToken.isNullOrBlank()) {
                 AttendanceWorker.schedule(context)
+                AttendanceWorker.syncNow(context)
 
                 // Refresh widget in the background
                 val refreshIntent = Intent(context, AttendanceAppWidgetProvider::class.java).apply {

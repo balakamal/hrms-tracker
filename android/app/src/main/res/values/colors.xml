@@ -9,6 +9,32 @@
     <color name="stroke_card">#273048</color>
     <color name="stroke_glass_specular">#24FFFFFF</color>
 
+    <!-- Apple Liquid Glass Substrates & Specular Highlights -->
+    <color name="glass_substrate_dark">#B0121722</color>
+    <color name="glass_substrate_light">#B8FFFFFF</color>
+    <color name="glass_pod_dark">#12FFFFFF</color>
+    <color name="glass_pod_light">#0D000000</color>
+    <color name="glass_stroke_specular">#2EFFFFFF</color>
+    <color name="glass_stroke_light">#4DFFFFFF</color>
+
+    <!-- 4-Phase Workday Progressive Spectrum (Dark Appearance) -->
+    <color name="phase_danger_crimson">#FF453A</color>
+    <color name="phase_warning_amber">#FFB340</color>
+    <color name="phase_success_jade">#00E5A3</color>
+    <color name="phase_conquered_azure">#38BDF8</color>
+
+    <!-- 4-Phase Workday Progressive Spectrum (Light Appearance) -->
+    <color name="phase_danger_crimson_light">#D32F2F</color>
+    <color name="phase_warning_amber_light">#B25E00</color>
+    <color name="phase_success_jade_light">#00875A</color>
+    <color name="phase_conquered_azure_light">#0284C7</color>
+
+    <!-- Purpose-Built Non-Office Card Tokens -->
+    <color name="wfh_accent">#FFB340</color>
+    <color name="wfh_bg_pod">#1AFFB340</color>
+    <color name="weekoff_accent">#818CF8</color>
+    <color name="weekoff_bg_pod">#1A818CF8</color>
+
     <!-- Professional Apple Semantic Palette (Intelligence Indigo) -->
     <color name="primary_accent">#6366F1</color>
     <color name="primary_royal">#4F46E5</color>

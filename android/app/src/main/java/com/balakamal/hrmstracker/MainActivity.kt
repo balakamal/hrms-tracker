@@ -18,6 +18,8 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
+import android.provider.Settings
 import android.text.InputType
 import android.os.SystemClock
 import android.view.View
@@ -240,6 +242,7 @@ class MainActivity : AppCompatActivity() {
 
         NotificationHelper.initChannels(this)
         requestNotificationPermissions()
+        checkBatteryOptimizationNotice()
 
         // Initialize / schedule Daily Timesheet Submission Reminder (default 9:00 PM IST)
         TimesheetReminderWorker.schedule(applicationContext)
@@ -890,9 +893,13 @@ class MainActivity : AppCompatActivity() {
             "Disabled"
         }
 
+        val batteryOptimized = !isIgnoringBatteryOptimizations()
+        val batteryStatus = if (batteryOptimized) "Optimized (Tap to allow Unrestricted)" else "Unrestricted • Real-time"
+
         val options = arrayOf(
             "Shift Target Hours (Current: ${targetHours}h)",
             "Customize Home Screen Widgets (Theme & Transparency)",
+            "Background Widget Sync (Battery: $batteryStatus)",
             "Notification Categories & Permissions (Android System)",
             "Lock Screen Live Activity ($liveStatusSummary)",
             "Lock Screen Setup & Help (Samsung & Android)",
@@ -914,12 +921,13 @@ class MainActivity : AppCompatActivity() {
                 when (which) {
                     0 -> showTargetHoursDialog()
                     1 -> startActivity(Intent(this, WidgetConfigureActivity::class.java))
-                    2 -> NotificationHelper.openAppNotificationSettings(this)
-                    3 -> showLockScreenLiveActivitySettingsDialog()
-                    4 -> showLockScreenHelpDialog()
-                    5 -> showTimesheetReminderDialog()
-                    6 -> showLeaveOfficeAlertDialog()
-                    7 -> {
+                    2 -> requestBatteryOptimizationExemption()
+                    3 -> NotificationHelper.openAppNotificationSettings(this)
+                    4 -> showLockScreenLiveActivitySettingsDialog()
+                    5 -> showLockScreenHelpDialog()
+                    6 -> showTimesheetReminderDialog()
+                    7 -> showLeaveOfficeAlertDialog()
+                    8 -> {
                         val nextState = !notifComplete
                         sharedPrefs.edit().putBoolean(KEY_NOTIF_SHIFT_COMPLETE, nextState).apply()
                         Toast.makeText(
@@ -928,7 +936,7 @@ class MainActivity : AppCompatActivity() {
                             Toast.LENGTH_SHORT
                         ).show()
                     }
-                    8 -> {
+                    9 -> {
                         val nextState = !notifPre
                         sharedPrefs.edit().putBoolean(KEY_NOTIF_PRE_EXIT, nextState).apply()
                         Toast.makeText(
@@ -937,7 +945,7 @@ class MainActivity : AppCompatActivity() {
                             Toast.LENGTH_SHORT
                         ).show()
                     }
-                    9 -> {
+                    10 -> {
                         val msg = if (wfh) {
                             "Your workspace is set to Remote (WFH) according to official HRMS records."
                         } else {
@@ -945,14 +953,14 @@ class MainActivity : AppCompatActivity() {
                         }
                         Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
                     }
-                    10 -> showLeaveBalanceDialog()
-                    11 -> checkForAppUpdate(force = true, isManualClick = true)
-                    12 -> {
+                    11 -> showLeaveBalanceDialog()
+                    12 -> checkForAppUpdate(force = true, isManualClick = true)
+                    13 -> {
                         injectScriptFromAssets()
                         Toast.makeText(this, "Insights Widget re-injected!", Toast.LENGTH_SHORT).show()
                     }
-                    13 -> clearTokensAndShowLogin()
-                    14 -> showAboutDialog()
+                    14 -> clearTokensAndShowLogin()
+                    15 -> showAboutDialog()
                 }
             }
             .setNegativeButton("Close", null)
@@ -1497,6 +1505,55 @@ class MainActivity : AppCompatActivity() {
 
     private fun scheduleBackgroundWorker() {
         AttendanceWorker.schedule(applicationContext)
+        AttendanceSyncManager.scheduleNextSync(applicationContext)
+    }
+
+    private fun isIgnoringBatteryOptimizations(): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val powerManager = getSystemService(Context.POWER_SERVICE) as? PowerManager
+            return powerManager?.isIgnoringBatteryOptimizations(packageName) ?: false
+        }
+        return true
+    }
+
+    private fun requestBatteryOptimizationExemption() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            try {
+                if (!isIgnoringBatteryOptimizations()) {
+                    @SuppressLint("BatteryLife")
+                    val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                        data = Uri.parse("package:$packageName")
+                    }
+                    startActivity(intent)
+                } else {
+                    Toast.makeText(this, "Background sync is already unrestricted! Widgets update automatically.", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                try {
+                    val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+                    startActivity(intent)
+                } catch (ex: Exception) {
+                    Toast.makeText(this, "Please allow Unrestricted battery in App Settings > Apps > HRMS Tracker", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    private fun checkBatteryOptimizationNotice() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !isIgnoringBatteryOptimizations()) {
+            val shown = sharedPrefs.getBoolean("BatteryOptPromptShown", false)
+            if (!shown) {
+                sharedPrefs.edit().putBoolean("BatteryOptPromptShown", true).apply()
+                AlertDialog.Builder(this, R.style.Theme_HRMS_Dialog)
+                    .setTitle("Keep Widget Updated Automatically")
+                    .setMessage("To ensure your homescreen widget detects biometric turnstile punches within minutes without opening the app, set battery usage to 'Unrestricted'.")
+                    .setPositiveButton("Configure") { _, _ ->
+                        requestBatteryOptimizationExemption()
+                    }
+                    .setNegativeButton("Later", null)
+                    .show()
+            }
+        }
     }
 
     private fun triggerWidgetRefresh() {
@@ -1532,8 +1589,10 @@ class MainActivity : AppCompatActivity() {
                 val progressRemaining = json.optString("progressRemaining", "--h --m left")
                 val baseWorkMinutes = json.optDouble("baseWorkMinutes", -1.0)
                 val lastInTimestamp = json.optLong("lastInTimestamp", 0L)
+                val lastOutTimestamp = json.optLong("lastOutTimestamp", 0L)
                 val isClockedIn = json.optBoolean("isClockedIn", false)
                 val targetMinutes = json.optDouble("targetMinutes", -1.0)
+                val baseBreakMinutes = json.optDouble("baseBreakMinutes", 0.0)
                 val avgBreakMinutes = json.optInt("avgBreakMinutes", 60)
 
                 AttendanceAppWidgetProvider.saveWidgetCache(
@@ -1552,7 +1611,9 @@ class MainActivity : AppCompatActivity() {
                     lastInTimestamp = lastInTimestamp,
                     isClockedIn = isClockedIn,
                     targetMinutes = targetMinutes,
-                    avgBreakMinutes = avgBreakMinutes
+                    baseBreakMinutes = baseBreakMinutes,
+                    avgBreakMinutes = avgBreakMinutes,
+                    lastOutTimestamp = lastOutTimestamp
                 )
 
                 AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
