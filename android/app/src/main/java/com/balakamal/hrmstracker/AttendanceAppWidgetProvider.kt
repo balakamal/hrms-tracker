@@ -149,7 +149,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
 
             val rawWorkTime = sharedPrefs.getString("WidgetWorkTime", "0h 00m") ?: "0h 00m"
             val firstIn = sharedPrefs.getString("WidgetFirstIn", "--:--") ?: "--:--"
-            val breakTime = sharedPrefs.getString("WidgetBreakTime", "0h 00m") ?: "0h 00m"
+            val rawBreakTime = sharedPrefs.getString("WidgetBreakTime", "0h 00m") ?: "0h 00m"
             val breakCount = sharedPrefs.getString("WidgetBreakCount", "0 Breaks Today") ?: "0 Breaks Today"
             val rawExitTime = sharedPrefs.getString("WidgetExitTime", "--:--") ?: "--:--"
             val rawActualExitTime = sharedPrefs.getString("WidgetActualExitTime", "--:--") ?: "--:--"
