@@ -1,8 +1,8 @@
 {
-  "versionCode": 213,
+  "versionCode": 214,
   "versionName": "4.3",
   "releaseDate": "2026-11-26",
-  "releaseNotes": "feat: implement AttendanceAppWidgetProvider for home screen attendance tracking",
+  "releaseNotes": "feat: implement AttendanceAppWidgetProvider for HRMS tracker android app",
   "apkUrl": "https://raw.githubusercontent.com/balakamal/hrms-tracker/main/builds/hrms-tracker-latest.apk",
   "apkSize": "2.5 MB"
 }

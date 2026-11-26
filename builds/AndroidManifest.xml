@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:versionCode="213"
+    android:versionCode="214"
     android:versionName="4.3"
     android:compileSdkVersion="34"
     android:compileSdkVersionCodename="14"
@@ -436,6 +436,9 @@
 
                 <action
                     android:name="com.balakamal.hrmstracker.ACTION_ATTENDANCE_SYNC_ALARM" />
+
+                <action
+                    android:name="com.balakamal.hrmstracker.ACTION_MIDNIGHT_ROLLOVER" />
 
                 <action
                     android:name="android.intent.action.USER_PRESENT" />
