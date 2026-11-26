@@ -14,7 +14,10 @@ import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
 import android.content.ComponentName
+import android.graphics.RenderEffect
+import android.graphics.Shader
 import android.os.Build
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -24,6 +27,7 @@ class WidgetConfigureActivity : AppCompatActivity() {
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
     private lateinit var sharedPrefs: SharedPreferences
 
+    private lateinit var previewWallpaperBackdrop: ImageView
     private lateinit var previewWidgetCard: LinearLayout
     private lateinit var previewHeroCard: LinearLayout
     private lateinit var previewCellExit: LinearLayout
@@ -54,17 +58,25 @@ class WidgetConfigureActivity : AppCompatActivity() {
     private lateinit var chip50: TextView
     private lateinit var chip75: TextView
     private lateinit var chip100: TextView
+    private lateinit var txtBlurValue: TextView
+    private lateinit var seekbarBlur: SeekBar
+    private lateinit var chipBlur0: TextView
+    private lateinit var chipBlur30: TextView
+    private lateinit var chipBlur60: TextView
+    private lateinit var chipBlur100: TextView
     private lateinit var btnApply: Button
     private lateinit var btnPinWidget: Button
     private lateinit var btnBack: ImageButton
 
     private var selectedTheme = "SYSTEM"
     private var selectedOpacity = 100
+    private var selectedBlur = AttendanceAppWidgetProvider.DEFAULT_WIDGET_BLUR
 
     companion object {
         private const val PREFS_NAME = "HRMS_PREFS"
         private const val KEY_WIDGET_THEME = "WidgetTheme"
         private const val KEY_WIDGET_OPACITY = "WidgetOpacity"
+        private const val KEY_WIDGET_BLUR = "WidgetBlurIntensity"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -80,6 +92,7 @@ class WidgetConfigureActivity : AppCompatActivity() {
         sharedPrefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         selectedTheme = sharedPrefs.getString(KEY_WIDGET_THEME, "SYSTEM") ?: "SYSTEM"
         selectedOpacity = sharedPrefs.getInt(KEY_WIDGET_OPACITY, 100)
+        selectedBlur = sharedPrefs.getInt(KEY_WIDGET_BLUR, AttendanceAppWidgetProvider.DEFAULT_WIDGET_BLUR)
 
         initViews()
         setupListeners()
@@ -87,6 +100,7 @@ class WidgetConfigureActivity : AppCompatActivity() {
     }
 
     private fun initViews() {
+        previewWallpaperBackdrop = findViewById(R.id.preview_wallpaper_backdrop)
         previewWidgetCard = findViewById(R.id.preview_widget_card)
         previewHeroCard = findViewById(R.id.preview_hero_card)
         previewCellExit = findViewById(R.id.preview_cell_exit)
@@ -117,6 +131,12 @@ class WidgetConfigureActivity : AppCompatActivity() {
         chip50 = findViewById(R.id.chip_op_50)
         chip75 = findViewById(R.id.chip_op_75)
         chip100 = findViewById(R.id.chip_op_100)
+        txtBlurValue = findViewById(R.id.txt_blur_value)
+        seekbarBlur = findViewById(R.id.seekbar_blur)
+        chipBlur0 = findViewById(R.id.chip_blur_0)
+        chipBlur30 = findViewById(R.id.chip_blur_30)
+        chipBlur60 = findViewById(R.id.chip_blur_60)
+        chipBlur100 = findViewById(R.id.chip_blur_100)
         btnApply = findViewById(R.id.btn_apply)
         btnPinWidget = findViewById(R.id.btn_pin_widget)
         btnBack = findViewById(R.id.btn_back)
@@ -125,6 +145,8 @@ class WidgetConfigureActivity : AppCompatActivity() {
 
         seekbarOpacity.progress = selectedOpacity
         txtOpacityValue.text = "$selectedOpacity%"
+        seekbarBlur.progress = selectedBlur
+        txtBlurValue.text = "$selectedBlur%"
     }
 
     private fun setupListeners() {
@@ -197,6 +219,27 @@ class WidgetConfigureActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
+        val blurPresets = listOf(chipBlur0 to 0, chipBlur30 to 30, chipBlur60 to 60, chipBlur100 to 100)
+        for ((chip, value) in blurPresets) {
+            chip.setOnClickListener {
+                selectedBlur = value
+                seekbarBlur.progress = value
+                updateUIState()
+            }
+        }
+
+        seekbarBlur.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    selectedBlur = progress
+                    updateUIState()
+                }
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
         btnApply.setOnClickListener {
             applyAndSavePreferences()
         }
@@ -249,6 +292,7 @@ class WidgetConfigureActivity : AppCompatActivity() {
 
     private fun updateUIState() {
         txtOpacityValue.text = "$selectedOpacity%"
+        txtBlurValue.text = "$selectedBlur%"
 
         // Theme selection chip highlighting
         val isSystem = selectedTheme == "SYSTEM"
@@ -276,69 +320,43 @@ class WidgetConfigureActivity : AppCompatActivity() {
             chip.setTextColor(if (isMatch) 0xFFFFFFFF.toInt() else 0xFF94A3B8.toInt())
         }
 
-        // Resolve effective dark/light mode for live preview
-        val isSystemNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-        val isEffectiveDark = when (selectedTheme) {
-            "LIGHT" -> false
-            "DARK", "AMOLED" -> true
-            "TRANSPARENT" -> isSystemNight
-            else -> isSystemNight // "SYSTEM"
+        // Blur / Frost preset highlighting
+        val blurChips = listOf(chipBlur0 to 0, chipBlur30 to 30, chipBlur60 to 60, chipBlur100 to 100)
+        for ((chip, value) in blurChips) {
+            val isMatch = when (value) {
+                0 -> selectedBlur < 15
+                30 -> selectedBlur in 15..44
+                60 -> selectedBlur in 45..79
+                else -> selectedBlur >= 80
+            }
+            chip.setBackgroundResource(if (isMatch) R.drawable.bg_configure_chip_selected else R.drawable.bg_configure_chip)
+            chip.setTextColor(if (isMatch) 0xFFFFFFFF.toInt() else 0xFF94A3B8.toInt())
         }
 
-        // Live preview outer card background
-        val backgroundRes = when (selectedTheme) {
-            "AMOLED" -> R.drawable.widget_bg_amoled
-            "TRANSPARENT" -> R.drawable.widget_bg_transparent
-            "LIGHT" -> when {
-                selectedOpacity >= 90 -> R.drawable.widget_bg_light_100
-                selectedOpacity >= 65 -> R.drawable.widget_bg_light_75
-                selectedOpacity >= 40 -> R.drawable.widget_bg_light_50
-                selectedOpacity >= 15 -> R.drawable.widget_bg_light_25
-                else -> R.drawable.widget_bg_transparent
-            }
-            "DARK" -> when {
-                selectedOpacity >= 90 -> R.drawable.widget_bg_dark_100
-                selectedOpacity >= 65 -> R.drawable.widget_bg_dark_75
-                selectedOpacity >= 40 -> R.drawable.widget_bg_dark_50
-                selectedOpacity >= 15 -> R.drawable.widget_bg_dark_25
-                else -> R.drawable.widget_bg_transparent
-            }
-            else -> { // SYSTEM
-                if (isSystemNight) {
-                    when {
-                        selectedOpacity >= 90 -> R.drawable.widget_bg_dark_100
-                        selectedOpacity >= 65 -> R.drawable.widget_bg_dark_75
-                        selectedOpacity >= 40 -> R.drawable.widget_bg_dark_50
-                        selectedOpacity >= 15 -> R.drawable.widget_bg_dark_25
-                        else -> R.drawable.widget_bg_transparent
-                    }
-                } else {
-                    when {
-                        selectedOpacity >= 90 -> R.drawable.widget_bg_light_100
-                        selectedOpacity >= 65 -> R.drawable.widget_bg_light_75
-                        selectedOpacity >= 40 -> R.drawable.widget_bg_light_50
-                        selectedOpacity >= 15 -> R.drawable.widget_bg_light_25
-                        else -> R.drawable.widget_bg_transparent
-                    }
-                }
+        // Resolve shared glass appearance for live preview
+        val appearance = AttendanceAppWidgetProvider.resolveWidgetAppearance(this, selectedTheme, selectedOpacity, selectedBlur)
+        val isEffectiveDark = appearance.isEffectiveDark
+
+        previewWidgetCard.setBackgroundResource(appearance.rootBgRes)
+        previewHeroCard.setBackgroundResource(appearance.podBgRes)
+        previewCellExit.setBackgroundResource(appearance.podBgRes)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (selectedBlur > 0) {
+                val radiusPx = (selectedBlur / 100f) * 32f
+                previewWallpaperBackdrop.setRenderEffect(
+                    RenderEffect.createBlurEffect(radiusPx, radiusPx, Shader.TileMode.CLAMP)
+                )
+            } else {
+                previewWallpaperBackdrop.setRenderEffect(null)
             }
         }
-        if (selectedTheme == "SYSTEM" || selectedTheme == "DARK" || selectedTheme == "LIGHT") {
-            previewWidgetCard.setBackgroundResource(if (isEffectiveDark) R.drawable.widget_m3_surface_dark else R.drawable.widget_m3_surface_light)
-        } else {
-            previewWidgetCard.setBackgroundResource(backgroundRes)
-        }
 
-        // Live preview inner card surfaces & high-contrast typography (Material 3 Bento)
-        val tonalBg = if (isEffectiveDark) R.drawable.widget_m3_surface_tonal_dark else R.drawable.widget_m3_surface_tonal_light
-        previewHeroCard.setBackgroundResource(tonalBg)
-        previewCellExit.setBackgroundResource(tonalBg)
-
-        previewLabelWork.setTextColor(if (isEffectiveDark) 0xFF94A3B8.toInt() else 0xFF64748B.toInt())
+        previewLabelWork.setTextColor(if (isEffectiveDark) 0xFF94A3B8.toInt() else 0xFF475569.toInt())
         previewWorkTime.setTextColor(if (isEffectiveDark) 0xFFFFFFFF.toInt() else 0xFF0F172A.toInt())
         previewStatusText.setTextColor(if (isEffectiveDark) 0xFF10B981.toInt() else 0xFF15803D.toInt())
 
-        previewLabelExit.setTextColor(if (isEffectiveDark) 0xFF94A3B8.toInt() else 0xFF64748B.toInt())
+        previewLabelExit.setTextColor(if (isEffectiveDark) 0xFF94A3B8.toInt() else 0xFF475569.toInt())
         previewExitTime.setTextColor(if (isEffectiveDark) 0xFFFFFFFF.toInt() else 0xFF0F172A.toInt())
         previewRemainingTime.setTextColor(if (isEffectiveDark) 0xFF38BDF8.toInt() else 0xFF0284C7.toInt())
     }
@@ -347,6 +365,7 @@ class WidgetConfigureActivity : AppCompatActivity() {
         sharedPrefs.edit()
             .putString(KEY_WIDGET_THEME, selectedTheme)
             .putInt(KEY_WIDGET_OPACITY, selectedOpacity)
+            .putInt(KEY_WIDGET_BLUR, selectedBlur)
             .apply()
 
         // Trigger updates across all active widgets

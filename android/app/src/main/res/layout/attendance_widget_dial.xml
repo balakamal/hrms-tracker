@@ -60,10 +60,10 @@
     <!-- Center Ring Dial Area (Concentric Track) -->
     <LinearLayout
         android:id="@+id/widget_dial_center"
-        android:layout_width="72dp"
-        android:layout_height="72dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginBottom="5dp"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_marginTop="3dp"
+        android:layout_marginBottom="3dp"
         android:background="@drawable/widget_oneui_battery_ring"
         android:gravity="center"
         android:orientation="vertical">
@@ -78,7 +78,7 @@
             android:singleLine="true"
             android:text="85%"
             android:textColor="#10B981"
-            android:textSize="18sp"
+            android:textSize="16sp"
             android:textStyle="bold" />
 
         <TextView
@@ -90,11 +90,11 @@
             android:singleLine="true"
             android:text="7h 15m"
             android:textColor="#FFFFFF"
-            android:textSize="12sp"
+            android:textSize="11.5sp"
             android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- Bottom Status Text -->
+    <!-- Bottom Status & Est/Actual Exit Footer -->
     <TextView
         android:id="@+id/widget_status_text"
         android:layout_width="wrap_content"
@@ -102,9 +102,56 @@
         android:ellipsize="end"
         android:maxLines="1"
         android:singleLine="true"
-        android:text="85% Charged • 1h 15m left ⚡"
+        android:text="85% • 1h 15m left"
         android:textColor="#38BDF8"
-        android:textSize="11sp"
+        android:textSize="10.5sp"
         android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/widget_label_exit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Est "
+            android:textColor="#94A3B8"
+            android:textSize="9.5sp" />
+
+        <TextView
+            android:id="@+id/widget_exit_time_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:text="06:40 PM"
+            android:textColor="#00E5A3"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/widget_label_actual"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:text="Act "
+            android:textColor="#94A3B8"
+            android:textSize="9.5sp" />
+
+        <TextView
+            android:id="@+id/widget_actual_exit_time_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:text="06:05 PM"
+            android:textColor="#FFFFFF"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
 </LinearLayout>

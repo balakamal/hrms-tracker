@@ -50,6 +50,13 @@ data class WidgetMetrics(
     val recentPunchesJson: String = ""
 )
 
+data class WidgetAppearance(
+    val rootBgRes: Int,
+    val podBgRes: Int,
+    val isEffectiveDark: Boolean,
+    val frostTier: Int
+)
+
 open class AttendanceAppWidgetProvider : AppWidgetProvider() {
 
     open val defaultLayoutId: Int = R.layout.attendance_widget
@@ -140,7 +147,8 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     SizeF(110f, 95f) to R.layout.attendance_widget_oneui_dualpod,
                     SizeF(220f, 40f) to R.layout.attendance_widget_oneui_capsule,
                     SizeF(220f, 95f) to R.layout.attendance_widget_oneui_matrix,
-                    SizeF(220f, 230f) to R.layout.attendance_widget_oneui_fullscreen
+                    SizeF(220f, 215f) to R.layout.attendance_widget_oneui_expanded,
+                    SizeF(220f, 350f) to R.layout.attendance_widget_oneui_fullscreen
                 )
             }
         }
@@ -380,15 +388,9 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 else -> "Almost There 🏃"
             }
 
-            // Determine Theme & Effective Dark Mode
-            val isSystemNight = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-            val theme = sharedPrefs.getString("WidgetTheme", "SYSTEM") ?: "SYSTEM"
-            val isEffectiveDark = when (theme) {
-                "LIGHT" -> false
-                "DARK", "AMOLED" -> true
-                "TRANSPARENT" -> isSystemNight
-                else -> isSystemNight
-            }
+            // Determine Theme, Opacity & Frosted Glass Blur Appearance
+            val appearance = resolveWidgetAppearance(context)
+            val isEffectiveDark = appearance.isEffectiveDark
 
             val colorTextPrimary = if (isEffectiveDark) 0xFFFFFFFF.toInt() else 0xFF0F172A.toInt()
             // Slate 700 (0xFF334155) on light provides a 7.0:1 contrast ratio against light backgrounds (WCAG AAA)
@@ -432,17 +434,10 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 }
             }
 
-            // Material 3 Expressive & One UI 9 Surfaces (Single-Layer Liquid Glass)
-            val rootBg = when (theme) {
-                "AMOLED" -> R.drawable.widget_bg_amoled
-                "LIGHT" -> R.drawable.widget_m3_surface_light
-                "DARK" -> R.drawable.widget_m3_surface_dark
-                "TRANSPARENT" -> if (isSystemNight) R.drawable.widget_bg_dark_75 else R.drawable.widget_bg_light_75
-                else -> if (isEffectiveDark) R.drawable.widget_m3_surface_dark else R.drawable.widget_m3_surface_light
-            }
-            views.setInt(R.id.widget_root, "setBackgroundResource", rootBg)
+            // Material 3 Expressive & One UI 9 Surfaces (Configurable Opacity + Frosted Glass Diffusion)
+            views.setInt(R.id.widget_root, "setBackgroundResource", appearance.rootBgRes)
 
-            val podBg = if (isEffectiveDark) R.drawable.widget_m3_surface_tonal_dark else R.drawable.widget_m3_surface_tonal_light
+            val podBg = appearance.podBgRes
             val refreshBtnBg = if (isEffectiveDark) R.drawable.widget_oneui_btn_refresh else R.drawable.widget_oneui_btn_refresh_light
             val hairlineDrawable = if (isEffectiveDark) R.drawable.widget_hairline_dark else R.drawable.widget_hairline_light
             val statusPillBg = when {
@@ -473,8 +468,6 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             // Hairlines
             views.setInt(R.id.widget_hairline_1, "setBackgroundResource", hairlineDrawable)
             views.setInt(R.id.widget_hairline_2, "setBackgroundResource", hairlineDrawable)
-            views.setInt(R.id.widget_hairline_v1, "setBackgroundResource", hairlineDrawable)
-            views.setInt(R.id.widget_hairline_v2, "setBackgroundResource", hairlineDrawable)
 
             if (layoutId != R.layout.attendance_widget_oneui_fullscreen) {
                 views.setInt(R.id.widget_btn_timesheet, "setBackgroundResource", podBg)
@@ -486,7 +479,8 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             }
 
             // Header & Beacon
-            views.setTextColor(R.id.widget_title, if (layoutId == R.layout.attendance_widget_oneui_fullscreen) colorTextPrimary else colorTextLabel)
+            val isStationLayout = layoutId == R.layout.attendance_widget_oneui_fullscreen || layoutId == R.layout.attendance_widget_oneui_expanded
+            views.setTextColor(R.id.widget_title, if (isStationLayout) colorTextPrimary else colorTextLabel)
             views.setViewVisibility(R.id.widget_wfh_badge, if (isWfh) android.view.View.VISIBLE else android.view.View.GONE)
             views.setInt(R.id.img_oneui_status_dot, "setColorFilter", statusColor)
             views.setContentDescription(R.id.img_oneui_status_dot, "Status: $displayStatus")
@@ -495,7 +489,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             val formattedDateHeader = SimpleDateFormat("EEE, d MMM", Locale.US).format(Date())
             views.setTextViewText(
                 R.id.widget_date_label,
-                if (layoutId == R.layout.attendance_widget_oneui_fullscreen) "$formattedDateHeader • ${sharedPrefs.getString("WidgetLastUpdated", "Live Sync")?.replace("Last updated: ", "") ?: "Live Sync"}" else formattedDateHeader
+                if (isStationLayout) "$formattedDateHeader • ${sharedPrefs.getString("WidgetLastUpdated", "Live Sync")?.replace("Last updated: ", "") ?: "Live Sync"}" else formattedDateHeader
             )
             views.setTextColor(R.id.widget_date_label, colorTextLabel)
 
@@ -529,7 +523,8 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
 
                 val subtitle = when {
                     layoutId == R.layout.attendance_widget_oneui_matrix -> "of $targetHoursFormatted"
-                    layoutId == R.layout.attendance_widget_oneui_fullscreen -> "Goal"
+                    layoutId == R.layout.attendance_widget_oneui_fullscreen ||
+                        layoutId == R.layout.attendance_widget_oneui_expanded -> "Goal"
                     isWfh -> "REMOTE WORKDAY"
                     isWeekOff -> "WEEK OFF"
                     isNotLoggedIn -> "SESSION EXPIRED"
@@ -540,9 +535,20 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 views.setTextViewText(R.id.widget_work_subtitle, subtitle)
                 views.setTextColor(R.id.widget_work_subtitle, colorTextLabel)
 
-                views.setTextViewText(R.id.widget_status_text, badgeStatus)
-                views.setTextColor(R.id.widget_status_text, statusColor)
-                views.setInt(R.id.widget_status_text, "setBackgroundResource", statusPillBg)
+                if (layoutId == R.layout.attendance_widget_oneui_compact) {
+                    val compactStatus = if (isWfh || isWeekOff || isNotLoggedIn || isNoInYet || isCompleted) {
+                        badgeStatus
+                    } else {
+                        "$badgeStatus • $progressRemaining"
+                    }
+                    views.setTextViewText(R.id.widget_status_text, compactStatus)
+                    views.setTextColor(R.id.widget_status_text, statusColor)
+                    views.setInt(R.id.widget_status_text, "setBackgroundResource", 0)
+                } else {
+                    views.setTextViewText(R.id.widget_status_text, badgeStatus)
+                    views.setTextColor(R.id.widget_status_text, statusColor)
+                    views.setInt(R.id.widget_status_text, "setBackgroundResource", statusPillBg)
+                }
 
                 val compactRemText = when (layoutId) {
                     R.layout.attendance_widget_oneui_capsule,
@@ -598,7 +604,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             views.setTextColor(R.id.widget_break_time_value, colorBreakTime)
             views.setTextColor(R.id.widget_label_break, colorTextLabel)
 
-            val actDisplay = if (actualExitTime != "--:--" && actualExitTime != exitTime) actualExitTime else exitDisplay
+            val actDisplay = if (actualExitTime != "--:--") actualExitTime else exitDisplay
             views.setTextViewText(R.id.widget_actual_exit_time_value, actDisplay)
             views.setTextColor(R.id.widget_actual_exit_time_value, colorTextPrimary)
             views.setTextColor(R.id.widget_label_actual, colorTextLabel)
@@ -638,11 +644,18 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             } else if (layoutId == R.layout.attendance_widget_oneui_matrix) {
                 views.setImageViewBitmap(
                     R.id.img_gauge_ring,
-                    WidgetGraphicsRenderer.renderOpenDialBitmap(context, progressPercent, phaseColor, canvasTrackColor, widthDp = 100f, heightDp = 88f)
+                    WidgetGraphicsRenderer.renderOpenDialBitmap(context, progressPercent, phaseColor, canvasTrackColor, widthDp = 86f, heightDp = 76f)
                 )
                 views.setImageViewBitmap(
                     R.id.img_timeline_strip,
                     WidgetGraphicsRenderer.renderShiftTimelineBitmap(context, timelineSpec, progressPercent, phaseColor, colorBreakTime, canvasTrackColor, widthDp = 160f, heightDp = 6f)
+                )
+            } else if (layoutId == R.layout.attendance_widget_oneui_expanded) {
+                val curBreakMin = if (baseBreakMinutes > 0) baseBreakMinutes else 0.0
+                val breakPct = Math.min(100, ((curBreakMin / Math.max(1.0, avgBreakMinutes.toDouble())) * 100).toInt())
+                views.setImageViewBitmap(
+                    R.id.img_gauge_concentric,
+                    WidgetGraphicsRenderer.renderConcentricDualRingBitmap(context, progressPercent, breakPct, phaseColor, colorBreakTime, canvasTrackColor, sizeDp = 96f)
                 )
             } else if (layoutId == R.layout.attendance_widget_oneui_fullscreen) {
                 val curBreakMin = if (baseBreakMinutes > 0) baseBreakMinutes else 0.0
@@ -698,7 +711,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 isWeekOff -> "Enjoy Weekend"
                 isNotLoggedIn -> "Open app to sign in"
                 isNoInYet -> "Waiting for first punch"
-                else -> "Exit $exitTime • ☕ $breakTime"
+                else -> "Est $exitTime • Act $actDisplay"
             }
             views.setTextViewText(R.id.txt_widget_work_time, lockMainText)
             views.setTextColor(R.id.txt_widget_work_time, colorTextPrimary)
@@ -809,10 +822,10 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
 
                 when (page) {
                     1 -> {
-                        views.setTextViewText(R.id.widget_metric_label, "FREEDOM COUNTDOWN")
-                        views.setTextViewText(R.id.widget_work_time_value, if (isWeekOff) "Weekend" else exitTime)
+                        views.setTextViewText(R.id.widget_metric_label, "EST. EXIT")
+                        views.setTextViewText(R.id.widget_work_time_value, if (isWeekOff) "Weekend" else exitDisplay)
                         views.setTextColor(R.id.widget_work_time_value, if (isCompleted) 0xFF10B981.toInt() else colorHeroAccent)
-                        views.setTextViewText(R.id.widget_status_text, if (isCompleted) "Freedom! 🚀" else "$progressRemaining left • $funMood")
+                        views.setTextViewText(R.id.widget_status_text, if (isCompleted) "Freedom! 🚀" else "Act: $actDisplay • $progressRemaining")
                         views.setTextColor(R.id.widget_status_text, if (isCompleted) 0xFF10B981.toInt() else colorHeroAccent)
                     }
                     2 -> {
@@ -865,10 +878,12 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             if (defaultLayoutId == R.layout.attendance_widget ||
                 defaultLayoutId == R.layout.attendance_widget_medium ||
                 defaultLayoutId == R.layout.attendance_widget_oneui_matrix ||
+                defaultLayoutId == R.layout.attendance_widget_oneui_expanded ||
                 defaultLayoutId == R.layout.attendance_widget_oneui_capsule ||
                 defaultLayoutId == R.layout.attendance_widget_oneui_dualpod) {
                 return when {
-                    minWidth >= 220 && maxHeight >= 230 -> R.layout.attendance_widget_oneui_fullscreen
+                    minWidth >= 220 && maxHeight >= 350 -> R.layout.attendance_widget_oneui_fullscreen
+                    minWidth >= 220 && maxHeight >= 215 -> R.layout.attendance_widget_oneui_expanded
                     minWidth >= 220 && maxHeight >= 95 -> R.layout.attendance_widget_oneui_matrix
                     minWidth >= 220 && maxHeight < 95 -> R.layout.attendance_widget_oneui_capsule
                     minWidth < 220 && maxHeight >= 95 -> R.layout.attendance_widget_oneui_dualpod
@@ -1515,56 +1530,156 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             return day == Calendar.SATURDAY || day == Calendar.SUNDAY
         }
 
-        fun getWidgetBackground(context: Context): Int {
+        const val DEFAULT_WIDGET_BLUR = 35
+
+        fun resolveWidgetAppearance(context: Context): WidgetAppearance {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             val theme = prefs.getString("WidgetTheme", "SYSTEM") ?: "SYSTEM"
             val opacity = prefs.getInt("WidgetOpacity", 100)
+            val blur = prefs.getInt("WidgetBlurIntensity", DEFAULT_WIDGET_BLUR)
+            return resolveWidgetAppearance(context, theme, opacity, blur)
+        }
 
+        fun resolveWidgetAppearance(
+            context: Context,
+            theme: String,
+            opacity: Int,
+            blurIntensity: Int
+        ): WidgetAppearance {
             val isSystemNight = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
             val isEffectiveDark = when (theme) {
                 "LIGHT" -> false
                 "DARK", "AMOLED" -> true
-                "TRANSPARENT" -> isSystemNight
-                else -> isSystemNight // "SYSTEM"
+                else -> isSystemNight // "SYSTEM" or "TRANSPARENT"
             }
 
-            return when (theme) {
-                "AMOLED" -> R.drawable.widget_bg_amoled
-                "TRANSPARENT" -> R.drawable.widget_bg_transparent
-                "LIGHT" -> when {
-                    opacity >= 90 -> R.drawable.widget_bg_light_100
-                    opacity >= 65 -> R.drawable.widget_bg_light_75
-                    opacity >= 40 -> R.drawable.widget_bg_light_50
-                    opacity >= 15 -> R.drawable.widget_bg_light_25
-                    else -> R.drawable.widget_bg_transparent
+            val clampedOpacity = opacity.coerceIn(0, 100)
+            val effectiveOpacity = if (theme == "TRANSPARENT" && clampedOpacity == 100) {
+                // Preserve Clear Glass signature translucency by default while honoring explicit slider edits
+                50
+            } else {
+                clampedOpacity
+            }
+            val opTier = when {
+                effectiveOpacity < 13 -> 0
+                effectiveOpacity < 38 -> 25
+                effectiveOpacity < 63 -> 50
+                effectiveOpacity < 88 -> 75
+                else -> 100
+            }
+
+            val clampedBlur = blurIntensity.coerceIn(0, 100)
+            val frostTier = when {
+                clampedBlur == 0 -> 0
+                clampedBlur < 40 -> 1
+                clampedBlur < 75 -> 2
+                else -> 3
+            }
+
+            val rootBgRes = if (theme == "AMOLED" && opTier == 100 && frostTier == 0) {
+                R.drawable.widget_bg_amoled
+            } else if (isEffectiveDark) {
+                resolveDarkGlassDrawable(opTier, frostTier)
+            } else {
+                resolveLightGlassDrawable(opTier, frostTier)
+            }
+
+            val podBgRes = if (isEffectiveDark) {
+                when (frostTier) {
+                    0 -> R.drawable.widget_tonal_frost_0_dark
+                    1 -> R.drawable.widget_tonal_frost_1_dark
+                    2 -> R.drawable.widget_tonal_frost_2_dark
+                    else -> R.drawable.widget_tonal_frost_3_dark
                 }
-                "DARK" -> when {
-                    opacity >= 90 -> R.drawable.widget_bg_dark_100
-                    opacity >= 65 -> R.drawable.widget_bg_dark_75
-                    opacity >= 40 -> R.drawable.widget_bg_dark_50
-                    opacity >= 15 -> R.drawable.widget_bg_dark_25
-                    else -> R.drawable.widget_bg_transparent
-                }
-                else -> { // SYSTEM
-                    if (isEffectiveDark) {
-                        when {
-                            opacity >= 90 -> R.drawable.widget_bg_dark_100
-                            opacity >= 65 -> R.drawable.widget_bg_dark_75
-                            opacity >= 40 -> R.drawable.widget_bg_dark_50
-                            opacity >= 15 -> R.drawable.widget_bg_dark_25
-                            else -> R.drawable.widget_bg_transparent
-                        }
-                    } else {
-                        when {
-                            opacity >= 90 -> R.drawable.widget_bg_light_100
-                            opacity >= 65 -> R.drawable.widget_bg_light_75
-                            opacity >= 40 -> R.drawable.widget_bg_light_50
-                            opacity >= 15 -> R.drawable.widget_bg_light_25
-                            else -> R.drawable.widget_bg_transparent
-                        }
-                    }
+            } else {
+                when (frostTier) {
+                    0 -> R.drawable.widget_tonal_frost_0_light
+                    1 -> R.drawable.widget_tonal_frost_1_light
+                    2 -> R.drawable.widget_tonal_frost_2_light
+                    else -> R.drawable.widget_tonal_frost_3_light
                 }
             }
+
+            return WidgetAppearance(
+                rootBgRes = rootBgRes,
+                podBgRes = podBgRes,
+                isEffectiveDark = isEffectiveDark,
+                frostTier = frostTier
+            )
+        }
+
+        private fun resolveDarkGlassDrawable(opTier: Int, frostTier: Int): Int {
+            return when (opTier) {
+                0 -> when (frostTier) {
+                    0 -> R.drawable.widget_glass_dark_op0_f0
+                    1 -> R.drawable.widget_glass_dark_op0_f1
+                    2 -> R.drawable.widget_glass_dark_op0_f2
+                    else -> R.drawable.widget_glass_dark_op0_f3
+                }
+                25 -> when (frostTier) {
+                    0 -> R.drawable.widget_glass_dark_op25_f0
+                    1 -> R.drawable.widget_glass_dark_op25_f1
+                    2 -> R.drawable.widget_glass_dark_op25_f2
+                    else -> R.drawable.widget_glass_dark_op25_f3
+                }
+                50 -> when (frostTier) {
+                    0 -> R.drawable.widget_glass_dark_op50_f0
+                    1 -> R.drawable.widget_glass_dark_op50_f1
+                    2 -> R.drawable.widget_glass_dark_op50_f2
+                    else -> R.drawable.widget_glass_dark_op50_f3
+                }
+                75 -> when (frostTier) {
+                    0 -> R.drawable.widget_glass_dark_op75_f0
+                    1 -> R.drawable.widget_glass_dark_op75_f1
+                    2 -> R.drawable.widget_glass_dark_op75_f2
+                    else -> R.drawable.widget_glass_dark_op75_f3
+                }
+                else -> when (frostTier) {
+                    0 -> R.drawable.widget_glass_dark_op100_f0
+                    1 -> R.drawable.widget_glass_dark_op100_f1
+                    2 -> R.drawable.widget_glass_dark_op100_f2
+                    else -> R.drawable.widget_glass_dark_op100_f3
+                }
+            }
+        }
+
+        private fun resolveLightGlassDrawable(opTier: Int, frostTier: Int): Int {
+            return when (opTier) {
+                0 -> when (frostTier) {
+                    0 -> R.drawable.widget_glass_light_op0_f0
+                    1 -> R.drawable.widget_glass_light_op0_f1
+                    2 -> R.drawable.widget_glass_light_op0_f2
+                    else -> R.drawable.widget_glass_light_op0_f3
+                }
+                25 -> when (frostTier) {
+                    0 -> R.drawable.widget_glass_light_op25_f0
+                    1 -> R.drawable.widget_glass_light_op25_f1
+                    2 -> R.drawable.widget_glass_light_op25_f2
+                    else -> R.drawable.widget_glass_light_op25_f3
+                }
+                50 -> when (frostTier) {
+                    0 -> R.drawable.widget_glass_light_op50_f0
+                    1 -> R.drawable.widget_glass_light_op50_f1
+                    2 -> R.drawable.widget_glass_light_op50_f2
+                    else -> R.drawable.widget_glass_light_op50_f3
+                }
+                75 -> when (frostTier) {
+                    0 -> R.drawable.widget_glass_light_op75_f0
+                    1 -> R.drawable.widget_glass_light_op75_f1
+                    2 -> R.drawable.widget_glass_light_op75_f2
+                    else -> R.drawable.widget_glass_light_op75_f3
+                }
+                else -> when (frostTier) {
+                    0 -> R.drawable.widget_glass_light_op100_f0
+                    1 -> R.drawable.widget_glass_light_op100_f1
+                    2 -> R.drawable.widget_glass_light_op100_f2
+                    else -> R.drawable.widget_glass_light_op100_f3
+                }
+            }
+        }
+
+        fun getWidgetBackground(context: Context): Int {
+            return resolveWidgetAppearance(context).rootBgRes
         }
     }
 

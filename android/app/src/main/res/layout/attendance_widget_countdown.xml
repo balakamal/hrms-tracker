@@ -55,20 +55,59 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Huge Glanceable Exit Time -->
-        <TextView
-            android:id="@+id/widget_exit_time_value"
+        <!-- Huge Glanceable Est. Exit Time + Actual Exit Time -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="1dp"
-            android:ellipsize="end"
-            android:letterSpacing="-0.02"
-            android:maxLines="1"
-            android:singleLine="true"
-            android:text="06:30 PM"
-            android:textColor="#FFFFFF"
-            android:textSize="22sp"
-            android:textStyle="bold" />
+            android:gravity="bottom"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/widget_label_exit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:text="Est"
+                android:textColor="#94A3B8"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_exit_time_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:letterSpacing="-0.02"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:text="06:30 PM"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_label_actual"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Act "
+                android:textColor="#94A3B8"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_actual_exit_time_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:text="06:05 PM"
+                android:textColor="#00E5A3"
+                android:textSize="12.5sp"
+                android:textStyle="bold" />
+        </LinearLayout>
 
         <!-- Apple Live Activity Ticking Countdown / Remaining Status -->
         <LinearLayout

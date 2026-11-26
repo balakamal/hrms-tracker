@@ -65,18 +65,25 @@
                 android:textSize="11sp"
                 android:textStyle="bold" />
 
-            <!-- Wallpaper Container Frame to showcase transparency clearly -->
+            <!-- Wallpaper Container Frame to showcase transparency & frosted blur clearly -->
             <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="170dp"
-                android:background="@drawable/bg_top_bar_glass"
-                android:padding="12dp">
+                android:layout_height="170dp">
+
+                <ImageView
+                    android:id="@+id/preview_wallpaper_backdrop"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="@null"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/bg_preview_wallpaper" />
 
                 <!-- The Actual Widget Card Preview -->
                 <LinearLayout
                     android:id="@+id/preview_widget_card"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:layout_margin="12dp"
                     android:background="@drawable/widget_bg_dark_100"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
@@ -158,9 +165,9 @@
                             android:id="@+id/preview_remaining_time"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="1h 05m left"
+                            android:text="Act: 06:05 PM • 1h 05m left"
                             android:textColor="#38BDF8"
-                            android:textSize="11sp"
+                            android:textSize="10.5sp"
                             android:textStyle="bold" />
                     </LinearLayout>
                 </LinearLayout>
@@ -466,6 +473,118 @@
                 android:layout_marginTop="16dp"
                 android:max="100"
                 android:progress="100"
+                android:progressTint="#0576F8"
+                android:thumbTint="#0576F8" />
+
+            <!-- Background Blur & Frost Diffusion Section -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:letterSpacing="0.08"
+                    android:text="BACKGROUND BLUR &amp; FROST"
+                    android:textColor="#94A3B8"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/txt_blur_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:text="35%"
+                    android:textColor="#0576F8"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </RelativeLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Controls frosted glass haze &amp; diffusion (live wallpaper blur is simulated in preview; Android launchers restrict live wallpaper blur for third-party widgets)."
+                android:textColor="#64748B"
+                android:textSize="10.5sp" />
+
+            <!-- Blur / Frost Quick Preset Chips -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/chip_blur_0"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="4dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_configure_chip"
+                    android:gravity="center"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
+                    android:text="Off"
+                    android:textColor="#94A3B8"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/chip_blur_30"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="4dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_configure_chip_selected"
+                    android:gravity="center"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
+                    android:text="Soft"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/chip_blur_60"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="4dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_configure_chip"
+                    android:gravity="center"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
+                    android:text="Med"
+                    android:textColor="#94A3B8"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/chip_blur_100"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_configure_chip"
+                    android:gravity="center"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
+                    android:text="Max"
+                    android:textColor="#94A3B8"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <SeekBar
+                android:id="@+id/seekbar_blur"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:max="100"
+                android:progress="35"
                 android:progressTint="#0576F8"
                 android:thumbTint="#0576F8" />
 

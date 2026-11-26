@@ -107,7 +107,7 @@ object LockScreenLiveCardManager {
         views.setTextViewText(R.id.txt_ls_progress_pct, "$progressPercent%")
         views.setTextViewText(R.id.txt_ls_work_time, if (workTime.isBlank()) "--" else workTime)
         views.setTextViewText(R.id.txt_ls_exit_time, if (exitTime.isBlank()) "--:--" else exitTime)
-        val remainingDisplay = if (actualExitTime != "--:--" && actualExitTime != exitTime && !isWeekend && !isWfh) {
+        val remainingDisplay = if (actualExitTime != "--:--" && !isWeekend && !isWfh) {
             "$remaining (Act: $actualExitTime)"
         } else {
             remaining

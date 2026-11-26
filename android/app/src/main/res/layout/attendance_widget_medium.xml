@@ -177,21 +177,47 @@
             android:id="@+id/widget_exit_time_value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="1dp"
             android:ellipsize="end"
             android:maxLines="1"
             android:singleLine="true"
             android:text="06:30 PM"
             android:textColor="#10B981"
-            android:textSize="13sp"
+            android:textSize="12.5sp"
             android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/widget_label_actual"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ACT: "
+                android:textColor="#94A3B8"
+                android:textSize="8sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_actual_exit_time_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:text="06:05 PM"
+                android:textColor="#FFFFFF"
+                android:textSize="9.5sp"
+                android:textStyle="bold" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/widget_progress_remaining"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="1dp"
-            android:layout_marginBottom="3dp"
+            android:layout_marginBottom="2dp"
             android:ellipsize="end"
             android:maxLines="1"
             android:singleLine="true"
