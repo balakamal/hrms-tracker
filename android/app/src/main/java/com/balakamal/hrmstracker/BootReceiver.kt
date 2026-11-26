@@ -27,11 +27,13 @@ class BootReceiver : BroadcastReceiver() {
             val accessToken = sharedPrefs.getString(TokenManager.KEY_ACCESS_TOKEN, null)
             val refreshToken = sharedPrefs.getString(TokenManager.KEY_REFRESH_TOKEN, null)
 
-            // 1. Immediately trigger local widget update to restore live numbers
+            // 1. Wipe stale previous-day cache & immediately trigger local widget update
+            AttendanceAppWidgetProvider.clearStaleCacheIfDateChanged(context)
             AttendanceAppWidgetProvider.triggerWidgetUpdate(context)
 
-            // 2. Schedule timesheet reminder worker
+            // 2. Schedule timesheet reminder worker and midnight rollover alarm
             TimesheetReminderWorker.schedule(context)
+            AttendanceSyncManager.scheduleMidnightRollover(context)
 
             // 3. If logged in, re-schedule background attendance worker & trigger refresh
             if (!accessToken.isNullOrBlank() || !refreshToken.isNullOrBlank()) {

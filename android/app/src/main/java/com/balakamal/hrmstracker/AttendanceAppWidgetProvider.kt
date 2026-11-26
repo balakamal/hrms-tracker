@@ -67,45 +67,36 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
         fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int, defaultLayoutId: Int) {
             try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    val responsiveViews = when (defaultLayoutId) {
-                        R.layout.attendance_widget_countdown -> {
-                            RemoteViews(mapOf(
-                                SizeF(110f, 40f) to createWidgetRemoteViews(context, appWidgetId, R.layout.attendance_widget_oneui_compact),
-                                SizeF(110f, 95f) to createWidgetRemoteViews(context, appWidgetId, R.layout.attendance_widget_oneui_dualpod),
-                                SizeF(180f, 40f) to createWidgetRemoteViews(context, appWidgetId, R.layout.attendance_widget_countdown)
-                            ))
-                        }
-                        R.layout.attendance_widget_timesheet -> {
-                            RemoteViews(mapOf(
-                                SizeF(110f, 40f) to createWidgetRemoteViews(context, appWidgetId, R.layout.attendance_widget_oneui_compact),
-                                SizeF(200f, 40f) to createWidgetRemoteViews(context, appWidgetId, R.layout.attendance_widget_timesheet)
-                            ))
-                        }
-                        R.layout.attendance_widget_dial -> {
-                            RemoteViews(mapOf(
-                                SizeF(110f, 40f) to createWidgetRemoteViews(context, appWidgetId, R.layout.attendance_widget_oneui_compact),
-                                SizeF(110f, 95f) to createWidgetRemoteViews(context, appWidgetId, R.layout.attendance_widget_dial),
-                                SizeF(220f, 40f) to createWidgetRemoteViews(context, appWidgetId, R.layout.attendance_widget_oneui_capsule)
-                            ))
-                        }
-                        R.layout.attendance_widget_small -> {
-                            createWidgetRemoteViews(context, appWidgetId, R.layout.attendance_widget_small)
-                        }
-                        R.layout.attendance_widget_lockscreen -> {
-                            createWidgetRemoteViews(context, appWidgetId, R.layout.attendance_widget_lockscreen)
-                        }
-                        else -> {
-                            // Standard Dashboard, Matrix, Row, Capsule, DualPod, FullScreen
-                            RemoteViews(mapOf(
-                                SizeF(110f, 40f) to createWidgetRemoteViews(context, appWidgetId, R.layout.attendance_widget_oneui_compact),
-                                SizeF(110f, 95f) to createWidgetRemoteViews(context, appWidgetId, R.layout.attendance_widget_oneui_dualpod),
-                                SizeF(220f, 40f) to createWidgetRemoteViews(context, appWidgetId, R.layout.attendance_widget_oneui_capsule),
-                                SizeF(220f, 95f) to createWidgetRemoteViews(context, appWidgetId, R.layout.attendance_widget_oneui_matrix),
-                                SizeF(220f, 230f) to createWidgetRemoteViews(context, appWidgetId, R.layout.attendance_widget_oneui_fullscreen)
-                            ))
-                        }
+                    val sizeMap = getSizeLayoutMap(defaultLayoutId)
+                    if (sizeMap.size <= 1) {
+                        val singleLayout = sizeMap.values.firstOrNull() ?: defaultLayoutId
+                        appWidgetManager.updateAppWidget(appWidgetId, createWidgetRemoteViews(context, appWidgetId, singleLayout))
+                        return
                     }
-                    appWidgetManager.updateAppWidget(appWidgetId, responsiveViews)
+
+                    val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
+                    val requestedSizes = getRequestedWidgetSizes(options)
+                    val targetEntries: Map<SizeF, Int> = if (!requestedSizes.isNullOrEmpty()) {
+                        val matched = linkedMapOf<SizeF, Int>()
+                        for (req in requestedSizes) {
+                            val best = findBestSizeEntry(sizeMap, req)
+                            matched[best.key] = best.value
+                        }
+                        if (matched.isNotEmpty()) matched else sizeMap
+                    } else {
+                        sizeMap
+                    }
+
+                    // Reuse RemoteViews per unique layoutId to minimize Binder parcel size
+                    val builtByLayout = mutableMapOf<Int, RemoteViews>()
+                    val responsiveMap = linkedMapOf<SizeF, RemoteViews>()
+                    for ((size, layoutId) in targetEntries) {
+                        val rv = builtByLayout.getOrPut(layoutId) {
+                            createWidgetRemoteViews(context, appWidgetId, layoutId)
+                        }
+                        responsiveMap[size] = rv
+                    }
+                    appWidgetManager.updateAppWidget(appWidgetId, RemoteViews(responsiveMap))
                 } else {
                     val layoutId = getLayoutForWidgetSize(appWidgetManager, appWidgetId, defaultLayoutId)
                     val views = createWidgetRemoteViews(context, appWidgetId, layoutId)
@@ -120,6 +111,103 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                     android.util.Log.e("HRMSWidget", "Fallback widget render failed: ${ex.message}", ex)
                 }
             }
+        }
+
+        private fun getSizeLayoutMap(defaultLayoutId: Int): Map<SizeF, Int> {
+            return when (defaultLayoutId) {
+                R.layout.attendance_widget_countdown -> linkedMapOf(
+                    SizeF(110f, 40f) to R.layout.attendance_widget_oneui_compact,
+                    SizeF(110f, 95f) to R.layout.attendance_widget_oneui_dualpod,
+                    SizeF(180f, 40f) to R.layout.attendance_widget_countdown
+                )
+                R.layout.attendance_widget_timesheet -> linkedMapOf(
+                    SizeF(110f, 40f) to R.layout.attendance_widget_oneui_compact,
+                    SizeF(200f, 40f) to R.layout.attendance_widget_timesheet
+                )
+                R.layout.attendance_widget_dial -> linkedMapOf(
+                    SizeF(110f, 40f) to R.layout.attendance_widget_oneui_compact,
+                    SizeF(110f, 95f) to R.layout.attendance_widget_dial,
+                    SizeF(220f, 40f) to R.layout.attendance_widget_oneui_capsule
+                )
+                R.layout.attendance_widget_small -> linkedMapOf(
+                    SizeF(110f, 50f) to R.layout.attendance_widget_small
+                )
+                R.layout.attendance_widget_lockscreen -> linkedMapOf(
+                    SizeF(90f, 40f) to R.layout.attendance_widget_lockscreen
+                )
+                else -> linkedMapOf(
+                    SizeF(110f, 40f) to R.layout.attendance_widget_oneui_compact,
+                    SizeF(110f, 95f) to R.layout.attendance_widget_oneui_dualpod,
+                    SizeF(220f, 40f) to R.layout.attendance_widget_oneui_capsule,
+                    SizeF(220f, 95f) to R.layout.attendance_widget_oneui_matrix,
+                    SizeF(220f, 230f) to R.layout.attendance_widget_oneui_fullscreen
+                )
+            }
+        }
+
+        @Suppress("DEPRECATION")
+        private fun getRequestedWidgetSizes(options: Bundle): ArrayList<SizeF>? {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return null
+            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                options.getParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES, SizeF::class.java)
+            } else {
+                options.getParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES)
+            }
+        }
+
+        private fun findBestSizeEntry(sizeMap: Map<SizeF, Int>, target: SizeF): Map.Entry<SizeF, Int> {
+            val fitting = sizeMap.entries.filter {
+                it.key.width <= target.width + 1f && it.key.height <= target.height + 1f
+            }
+            if (fitting.isNotEmpty()) {
+                return fitting.maxByOrNull { it.key.width * it.key.height } ?: fitting.first()
+            }
+            return sizeMap.entries.minByOrNull {
+                Math.abs(it.key.width - target.width) + Math.abs(it.key.height - target.height)
+            } ?: sizeMap.entries.first()
+        }
+
+        /**
+         * Clears yesterday's cached attendance metrics & WFH flag whenever the calendar date has rolled over.
+         * Returns true if stale data from a previous day was cleared.
+         */
+        fun clearStaleCacheIfDateChanged(context: Context): Boolean {
+            val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val todayDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+            val cacheDate = sharedPrefs.getString("WidgetCacheDate", "") ?: ""
+            val wfhDate = sharedPrefs.getString("WfhDate", "") ?: ""
+
+            val staleCache = cacheDate.isNotEmpty() && cacheDate != todayDateStr
+            val staleWfh = wfhDate.isNotEmpty() && wfhDate != todayDateStr
+            if (!staleCache && !staleWfh) return false
+
+            val editor = sharedPrefs.edit()
+            if (staleWfh) {
+                editor.putBoolean("WfhMode", false)
+                    .putString("WfhDate", todayDateStr)
+            }
+            if (staleCache) {
+                editor.putString("WidgetWorkTime", "0h 00m")
+                    .putString("WidgetFirstIn", "--:--")
+                    .putString("WidgetBreakTime", "0h 00m")
+                    .putString("WidgetBreakCount", "0 Breaks Today")
+                    .putString("WidgetExitTime", "--:--")
+                    .putString("WidgetActualExitTime", "--:--")
+                    .putString("WidgetStatusText", "No In Yet")
+                    .putInt("WidgetProgressPercent", 0)
+                    .putString("WidgetProgressRemaining", "Waiting for punch")
+                    .putString("WidgetLastUpdated", "Last updated: --:--")
+                    .putBoolean("WidgetIsClockedIn", false)
+                    .putLong("WidgetLastInTimestamp", 0L)
+                    .putLong("WidgetLastOutTimestamp", 0L)
+                    .putFloat("WidgetBaseWorkMinutes", -1f)
+                    .putFloat("WidgetBaseBreakMinutes", 0f)
+                    .putString("WidgetTimelineSegments", "")
+                    .putString("WidgetRecentPunches", "")
+                    .putString("WidgetCacheDate", "")
+            }
+            editor.apply()
+            return staleCache
         }
 
         fun createWidgetRemoteViews(context: Context, appWidgetId: Int, layoutId: Int): RemoteViews {
@@ -536,36 +624,36 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             if (layoutId == R.layout.attendance_widget_oneui_capsule) {
                 views.setImageViewBitmap(
                     R.id.img_gauge_ring,
-                    WidgetGraphicsRenderer.renderMicroRingBitmap(context, progressPercent, phaseColor, canvasTrackColor)
+                    WidgetGraphicsRenderer.renderMicroRingBitmap(context, progressPercent, phaseColor, canvasTrackColor, sizeDp = 40f)
                 )
                 views.setImageViewBitmap(
                     R.id.img_timeline_strip,
-                    WidgetGraphicsRenderer.renderShiftTimelineBitmap(context, timelineSpec, progressPercent, phaseColor, colorBreakTime, canvasTrackColor, widthDp = 120f, heightDp = 7f)
+                    WidgetGraphicsRenderer.renderShiftTimelineBitmap(context, timelineSpec, progressPercent, phaseColor, colorBreakTime, canvasTrackColor, widthDp = 110f, heightDp = 6f)
                 )
             } else if (layoutId == R.layout.attendance_widget_oneui_dualpod) {
                 views.setImageViewBitmap(
                     R.id.img_gauge_ring,
-                    WidgetGraphicsRenderer.renderOpenDialBitmap(context, progressPercent, phaseColor, canvasTrackColor, widthDp = 128f, heightDp = 108f)
+                    WidgetGraphicsRenderer.renderOpenDialBitmap(context, progressPercent, phaseColor, canvasTrackColor, widthDp = 100f, heightDp = 88f)
                 )
             } else if (layoutId == R.layout.attendance_widget_oneui_matrix) {
                 views.setImageViewBitmap(
                     R.id.img_gauge_ring,
-                    WidgetGraphicsRenderer.renderOpenDialBitmap(context, progressPercent, phaseColor, canvasTrackColor, widthDp = 112f, heightDp = 100f)
+                    WidgetGraphicsRenderer.renderOpenDialBitmap(context, progressPercent, phaseColor, canvasTrackColor, widthDp = 100f, heightDp = 88f)
                 )
                 views.setImageViewBitmap(
                     R.id.img_timeline_strip,
-                    WidgetGraphicsRenderer.renderShiftTimelineBitmap(context, timelineSpec, progressPercent, phaseColor, colorBreakTime, canvasTrackColor, widthDp = 280f, heightDp = 8f)
+                    WidgetGraphicsRenderer.renderShiftTimelineBitmap(context, timelineSpec, progressPercent, phaseColor, colorBreakTime, canvasTrackColor, widthDp = 160f, heightDp = 6f)
                 )
             } else if (layoutId == R.layout.attendance_widget_oneui_fullscreen) {
                 val curBreakMin = if (baseBreakMinutes > 0) baseBreakMinutes else 0.0
                 val breakPct = Math.min(100, ((curBreakMin / Math.max(1.0, avgBreakMinutes.toDouble())) * 100).toInt())
                 views.setImageViewBitmap(
                     R.id.img_gauge_concentric,
-                    WidgetGraphicsRenderer.renderConcentricDualRingBitmap(context, progressPercent, breakPct, phaseColor, colorBreakTime, canvasTrackColor)
+                    WidgetGraphicsRenderer.renderConcentricDualRingBitmap(context, progressPercent, breakPct, phaseColor, colorBreakTime, canvasTrackColor, sizeDp = 112f)
                 )
                 views.setImageViewBitmap(
                     R.id.img_timeline_strip,
-                    WidgetGraphicsRenderer.renderShiftTimelineBitmap(context, timelineSpec, progressPercent, phaseColor, colorBreakTime, canvasTrackColor, widthDp = 300f, heightDp = 10f)
+                    WidgetGraphicsRenderer.renderShiftTimelineBitmap(context, timelineSpec, progressPercent, phaseColor, colorBreakTime, canvasTrackColor, widthDp = 160f, heightDp = 6f)
                 )
 
                 // Populate Today's Biometric Punch Feed Rows (up to 4)
@@ -875,6 +963,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
         }
 
         fun triggerWidgetUpdate(context: Context) {
+            clearStaleCacheIfDateChanged(context)
             val appWidgetManager = AppWidgetManager.getInstance(context)
             
             // Large Widgets
@@ -965,10 +1054,18 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
             try {
                 val jsonObject = JSONObject(jsonStr)
                 val data = jsonObject.optJSONObject("data") ?: return null
+                val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+                val responseDate = data.optString("date", "")
+                    .ifBlank { data.optString("attendanceDate", "") }
+                    .ifBlank { data.optString("logDate", "") }
+                    .trim()
+                if (responseDate.isNotEmpty() && !responseDate.startsWith(todayStr)) {
+                    android.util.Log.w("HRMSWidget", "Ignoring stale API logs for date $responseDate (today is $todayStr)")
+                    return null
+                }
                 val logsArray = data.optJSONArray("attendanceDailyLogs") ?: return null
                 if (logsArray.length() == 0) return null
 
-                val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
                 val sdfTime = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
 
                 val logsMap = mutableMapOf<String, LogEntry>()
@@ -1479,6 +1576,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         try {
+            clearStaleCacheIfDateChanged(context)
             AttendanceWorker.schedule(context)
             for (appWidgetId in appWidgetIds) {
                 updateAppWidget(context, appWidgetManager, appWidgetId, defaultLayoutId)
@@ -1497,6 +1595,7 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
         newOptions: Bundle
     ) {
         super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
+        clearStaleCacheIfDateChanged(context)
         updateAppWidget(context, appWidgetManager, appWidgetId, defaultLayoutId)
     }
 
@@ -1539,34 +1638,9 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
         }
 
         if (intent.action == ACTION_REFRESH) {
-            val appWidgetManager = AppWidgetManager.getInstance(context)
-            
-            // Set loading state cleanly using partiallyUpdateAppWidget without destroying existing card metrics or resetting carousel page
-            val providers = listOf(
-                AttendanceAppWidgetProvider::class.java to R.layout.attendance_widget,
-                AttendanceAppWidgetProviderMedium::class.java to R.layout.attendance_widget_medium,
-                AttendanceAppWidgetProviderSmall::class.java to R.layout.attendance_widget_small,
-                WidgetCountdownProvider::class.java to R.layout.attendance_widget_countdown,
-                WidgetTimesheetProvider::class.java to R.layout.attendance_widget_timesheet,
-                WidgetDialProvider::class.java to R.layout.attendance_widget_dial,
-                WidgetLockScreenProvider::class.java to R.layout.attendance_widget_lockscreen,
-                WidgetOneUiCapsuleProvider::class.java to R.layout.attendance_widget_oneui_capsule,
-                WidgetOneUiDualPodProvider::class.java to R.layout.attendance_widget_oneui_dualpod,
-                WidgetOneUiMatrixProvider::class.java to R.layout.attendance_widget_oneui_matrix
-            )
+            // Re-render all widgets with full responsive RemoteViews (avoids SizeF mismatch in partiallyUpdateAppWidget)
+            triggerWidgetUpdate(appContext)
 
-            for ((providerClass, defaultLayout) in providers) {
-                val componentName = ComponentName(context, providerClass.name)
-                val ids = appWidgetManager.getAppWidgetIds(componentName)
-                for (appWidgetId in ids) {
-                    val layoutId = getLayoutForWidgetSize(appWidgetManager, appWidgetId, defaultLayout)
-                    val partialViews = RemoteViews(context.packageName, layoutId)
-                    partialViews.setTextViewText(R.id.widget_title, "HRMS • SYNCING...")
-                    partialViews.setTextViewText(R.id.txt_widget_status, "SYNCING...")
-                    appWidgetManager.partiallyUpdateAppWidget(appWidgetId, partialViews)
-                }
-            }
-            
             // Trigger robust background sync via WorkManager & adaptive scheduler
             AttendanceWorker.syncNow(appContext)
             AttendanceSyncManager.scheduleNextSync(appContext)

@@ -197,10 +197,11 @@
             </LinearLayout>
         </LinearLayout>
 
-        <View
+        <ImageView
             android:id="@+id/widget_hairline_1"
             android:layout_width="match_parent"
             android:layout_height="1dp"
+            android:contentDescription="@null"
             android:background="@drawable/widget_hairline_dark" />
 
         <!-- 4 Key Numbers Hairline Telemetry Row -->
@@ -325,10 +326,11 @@
             </LinearLayout>
         </LinearLayout>
 
-        <View
+        <ImageView
             android:id="@+id/widget_hairline_2"
             android:layout_width="match_parent"
             android:layout_height="1dp"
+            android:contentDescription="@null"
             android:background="@drawable/widget_hairline_dark" />
 
         <!-- Flighty-Style Live Shift Timeline Strip -->

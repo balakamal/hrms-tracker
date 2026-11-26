@@ -32,6 +32,7 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
         var result = Result.success()
 
         try {
+            AttendanceAppWidgetProvider.clearStaleCacheIfDateChanged(applicationContext)
             var accessToken = TokenManager.getValidAccessToken(applicationContext)
             val cookies = TokenManager.getValidCookies(applicationContext)
 
@@ -101,6 +102,7 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                         return Result.success() // Keep worker alive for next app login
                     }
                     is TokenManager.RefreshResult.NetworkError -> {
+                        AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
                         return Result.retry()
                     }
                 }
@@ -249,9 +251,14 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                         .apply()
                     AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
                 }
+            } else {
+                Log.w(TAG, "GetDailyLog returned HTTP ${connection.responseCode}")
+                AttendanceAppWidgetProvider.saveWidgetCacheError(applicationContext, "Sync Error (${connection.responseCode})")
+                AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error in AttendanceWorker: ${e.message}", e)
+            AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
             result = Result.retry()
         } finally {
             // Guarantee continuous adaptive sync scheduling across all scenarios

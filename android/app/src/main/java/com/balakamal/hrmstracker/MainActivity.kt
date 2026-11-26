@@ -265,6 +265,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (AttendanceAppWidgetProvider.clearStaleCacheIfDateChanged(applicationContext)) {
+            AttendanceAppWidgetProvider.triggerWidgetUpdate(applicationContext)
+        }
         if (::webView.isInitialized) {
             TokenManager.syncTokensToWebView(webView, applicationContext)
             ensureTrackerScriptInjected()
@@ -613,6 +616,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showSummaryCard() {
+        val todayDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+        val isCacheFromToday = (sharedPrefs.getString("WidgetCacheDate", "") ?: "") == todayDateStr
+        if (!isCacheFromToday) {
+            return
+        }
         val firstIn = sharedPrefs.getString("WidgetFirstIn", "--:--") ?: "--:--"
         if (firstIn == "--:--" || firstIn.isBlank()) {
             return
@@ -668,9 +676,15 @@ class MainActivity : AppCompatActivity() {
         if (!::txtCountdown.isInitialized) return
         val calendar = Calendar.getInstance()
         val isWeekend = calendar.get(Calendar.DAY_OF_WEEK) in listOf(Calendar.SATURDAY, Calendar.SUNDAY)
-        val firstIn = sharedPrefs.getString("WidgetFirstIn", "--:--") ?: "--:--"
-        val exitTime = sharedPrefs.getString("WidgetExitTime", "--:--") ?: "--:--"
-        val progressPercent = sharedPrefs.getInt("WidgetProgressPercent", 0)
+        val todayDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+        val cacheDate = sharedPrefs.getString("WidgetCacheDate", "")
+        val isCacheFromToday = cacheDate == todayDateStr
+        val wfhDate = sharedPrefs.getString("WfhDate", "")
+        isWfhMode = sharedPrefs.getBoolean(KEY_WFH_MODE, false) && wfhDate == todayDateStr
+
+        val firstIn = if (isCacheFromToday) (sharedPrefs.getString("WidgetFirstIn", "--:--") ?: "--:--") else "--:--"
+        val exitTime = if (isCacheFromToday) (sharedPrefs.getString("WidgetExitTime", "--:--") ?: "--:--") else "--:--"
+        val progressPercent = if (isCacheFromToday) sharedPrefs.getInt("WidgetProgressPercent", 0) else 0
 
         if (isWfhMode) {
             imgNowBarIcon.setImageResource(R.drawable.ic_wfh_home)
@@ -689,16 +703,12 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        val todayDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-        val cacheDate = sharedPrefs.getString("WidgetCacheDate", "")
-        val isCacheFromToday = cacheDate == todayDateStr
-
-        val isClockedIn = sharedPrefs.getBoolean("WidgetIsClockedIn", false)
-        val lastInTimestamp = sharedPrefs.getLong("WidgetLastInTimestamp", 0L)
-        val baseWorkMinutes = sharedPrefs.getFloat("WidgetBaseWorkMinutes", -1f)
+        val isClockedIn = isCacheFromToday && sharedPrefs.getBoolean("WidgetIsClockedIn", false)
+        val lastInTimestamp = if (isCacheFromToday) sharedPrefs.getLong("WidgetLastInTimestamp", 0L) else 0L
+        val baseWorkMinutes = if (isCacheFromToday) sharedPrefs.getFloat("WidgetBaseWorkMinutes", -1f) else -1f
         val savedTargetHours = sharedPrefs.getFloat("TargetHours", 8.5f)
         val targetMinutes = sharedPrefs.getFloat("WidgetTargetMinutes", savedTargetHours * 60f).toDouble()
-        val rawStatusText = sharedPrefs.getString("WidgetStatusText", "") ?: ""
+        val rawStatusText = if (isCacheFromToday) (sharedPrefs.getString("WidgetStatusText", "") ?: "") else ""
 
         val liveRemainingMinutes: Double
         val isCompleted: Boolean
@@ -711,7 +721,7 @@ class MainActivity : AppCompatActivity() {
         } else if (baseWorkMinutes >= 0 && isCacheFromToday) {
             liveRemainingMinutes = Math.max(0.0, targetMinutes - baseWorkMinutes.toDouble())
             isCompleted = baseWorkMinutes >= targetMinutes || progressPercent >= 100 || rawStatusText.contains("Complete", ignoreCase = true) || exitTime == "Completed"
-        } else {
+        } else if (isCacheFromToday) {
             isCompleted = progressPercent >= 100 || rawStatusText.contains("Complete", ignoreCase = true) || exitTime == "Completed"
             val rawRemaining = sharedPrefs.getString("WidgetProgressRemaining", "") ?: ""
             val regex = Regex("""(?:(\d+)h\s*)?(?:(\d+)m)?""")
@@ -719,6 +729,9 @@ class MainActivity : AppCompatActivity() {
             val h = match?.groupValues?.getOrNull(1)?.toIntOrNull() ?: 0
             val m = match?.groupValues?.getOrNull(2)?.toIntOrNull() ?: 0
             liveRemainingMinutes = if (h > 0 || m > 0) (h * 60 + m).toDouble() else 0.0
+        } else {
+            isCompleted = false
+            liveRemainingMinutes = 0.0
         }
 
         if (isCompleted || (firstIn != "--:--" && firstIn.isNotBlank() && liveRemainingMinutes <= 0.0)) {

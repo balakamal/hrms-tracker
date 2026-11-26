@@ -176,12 +176,13 @@
                     android:textSize="11.5sp"
                     android:textStyle="bold" />
 
-                <View
+                <ImageView
                     android:id="@+id/widget_hairline_1"
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginTop="5dp"
                     android:layout_marginBottom="5dp"
+                    android:contentDescription="@null"
                     android:background="@drawable/widget_hairline_dark" />
 
                 <!-- Row 1: First In | Breaks -->

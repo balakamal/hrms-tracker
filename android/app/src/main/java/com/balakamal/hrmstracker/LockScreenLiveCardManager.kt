@@ -59,16 +59,18 @@ object LockScreenLiveCardManager {
         NotificationHelper.initChannels(context)
 
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val isWfh = prefs.getBoolean("WfhMode", false)
+        val todayDateStr = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
+        val isCacheFromToday = (prefs.getString("WidgetCacheDate", "") ?: "") == todayDateStr
+        val isWfh = prefs.getBoolean("WfhMode", false) && (prefs.getString("WfhDate", "") ?: "") == todayDateStr
         val isWeekend = AttendanceAppWidgetProvider.isWeekend()
 
-        val firstIn = prefs.getString("WidgetFirstIn", "--:--") ?: "--:--"
-        val workTime = prefs.getString("WidgetWorkTime", "0h 00m") ?: "0h 00m"
-        val exitTime = prefs.getString("WidgetExitTime", "--:--") ?: "--:--"
-        val actualExitTime = prefs.getString("WidgetActualExitTime", "--:--") ?: "--:--"
-        val statusTextRaw = prefs.getString("WidgetStatusText", "Clocked In") ?: "Clocked In"
-        val progressPercent = prefs.getInt("WidgetProgressPercent", 0)
-        val remaining = prefs.getString("WidgetProgressRemaining", "-- left") ?: "-- left"
+        val firstIn = if (isCacheFromToday) (prefs.getString("WidgetFirstIn", "--:--") ?: "--:--") else "--:--"
+        val workTime = if (isCacheFromToday) (prefs.getString("WidgetWorkTime", "0h 00m") ?: "0h 00m") else "0h 00m"
+        val exitTime = if (isCacheFromToday) (prefs.getString("WidgetExitTime", "--:--") ?: "--:--") else "--:--"
+        val actualExitTime = if (isCacheFromToday) (prefs.getString("WidgetActualExitTime", "--:--") ?: "--:--") else "--:--"
+        val statusTextRaw = if (isCacheFromToday) (prefs.getString("WidgetStatusText", "No In Yet") ?: "No In Yet") else "No In Yet"
+        val progressPercent = if (isCacheFromToday) prefs.getInt("WidgetProgressPercent", 0) else 0
+        val remaining = if (isCacheFromToday) (prefs.getString("WidgetProgressRemaining", "Waiting for punch") ?: "Waiting for punch") else "Waiting for punch"
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 

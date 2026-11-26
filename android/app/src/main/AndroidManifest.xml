@@ -260,6 +260,7 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="com.balakamal.hrmstracker.ACTION_ATTENDANCE_SYNC_ALARM" />
+                <action android:name="com.balakamal.hrmstracker.ACTION_MIDNIGHT_ROLLOVER" />
                 <action android:name="android.intent.action.USER_PRESENT" />
             </intent-filter>
         </receiver>

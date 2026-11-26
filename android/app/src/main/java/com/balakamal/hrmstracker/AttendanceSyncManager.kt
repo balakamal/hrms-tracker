@@ -8,7 +8,10 @@ import android.content.SharedPreferences
 import android.os.Build
 import android.util.Log
 import androidx.work.*
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 /**
@@ -28,7 +31,9 @@ object AttendanceSyncManager {
     private const val PREFS_NAME = "HRMS_PREFS"
 
     const val ACTION_ATTENDANCE_SYNC_ALARM = "com.balakamal.hrmstracker.ACTION_ATTENDANCE_SYNC_ALARM"
+    const val ACTION_MIDNIGHT_ROLLOVER = "com.balakamal.hrmstracker.ACTION_MIDNIGHT_ROLLOVER"
     private const val ALARM_REQ_CODE = 5001
+    private const val MIDNIGHT_ALARM_REQ_CODE = 5002
     const val ONE_TIME_WORK_NAME = "HRMS_ATTENDANCE_EXPEDITED_SYNC"
 
     // Interval constants
@@ -44,7 +49,11 @@ object AttendanceSyncManager {
      * Calculates the optimal next sync delay and schedules both AlarmManager and WorkManager.
      */
     fun scheduleNextSync(context: Context) {
+        AttendanceAppWidgetProvider.clearStaleCacheIfDateChanged(context)
+
         val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+        val isCacheFromToday = (prefs.getString("WidgetCacheDate", "") ?: "") == todayStr
 
         val calendar = Calendar.getInstance()
         val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
@@ -52,11 +61,11 @@ object AttendanceSyncManager {
         val minute = calendar.get(Calendar.MINUTE)
 
         val isWeekend = dayOfWeek == Calendar.SATURDAY || dayOfWeek == Calendar.SUNDAY
-        val isClockedIn = prefs.getBoolean("WidgetIsClockedIn", false)
-        val firstIn = prefs.getString("WidgetFirstIn", "--:--") ?: "--:--"
+        val isClockedIn = isCacheFromToday && prefs.getBoolean("WidgetIsClockedIn", false)
+        val firstIn = if (isCacheFromToday) (prefs.getString("WidgetFirstIn", "--:--") ?: "--:--") else "--:--"
         val hasFirstInToday = firstIn != "--:--" && firstIn.isNotBlank()
-        val progressPercent = prefs.getInt("WidgetProgressPercent", 0)
-        val statusText = prefs.getString("WidgetStatusText", "") ?: ""
+        val progressPercent = if (isCacheFromToday) prefs.getInt("WidgetProgressPercent", 0) else 0
+        val statusText = if (isCacheFromToday) (prefs.getString("WidgetStatusText", "") ?: "") else ""
         val isShiftComplete = progressPercent >= 100 || statusText.contains("Complete", ignoreCase = true)
 
         val isBeforeMorningStart = hour < START_HOUR_MORNING || (hour == START_HOUR_MORNING && minute < START_MINUTE_MORNING)
@@ -148,6 +157,9 @@ object AttendanceSyncManager {
         // Schedule AlarmManager watchdog (wakes device from Doze)
         scheduleAlarm(context, delayMillis)
 
+        // Schedule dedicated midnight rollover alarm (00:01 AM) to clear yesterday's widget cache
+        scheduleMidnightRollover(context)
+
         // Schedule WorkManager OneTimeWorkRequest
         scheduleWorkManager(context, delayMillis)
     }
@@ -200,6 +212,40 @@ object AttendanceSyncManager {
         }
     }
 
+    /**
+     * Schedules an exact 00:01 AM alarm for the next calendar day so homescreen & lockscreen widgets
+     * immediately clear yesterday's data at midnight.
+     */
+    fun scheduleMidnightRollover(context: Context) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
+        val nextMidnight = Calendar.getInstance().apply {
+            add(Calendar.DAY_OF_YEAR, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 1)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val intent = Intent(context, AttendanceSyncReceiver::class.java).apply {
+            action = ACTION_MIDNIGHT_ROLLOVER
+        }
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            MIDNIGHT_ALARM_REQ_CODE,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, nextMidnight.timeInMillis, pendingIntent)
+            } else {
+                alarmManager.set(AlarmManager.RTC_WAKEUP, nextMidnight.timeInMillis, pendingIntent)
+            }
+            Log.d(TAG, "Midnight rollover alarm scheduled for ${nextMidnight.time}")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to schedule midnight rollover alarm: ${e.message}", e)
+        }
+    }
+
     fun cancelSync(context: Context) {
         try {
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager
@@ -215,6 +261,19 @@ object AttendanceSyncManager {
             if (pendingIntent != null && alarmManager != null) {
                 alarmManager.cancel(pendingIntent)
                 pendingIntent.cancel()
+            }
+            val midnightIntent = Intent(context, AttendanceSyncReceiver::class.java).apply {
+                action = ACTION_MIDNIGHT_ROLLOVER
+            }
+            val midnightPending = PendingIntent.getBroadcast(
+                context,
+                MIDNIGHT_ALARM_REQ_CODE,
+                midnightIntent,
+                PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+            )
+            if (midnightPending != null && alarmManager != null) {
+                alarmManager.cancel(midnightPending)
+                midnightPending.cancel()
             }
             WorkManager.getInstance(context.applicationContext).cancelUniqueWork(ONE_TIME_WORK_NAME)
             Log.d(TAG, "Cancelled active attendance sync schedules")

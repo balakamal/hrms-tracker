@@ -113,11 +113,12 @@
         </FrameLayout>
 
         <!-- Hairline Divider (No Nested Box Clutter) -->
-        <View
+        <ImageView
             android:id="@+id/widget_hairline_1"
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginBottom="6dp"
+            android:contentDescription="@null"
             android:background="@drawable/widget_hairline_dark" />
 
         <!-- 3-Column Hairline Telemetry Row: In | Break | Exit -->
@@ -154,10 +155,11 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <View
+            <ImageView
                 android:id="@+id/widget_hairline_v1"
                 android:layout_width="1dp"
                 android:layout_height="24dp"
+                android:contentDescription="@null"
                 android:background="@drawable/widget_hairline_dark" />
 
             <LinearLayout
@@ -187,10 +189,11 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <View
+            <ImageView
                 android:id="@+id/widget_hairline_v2"
                 android:layout_width="1dp"
                 android:layout_height="24dp"
+                android:contentDescription="@null"
                 android:background="@drawable/widget_hairline_dark" />
 
             <LinearLayout

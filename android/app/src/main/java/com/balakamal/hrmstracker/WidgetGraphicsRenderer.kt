@@ -13,7 +13,7 @@ import android.graphics.RectF
 object WidgetGraphicsRenderer {
 
     private fun safeScale(context: Context): Float {
-        return Math.min(Math.max(context.resources.displayMetrics.density, 1.5f), 2.5f)
+        return Math.min(Math.max(context.resources.displayMetrics.density, 1.5f), 2.0f)
     }
 
     /**
@@ -24,7 +24,7 @@ object WidgetGraphicsRenderer {
         progressPercent: Int,
         activeColor: Int,
         trackColor: Int,
-        sizeDp: Float = 44f
+        sizeDp: Float = 40f
     ): Bitmap {
         val scale = safeScale(context)
         val sizePx = Math.max(1, (sizeDp * scale).toInt())
@@ -73,8 +73,8 @@ object WidgetGraphicsRenderer {
         progressPercent: Int,
         activeColor: Int,
         trackColor: Int,
-        widthDp: Float = 124f,
-        heightDp: Float = 108f
+        widthDp: Float = 100f,
+        heightDp: Float = 88f
     ): Bitmap {
         val scale = safeScale(context)
         val wPx = Math.max(1, (widthDp * scale).toInt())
@@ -143,7 +143,7 @@ object WidgetGraphicsRenderer {
         workColor: Int,
         breakColor: Int,
         trackColor: Int,
-        sizeDp: Float = 132f
+        sizeDp: Float = 112f
     ): Bitmap {
         val scale = safeScale(context)
         val sizePx = Math.max(1, (sizeDp * scale).toInt())
@@ -223,8 +223,8 @@ object WidgetGraphicsRenderer {
         workColor: Int,
         breakColor: Int,
         trackColor: Int,
-        widthDp: Float = 260f,
-        heightDp: Float = 9f
+        widthDp: Float = 160f,
+        heightDp: Float = 6f
     ): Bitmap {
         val scale = safeScale(context)
         val wPx = Math.max(1, (widthDp * scale).toInt())
