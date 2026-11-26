@@ -1618,8 +1618,6 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
         }
 
         // Fetch logs from API (Uses local device timezone for local date query)
-        val sdfDate = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-        val todayStr = sdfDate.format(Date())
         val todayISO = "${todayStr}T00:00:00.000Z"
         val apiUrl = "https://apps.pal.tech/hrms-backend/api/Attendance/GetDailyLog?date=$todayISO&userId=$userId"
 
