@@ -123,10 +123,13 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                 }
                 reader.close()
 
-                // Refresh WFH status from official API
+                // Refresh WFH status from official API with today's date stamp
                 val remoteWfh = AttendanceAppWidgetProvider.checkEmployeeWfhStatus(applicationContext, accessToken, userId)
                 if (remoteWfh != null) {
-                    sharedPrefs.edit().putBoolean("WfhMode", remoteWfh).apply()
+                    sharedPrefs.edit()
+                        .putBoolean("WfhMode", remoteWfh)
+                        .putString("WfhDate", todayStr)
+                        .apply()
                 }
 
                 // Fetch dynamic policy target hours & personalized 30-day average break
@@ -156,7 +159,9 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                         targetMinutes = metrics.targetMinutes,
                         baseBreakMinutes = metrics.baseBreakMinutes,
                         avgBreakMinutes = metrics.avgBreakMinutes,
-                        lastOutTimestamp = metrics.lastOutTimestamp
+                        lastOutTimestamp = metrics.lastOutTimestamp,
+                        timelineSegmentsSpec = metrics.timelineSegmentsSpec,
+                        recentPunchesJson = metrics.recentPunchesJson
                     )
 
                     // Record successful sync timestamp for screen-on freshness checks
@@ -216,16 +221,16 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                     }
                 } else {
                     ShiftAlertManager.stopAlerts(applicationContext)
-                    val isWfh = sharedPrefs.getBoolean("WfhMode", false)
+                    val isWfh = sharedPrefs.getBoolean("WfhMode", false) && sharedPrefs.getString("WfhDate", "") == todayStr
                     val isWeekendToday = AttendanceAppWidgetProvider.isWeekend()
                     val noLogsStatus = when {
                         isWfh -> "Working from Home"
                         isWeekendToday -> "Week Off"
-                        else -> "No logs today"
+                        else -> "No In Yet"
                     }
                     val defaultWorkTime = if (isWeekendToday) "Week Off" else "0h 00m"
                     val defaultExitTime = if (isWeekendToday) "Enjoy Weekend" else "--:--"
-                    val defaultRemaining = if (isWeekendToday) "Rest & Recharge" else "--h --m left"
+                    val defaultRemaining = if (isWeekendToday) "Rest & Recharge" else "Waiting for punch"
                     AttendanceAppWidgetProvider.saveWidgetCache(
                         applicationContext,
                         defaultWorkTime,
@@ -236,7 +241,8 @@ class AttendanceWorker(context: Context, workerParams: WorkerParameters) : Worke
                         0,
                         defaultRemaining,
                         "Last updated: " + AttendanceAppWidgetProvider.getCurrentTime(),
-                        actualExitTime = defaultExitTime
+                        actualExitTime = defaultExitTime,
+                        isClockedIn = false
                     )
                     sharedPrefs.edit()
                         .putLong(AttendanceSyncReceiver.KEY_LAST_SYNC_TIMESTAMP, System.currentTimeMillis())

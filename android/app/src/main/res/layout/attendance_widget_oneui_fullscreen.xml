@@ -1,0 +1,731 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_m3_surface_dark"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Top Studio Header: Beacon, Title, Sync Date, Status Pill & Refresh -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/img_oneui_status_dot"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_marginEnd="8dp"
+                android:contentDescription="Live Status Beacon"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_status_pulse_apple" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/widget_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.06"
+                    android:text="HRMS BIOMETRICS"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/widget_date_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Thu, 26 Nov • Live Sync"
+                    android:textColor="#94A3B8"
+                    android:textSize="11sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/widget_status_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/widget_pill_phase_jade"
+                android:letterSpacing="0.04"
+                android:maxLines="1"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="3.5dp"
+                android:paddingBottom="3.5dp"
+                android:singleLine="true"
+                android:text="CLOCKED IN"
+                android:textColor="#00E5A3"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/widget_btn_refresh"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/widget_oneui_btn_refresh"
+                android:contentDescription="Refresh attendance stats"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_refresh" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <!-- NORMAL FULL-SCREEN BIOMETRIC STATION -->
+    <LinearLayout
+        android:id="@+id/widget_normal_content"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:paddingTop="12dp">
+
+        <!-- Hero Instrument Band: Dual Concentric Ring + Large Tabular Hours -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingBottom="12dp">
+
+            <FrameLayout
+                android:layout_width="132dp"
+                android:layout_height="132dp"
+                android:layout_marginEnd="18dp">
+
+                <ImageView
+                    android:id="@+id/img_gauge_concentric"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="Dual Concentric Shift and Break Ring"
+                    android:scaleType="fitCenter" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/widget_progress_percent"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="87%"
+                        android:textColor="#00E5A3"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/widget_work_subtitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Goal"
+                        android:textColor="#94A3B8"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/widget_label_countdown"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.06"
+                    android:text="TIME AT DESK"
+                    android:textColor="#94A3B8"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/widget_work_time_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:letterSpacing="-0.03"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    android:text="7h 24m"
+                    android:textColor="#FFFFFF"
+                    android:textSize="34sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/widget_progress_remaining"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="1h 06m remaining"
+                    android:textColor="#00E5A3"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/widget_shift_goal_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:text="Shift Target: 8h 30m"
+                    android:textColor="#94A3B8"
+                    android:textSize="11.5sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <View
+            android:id="@+id/widget_hairline_1"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@drawable/widget_hairline_dark" />
+
+        <!-- 4 Key Numbers Hairline Telemetry Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/widget_label_first_in"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="First In"
+                    android:textColor="#94A3B8"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/widget_first_in_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    android:text="09:38 AM"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/widget_label_break"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Break"
+                    android:textColor="#94A3B8"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/widget_break_time_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    android:text="0h 25m"
+                    android:textColor="#FFB340"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/widget_label_exit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Est. Exit"
+                    android:textColor="#94A3B8"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/widget_exit_time_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    android:text="06:40 PM"
+                    android:textColor="#00E5A3"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/widget_label_actual"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Actual"
+                    android:textColor="#94A3B8"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/widget_actual_exit_time_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    android:text="06:05 PM"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <View
+            android:id="@+id/widget_hairline_2"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@drawable/widget_hairline_dark" />
+
+        <!-- Flighty-Style Live Shift Timeline Strip -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp">
+
+                <TextView
+                    android:id="@+id/widget_label_timeline_header"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:letterSpacing="0.06"
+                    android:text="SHIFT TIMELINE"
+                    android:textColor="#94A3B8"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/widget_avg_break_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:text="30d Break Avg: ~60m"
+                    android:textColor="#94A3B8"
+                    android:textSize="11sp" />
+            </RelativeLayout>
+
+            <ImageView
+                android:id="@+id/img_timeline_strip"
+                android:layout_width="match_parent"
+                android:layout_height="10dp"
+                android:contentDescription="Workday Timeline"
+                android:scaleType="fitXY" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp">
+
+                <TextView
+                    android:id="@+id/widget_timeline_start"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:text="09:38 AM"
+                    android:textColor="#94A3B8"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/widget_timeline_mid"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:text="Break 25m"
+                    android:textColor="#FFB340"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/widget_timeline_end"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:text="Est. 06:40 PM"
+                    android:textColor="#94A3B8"
+                    android:textSize="11sp" />
+            </RelativeLayout>
+        </LinearLayout>
+
+        <!-- Today's Biometric Punch Log Feed (Shown cleanly in Full-Screen / 4x4+) -->
+        <LinearLayout
+            android:id="@+id/widget_punch_feed_container"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:paddingTop="4dp">
+
+            <TextView
+                android:id="@+id/widget_label_punch_feed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:letterSpacing="0.06"
+                android:text="TODAY'S BIOMETRIC PUNCHES"
+                android:textColor="#94A3B8"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <!-- Punch Row 1 (Latest) -->
+            <RelativeLayout
+                android:id="@+id/punch_row_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/punch_dot_1"
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="8dp"
+                    android:src="@drawable/ic_status_pulse_apple" />
+
+                <TextView
+                    android:id="@+id/punch_title_1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_toEndOf="@id/punch_dot_1"
+                    android:layout_toStartOf="@id/punch_time_1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="Turnstile IN"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/punch_time_1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:text="01:35 PM"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </RelativeLayout>
+
+            <!-- Punch Row 2 -->
+            <RelativeLayout
+                android:id="@+id/punch_row_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/punch_dot_2"
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="8dp"
+                    android:src="@drawable/ic_status_pulse_apple" />
+
+                <TextView
+                    android:id="@+id/punch_title_2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_toEndOf="@id/punch_dot_2"
+                    android:layout_toStartOf="@id/punch_time_2"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="Turnstile OUT"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/punch_time_2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:text="01:10 PM"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </RelativeLayout>
+
+            <!-- Punch Row 3 -->
+            <RelativeLayout
+                android:id="@+id/punch_row_3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/punch_dot_3"
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="8dp"
+                    android:src="@drawable/ic_status_pulse_apple" />
+
+                <TextView
+                    android:id="@+id/punch_title_3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_toEndOf="@id/punch_dot_3"
+                    android:layout_toStartOf="@id/punch_time_3"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="Turnstile IN"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/punch_time_3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:text="09:38 AM"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </RelativeLayout>
+
+            <!-- Punch Row 4 -->
+            <RelativeLayout
+                android:id="@+id/punch_row_4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/punch_dot_4"
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="8dp"
+                    android:src="@drawable/ic_status_pulse_apple" />
+
+                <TextView
+                    android:id="@+id/punch_title_4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_toEndOf="@id/punch_dot_4"
+                    android:layout_toStartOf="@id/punch_time_4"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="First Punch IN"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/punch_time_4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:text="09:38 AM"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </RelativeLayout>
+        </LinearLayout>
+
+        <!-- Bottom Ergonomic Action Bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="8dp">
+
+            <TextView
+                android:id="@+id/widget_btn_open_app"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/widget_m3_surface_tonal_dark"
+                android:gravity="center"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:text="Open HRMS App"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_btn_timesheet"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/widget_pill_phase_jade"
+                android:gravity="center"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:text="Log Timesheet ↗"
+                android:textColor="#00E5A3"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- DEDICATED CONTEXTUAL CONTAINER (NO IN YET / NOT LOGGED IN / WFH / WEEK OFF) -->
+    <LinearLayout
+        android:id="@+id/widget_context_content"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/img_context_icon"
+            android:layout_width="68dp"
+            android:layout_height="68dp"
+            android:layout_marginBottom="14dp"
+            android:contentDescription="Status Icon"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_status_pulse_apple" />
+
+        <TextView
+            android:id="@+id/widget_context_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/widget_pill_phase_slate"
+            android:letterSpacing="0.06"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:text="NO IN YET"
+            android:textColor="#94A3B8"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/widget_context_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center"
+            android:text="Waiting for First Punch"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/widget_context_subtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center"
+            android:text="Yesterday's metrics were cleared at midnight.\nTap refresh after your morning turnstile punch."
+            android:textColor="#94A3B8"
+            android:textSize="12.5sp" />
+
+        <LinearLayout
+            android:id="@+id/widget_btn_context_action"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:background="@drawable/widget_pill_phase_slate"
+            android:gravity="center"
+            android:paddingStart="18dp"
+            android:paddingEnd="18dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp">
+
+            <TextView
+                android:id="@+id/widget_context_action_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Open HRMS Portal ↗"
+                android:textColor="#94A3B8"
+                android:textSize="12.5sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/widget_btn_refresh_context"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone" />
+    </LinearLayout>
+
+</LinearLayout>

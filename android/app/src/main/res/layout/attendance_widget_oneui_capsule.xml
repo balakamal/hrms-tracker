@@ -6,12 +6,12 @@
     android:background="@drawable/widget_m3_surface_dark"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:paddingStart="12dp"
-    android:paddingEnd="10dp"
-    android:paddingTop="5dp"
-    android:paddingBottom="5dp">
+    android:paddingStart="14dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="6dp"
+    android:paddingBottom="6dp">
 
-    <!-- NORMAL OFFICE CONTENT CONTAINER -->
+    <!-- NORMAL OFFICE CONTENT: Chrono Strip (Ring + Work + Segmented Timeline + Exit) -->
     <LinearLayout
         android:id="@+id/widget_normal_content"
         android:layout_width="match_parent"
@@ -19,71 +19,112 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <!-- Left: Status Beacon & Label + Break Chip -->
+        <!-- Left: Canvas Micro Ring + Work Time & Break -->
         <LinearLayout
-            android:id="@+id/widget_oneui_status_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <ImageView
-                android:id="@+id/img_oneui_status_dot"
-                android:layout_width="10dp"
-                android:layout_height="10dp"
-                android:layout_marginEnd="6dp"
-                android:contentDescription="Live Status Beacon"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_status_pulse_apple" />
+            <FrameLayout
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginEnd="10dp">
+
+                <ImageView
+                    android:id="@+id/img_gauge_ring"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:contentDescription="Shift Completion Ring"
+                    android:scaleType="fitCenter" />
+
+                <TextView
+                    android:id="@+id/widget_progress_percent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    android:text="87%"
+                    android:textColor="#00E5A3"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </FrameLayout>
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/widget_status_text"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:letterSpacing="0.04"
-                    android:maxLines="1"
-                    android:singleLine="true"
-                    android:text="CLOCKED IN"
-                    android:textColor="#00E5A3"
-                    android:textSize="11sp"
-                    android:textStyle="bold" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-                <!-- Integrated Live Break Time Chip -->
+                    <ImageView
+                        android:id="@+id/img_oneui_status_dot"
+                        android:layout_width="8dp"
+                        android:layout_height="8dp"
+                        android:layout_marginEnd="5dp"
+                        android:contentDescription="Live Status Beacon"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_status_pulse_apple" />
+
+                    <TextView
+                        android:id="@+id/widget_work_time_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:letterSpacing="-0.02"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:text="7h 24m"
+                        android:textColor="#FFFFFF"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
                 <LinearLayout
-                    android:id="@+id/widget_break_pill"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="1dp"
-                    android:background="@drawable/widget_pill_phase_amber"
                     android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingStart="5dp"
-                    android:paddingEnd="5dp"
-                    android:paddingTop="1dp"
-                    android:paddingBottom="1dp">
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/widget_first_in_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:text="09:38 AM"
+                        android:textColor="#94A3B8"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/widget_label_break"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" • ☕ "
+                        android:textColor="#94A3B8"
+                        android:textSize="11sp" />
 
                     <TextView
                         android:id="@+id/widget_break_time_value"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:ellipsize="end"
                         android:maxLines="1"
                         android:singleLine="true"
-                        android:text="☕ 0h 25m"
+                        android:text="0h 25m"
                         android:textColor="#FFB340"
-                        android:textSize="9.5sp"
+                        android:textSize="11sp"
                         android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Center: Primary Work Metric & 4-Phase Progress Track -->
+        <!-- Center: Segmented Flighty Timeline + Remaining -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -93,51 +134,28 @@
             android:gravity="center"
             android:orientation="vertical">
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/widget_progress_remaining"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:text="1h 06m left"
+                android:textColor="#00E5A3"
+                android:textSize="11sp"
+                android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/widget_work_time_value"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:letterSpacing="-0.03"
-                    android:maxLines="1"
-                    android:singleLine="true"
-                    android:text="5h 23m"
-                    android:textColor="#FFFFFF"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/widget_progress_percent"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:singleLine="true"
-                    android:text="63%"
-                    android:textColor="#00E5A3"
-                    android:textSize="11sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <ProgressBar
-                android:id="@+id/widget_progress_bar"
-                style="?android:attr/progressBarStyleHorizontal"
+            <ImageView
+                android:id="@+id/img_timeline_strip"
                 android:layout_width="match_parent"
-                android:layout_height="4.5dp"
-                android:layout_marginTop="2dp"
-                android:max="100"
-                android:progress="63"
-                android:progressDrawable="@drawable/widget_progress_expressive" />
+                android:layout_height="8dp"
+                android:layout_marginTop="4dp"
+                android:contentDescription="Shift Progress Timeline"
+                android:scaleType="fitXY" />
         </LinearLayout>
 
-        <!-- Right: Exit Time & Frameless Refresh FAB -->
+        <!-- Right: Est Exit + Actual Exit + Refresh -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -155,40 +173,52 @@
                     android:id="@+id/widget_exit_time_value"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:ellipsize="end"
                     android:maxLines="1"
                     android:singleLine="true"
-                    android:text="06:05 PM"
-                    android:textColor="#FFFFFF"
-                    android:textSize="13sp"
+                    android:text="06:40 PM"
+                    android:textColor="#00E5A3"
+                    android:textSize="13.5sp"
                     android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/widget_progress_remaining"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:singleLine="true"
-                    android:text="3h 07m left"
-                    android:textColor="#00E5A3"
-                    android:textSize="10.5sp" />
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/widget_label_actual"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Act "
+                        android:textColor="#94A3B8"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/widget_actual_exit_time_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:text="06:05 PM"
+                        android:textColor="#94A3B8"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
             </LinearLayout>
 
             <ImageButton
                 android:id="@+id/widget_btn_refresh"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
                 android:background="@drawable/widget_oneui_btn_refresh"
                 android:contentDescription="Refresh attendance stats"
-                android:padding="6dp"
+                android:padding="7dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_refresh" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- DEDICATED CONTEXTUAL CONTAINER (WFH & WEEK OFF) -->
-    <!-- Displayed when isWfh or isWeekOff is true: zero empty clock slots -->
+    <!-- DEDICATED CONTEXTUAL CONTAINER (NO IN YET / NOT LOGGED IN / WFH / WEEK OFF) -->
     <LinearLayout
         android:id="@+id/widget_context_content"
         android:layout_width="match_parent"
@@ -199,12 +229,12 @@
 
         <ImageView
             android:id="@+id/img_context_icon"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:layout_marginEnd="10dp"
-            android:contentDescription="Context Icon"
+            android:contentDescription="Status Icon"
             android:scaleType="fitCenter"
-            android:src="@drawable/ic_wfh_home" />
+            android:src="@drawable/ic_status_pulse_apple" />
 
         <LinearLayout
             android:layout_width="0dp"
@@ -213,27 +243,32 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/widget_context_title"
+                android:id="@+id/widget_context_badge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:singleLine="true"
-                android:text="Working From Home"
-                android:textColor="#FFB340"
-                android:textSize="13sp"
+                android:background="@drawable/widget_pill_phase_slate"
+                android:letterSpacing="0.05"
+                android:paddingStart="7dp"
+                android:paddingEnd="7dp"
+                android:paddingTop="1.5dp"
+                android:paddingBottom="1.5dp"
+                android:text="NO IN YET"
+                android:textColor="#94A3B8"
+                android:textSize="11sp"
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/widget_context_subtitle"
+                android:id="@+id/widget_context_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:singleLine="true"
-                android:text="Turnstiles paused • Timesheet mode"
-                android:textColor="#94A3B8"
-                android:textSize="10.5sp" />
+                android:text="Waiting for First Punch"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
         <TextView
@@ -241,26 +276,23 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="6dp"
-            android:background="@drawable/widget_pill_phase_amber"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            android:paddingTop="4dp"
-            android:paddingBottom="4dp"
-            android:singleLine="true"
-            android:text="Timesheet ↗"
-            android:textColor="#FFB340"
-            android:textSize="10.5sp"
+            android:background="@drawable/widget_pill_phase_slate"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:text="Open ↗"
+            android:textColor="#94A3B8"
+            android:textSize="11sp"
             android:textStyle="bold" />
 
         <ImageButton
             android:id="@+id/widget_btn_refresh_context"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
             android:background="@drawable/widget_oneui_btn_refresh"
             android:contentDescription="Refresh attendance stats"
-            android:padding="6dp"
+            android:padding="7dp"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_refresh" />
     </LinearLayout>

@@ -2093,6 +2093,7 @@
             <div class="at-presence-row">
               <span class="at-status-indicator at-status-out" id="at-status-indicator"></span>
               <span class="at-status-text" id="at-status-text">Determining status...</span>
+              <span id="at-no-in-badge" style="display:none; align-items:center; gap:4px; font-size:10px; font-weight:800; letter-spacing:0.04em; color:#94A3B8; background: rgba(148, 163, 184, 0.16); border: 1px solid rgba(148, 163, 184, 0.35); padding: 2px 7px; border-radius: 12px; margin-left: 4px; text-transform:uppercase;">NO IN YET</span>
               <span id="at-wfh-badge" style="display:${state.isWfh ? "inline-flex" : "none"}; align-items:center; gap:4px; font-size:11px; font-weight:700; color:#F59E0B; background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.35); padding: 2px 8px; border-radius: 12px; margin-left: 4px;"><span style="display:inline-block; width:10px; height:10px; fill:#F59E0B;">${ICONS.home}</span> WFH</span>
             </div>
           </div>
@@ -3351,8 +3352,11 @@
       actualExitSubEl.innerText = `Pure ${formatMinutes(targetMin)} work goal`;
     }
 
+    const noInBadge = elements.card ? elements.card.querySelector("#at-no-in-badge") : null;
+
     if (!metrics) {
       // Office day, but no biometric turnstile punches recorded yet today
+      if (noInBadge) noInBadge.style.display = "inline-flex";
       if (workTimeEl) {
         workTimeEl.innerText = "--h --m";
         workTimeEl.style.color = phaseColor;
@@ -3370,7 +3374,7 @@
         progressRingText.innerText = "0%";
         progressRingText.style.color = phaseColor;
       }
-      if (statusTextEl) statusTextEl.innerText = "No attendance logs today";
+      if (statusTextEl) statusTextEl.innerText = "Waiting for first punch";
       if (indicator) {
         indicator.className = "at-status-indicator at-status-out";
       }
@@ -3386,29 +3390,20 @@
       if (exitTimeEl) exitTimeEl.innerText = "--:--";
       if (subExitDescEl) subExitDescEl.innerText = "with est. break";
 
-      if (badgeTimeEl) badgeTimeEl.innerText = "--h --m";
+      if (badgeTimeEl) badgeTimeEl.innerText = "NO IN YET";
       if (badgeDotEl) {
         badgeDotEl.className = "at-badge-dot at-dot-out";
         badgeDotEl.style.background = phaseColor;
         badgeDotEl.style.boxShadow = `0 0 10px ${phaseGlow}`;
       }
       if (badgeExitGroup) {
-        badgeExitGroup.innerHTML = `
-          <span class="at-badge-exit-item at-badge-act" title="Actual Exit">
-            <span class="at-badge-tag tag-act">ACT</span>
-            <span class="at-badge-sub">--:--</span>
-          </span>
-          <span class="at-badge-exit-sep">•</span>
-          <span class="at-badge-exit-item at-badge-est" title="Projected Exit">
-            <span class="at-badge-tag tag-est">EST</span>
-            <span class="at-badge-sub">--:--</span>
-          </span>
-        `;
+        badgeExitGroup.innerHTML = `<span class="at-badge-sub">Waiting for punch</span>`;
       }
       return;
     }
 
     // Biometric logs exist:
+    if (noInBadge) noInBadge.style.display = "none";
     if (workTimeEl) {
       workTimeEl.innerText = formatMinutes(metrics.workMinutes);
       workTimeEl.style.color = phaseColor;
