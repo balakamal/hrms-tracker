@@ -160,11 +160,11 @@ open class AttendanceAppWidgetProvider : AppWidgetProvider() {
                 it.key.width <= target.width + 1f && it.key.height <= target.height + 1f
             }
             if (fitting.isNotEmpty()) {
-                return fitting.maxByOrNull { it.key.width * it.key.height } ?: fitting.first()
+                return fitting.maxBy { it.key.width * it.key.height }
             }
-            return sizeMap.entries.minByOrNull {
+            return sizeMap.entries.minBy {
                 Math.abs(it.key.width - target.width) + Math.abs(it.key.height - target.height)
-            } ?: sizeMap.entries.first()
+            }
         }
 
         /**
